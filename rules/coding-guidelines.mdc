@@ -1,0 +1,27 @@
+---
+description: coding guidelines - Read before editing code
+globs:
+alwaysApply: false
+---
+## Be Transparent
+Explain what you are doing to the user so they can follow along. Stop after every task to ask for approval. During a task, stop every 4 edits to ask for approval before continuing. This will prevent us having to backtrack
+
+# Follow the plan
+When writing code, you should have a detailled architectural plan and task breakdown in [PLAN.md](mdc:PLAN.md). Follow the plan. Any modification to the plan must be explicitely approved by the user and the modification added to the plan.
+
+## Build a clean architecture
+### Respect class boundary
+The architecture documents will list the expected dependancies of the class. Do not add other dependancies. If you believe a dependancy have been forgotten, ask the user for confirmation.
+
+### Don't repeat yourself
+Reuse code whenever you can. Notice repeated code that can factored out to its own method.
+
+### Exception handling is its own responsability
+Do not use try clauses in every class. Service class are responsable for logging exception errors and managing most faillure mode. Only use try clauses in other classes if catching faillure at that level enable a desired behavior for the class.
+
+## Coding standards
+### Type hints
+All parameters and function signature should include complete type hints
+
+### Absolute import
+Always uses absolute import. Do not use relative imports.

@@ -1,0 +1,65 @@
+# Core Game Rules
+# This file defines the fundamental mechanics of the boss battle system
+
+turn_structure:
+  phases:
+    - player_phase
+    - monster_phase
+  description: >
+    Each round consists of a Player Phase where all characters act,
+    followed by a Monster Phase where the boss takes its actions.
+
+movement:
+  type: manhattan
+  difficult_terrain_cost: 2
+  description: >
+    Movement is measured in tiles using Manhattan distance (no diagonals).
+    Each point of Speed allows moving 1 tile. Difficult terrain costs
+    2 movement to enter.
+
+combat:
+  attack_roll: null  # Currently auto-hit, roll damage directly
+  damage_reduction: armor
+  description: >
+    Attacks automatically hit. Roll damage dice and subtract the target's
+    Armor value. Minimum damage is 0.
+
+actions:
+  per_turn:
+    move: 1
+    action: 1
+  description: >
+    Each character may Move once and take one Action per turn.
+    Actions include: Attack, Use Ability, or Interact.
+
+conditions:
+  staggered:
+    name: Staggered
+    effect: "Cannot take Actions until end of next turn"
+    duration: "1 turn"
+
+  prone:
+    name: Prone
+    effect: "Movement costs doubled. Melee attacks against you have advantage."
+    duration: "Until you spend movement to stand"
+
+  burning:
+    name: Burning
+    effect: "Take 1d4 damage at the start of your turn"
+    duration: "Until extinguished (action) or 3 turns"
+
+  enraged:
+    name: Enraged
+    effect: "+2 damage to all attacks, -1 Armor"
+    duration: "Until end of combat"
+
+  bleeding:
+    name: Bleeding
+    effect: "Take 1 damage at the start of your turn"
+    duration: "Until healed or 5 turns"
+
+rulebook_notes: >
+  The core loop is simple: players coordinate their movements and attacks
+  to whittle down the boss while avoiding its devastating attacks.
+  Positioning is key - being in the wrong place when the boss attacks
+  can be fatal.

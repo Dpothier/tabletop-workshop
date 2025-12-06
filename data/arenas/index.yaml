@@ -1,0 +1,146 @@
+# Arena Index
+# Battle arenas with different terrain and hazards
+
+arenas:
+  - name: Stone Arena
+    description: >
+      A simple circular arena with minimal hazards.
+      Perfect for learning the basics.
+    width: 8
+    height: 8
+    playerSpawns:
+      - { x: 1, y: 6 }
+      - { x: 2, y: 6 }
+      - { x: 1, y: 5 }
+      - { x: 2, y: 5 }
+    monsterSpawn: { x: 4, y: 2 }
+    terrain:
+      - [normal, normal, normal, normal, normal, normal, normal, normal]
+      - [normal, normal, normal, normal, normal, normal, normal, normal]
+      - [normal, normal, normal, normal, normal, normal, normal, normal]
+      - [normal, normal, normal, normal, normal, normal, normal, normal]
+      - [normal, normal, normal, normal, normal, normal, normal, normal]
+      - [normal, normal, normal, normal, normal, normal, normal, normal]
+      - [normal, normal, normal, normal, normal, normal, normal, normal]
+      - [normal, normal, normal, normal, normal, normal, normal, normal]
+    rulebook_notes: >
+      The Stone Arena is a training ground with no environmental hazards.
+      Focus on learning monster patterns here.
+
+  - name: Crumbling Bridge
+    description: >
+      A narrow bridge with deadly drops on either side.
+      Position carefully or fall to your doom.
+    width: 10
+    height: 6
+    playerSpawns:
+      - { x: 1, y: 2 }
+      - { x: 1, y: 3 }
+      - { x: 2, y: 2 }
+      - { x: 2, y: 3 }
+    monsterSpawn: { x: 7, y: 2 }
+    terrain:
+      - [pit, pit, normal, normal, normal, normal, normal, normal, pit, pit]
+      - [pit, normal, normal, normal, normal, normal, normal, normal, normal, pit]
+      - [normal, normal, normal, normal, normal, normal, normal, normal, normal, normal]
+      - [normal, normal, normal, normal, normal, normal, normal, normal, normal, normal]
+      - [pit, normal, normal, normal, normal, normal, normal, normal, normal, pit]
+      - [pit, pit, normal, normal, normal, normal, normal, normal, pit, pit]
+    hazards:
+      - type: pit
+        positions:
+          - { x: 0, y: 0 }
+          - { x: 1, y: 0 }
+          - { x: 0, y: 1 }
+          - { x: 8, y: 0 }
+          - { x: 9, y: 0 }
+          - { x: 9, y: 1 }
+          - { x: 0, y: 4 }
+          - { x: 0, y: 5 }
+          - { x: 1, y: 5 }
+          - { x: 8, y: 5 }
+          - { x: 9, y: 4 }
+          - { x: 9, y: 5 }
+        effect: "Instant death. Cannot be entered voluntarily."
+    rulebook_notes: >
+      The Crumbling Bridge forces careful positioning. Knockback effects
+      are deadly here. Keep away from the edges!
+
+  - name: Lava Chamber
+    description: >
+      A volcanic cave with pools of molten rock.
+      The floor itself is your enemy.
+    width: 8
+    height: 8
+    playerSpawns:
+      - { x: 0, y: 4 }
+      - { x: 0, y: 3 }
+      - { x: 1, y: 4 }
+      - { x: 1, y: 3 }
+    monsterSpawn: { x: 6, y: 3 }
+    terrain:
+      - [normal, normal, hazard, hazard, hazard, normal, normal, normal]
+      - [normal, normal, normal, hazard, hazard, normal, normal, normal]
+      - [normal, normal, normal, normal, normal, normal, hazard, normal]
+      - [normal, normal, normal, normal, normal, normal, normal, normal]
+      - [normal, normal, normal, normal, normal, normal, normal, normal]
+      - [normal, normal, hazard, normal, normal, normal, normal, hazard]
+      - [normal, hazard, hazard, normal, normal, normal, hazard, hazard]
+      - [normal, normal, hazard, normal, normal, hazard, hazard, normal]
+    hazards:
+      - type: lava
+        positions:
+          - { x: 2, y: 0 }
+          - { x: 3, y: 0 }
+          - { x: 4, y: 0 }
+          - { x: 3, y: 1 }
+          - { x: 4, y: 1 }
+          - { x: 6, y: 2 }
+          - { x: 2, y: 5 }
+          - { x: 7, y: 5 }
+          - { x: 1, y: 6 }
+          - { x: 2, y: 6 }
+          - { x: 6, y: 6 }
+          - { x: 7, y: 6 }
+          - { x: 2, y: 7 }
+          - { x: 5, y: 7 }
+          - { x: 6, y: 7 }
+        effect: "2d6 fire damage when entered. Burning condition applied."
+    rulebook_notes: >
+      The Lava Chamber adds environmental damage to the mix. Plan your
+      routes carefully - sometimes the long way around is safer.
+
+  - name: Throne Room
+    description: >
+      An ancient king's throne room with pillars providing cover
+      but limiting movement.
+    width: 10
+    height: 8
+    playerSpawns:
+      - { x: 1, y: 6 }
+      - { x: 2, y: 6 }
+      - { x: 1, y: 7 }
+      - { x: 2, y: 7 }
+    monsterSpawn: { x: 5, y: 1 }
+    terrain:
+      - [normal, normal, normal, normal, elevated, elevated, normal, normal, normal, normal]
+      - [normal, normal, normal, normal, normal, normal, normal, normal, normal, normal]
+      - [normal, normal, difficult, normal, normal, normal, normal, difficult, normal, normal]
+      - [normal, normal, normal, normal, normal, normal, normal, normal, normal, normal]
+      - [normal, difficult, normal, normal, normal, normal, normal, normal, difficult, normal]
+      - [normal, normal, normal, normal, normal, normal, normal, normal, normal, normal]
+      - [normal, normal, difficult, normal, normal, normal, normal, difficult, normal, normal]
+      - [normal, normal, normal, normal, normal, normal, normal, normal, normal, normal]
+    hazards:
+      - type: pillar
+        positions:
+          - { x: 2, y: 2 }
+          - { x: 7, y: 2 }
+          - { x: 1, y: 4 }
+          - { x: 8, y: 4 }
+          - { x: 2, y: 6 }
+          - { x: 7, y: 6 }
+        effect: "Blocks line of sight. Provides cover (+1 armor) when adjacent."
+    rulebook_notes: >
+      The Throne Room's pillars can save your life. Use them to block
+      line-of-sight attacks, but beware - the boss may simply walk around.

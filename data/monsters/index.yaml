@@ -1,0 +1,128 @@
+# Monster Index
+# All available boss monsters for battle
+
+monsters:
+  - name: Stone Guardian
+    description: >
+      An ancient construct awakened to protect forgotten ruins.
+      Slow but devastating, it punishes poor positioning.
+    stats:
+      health: 80
+      armor: 3
+      speed: 1
+    phases:
+      - threshold: "100%"
+        behavior: defensive
+        attacks: [stone_slam, rock_throw]
+      - threshold: "50%"
+        behavior: aggressive
+        attacks: [stone_slam, rock_throw, earthquake]
+        special: "Gains Enraged condition"
+    attacks:
+      stone_slam:
+        name: Stone Slam
+        range: 1
+        damage: "3d6"
+        effect: "Target is Staggered"
+      rock_throw:
+        name: Rock Throw
+        range: 4
+        damage: "2d6"
+        effect: null
+      earthquake:
+        name: Earthquake
+        range: 0
+        area: "3-tile radius"
+        damage: "2d6"
+        effect: "All characters must pass Agility check or fall Prone"
+    rulebook_notes: >
+      The Stone Guardian is an introductory boss. Learn to read its
+      attacks and position accordingly. When it reaches 50% health,
+      its Earthquake attack demands the party spread out.
+
+  - name: Flame Giant
+    description: >
+      A towering inferno given form. Its attacks leave burning
+      ground that punishes positioning mistakes.
+    stats:
+      health: 100
+      armor: 2
+      speed: 2
+    phases:
+      - threshold: "100%"
+        behavior: cautious
+        attacks: [crushing_slam, flame_breath]
+      - threshold: "60%"
+        behavior: aggressive
+        attacks: [crushing_slam, flame_breath, ground_pound]
+        special: "Speed increases to 3"
+      - threshold: "30%"
+        behavior: desperate
+        attacks: [crushing_slam, flame_breath, ground_pound, inferno]
+        special: "All attacks deal +2 damage"
+    attacks:
+      crushing_slam:
+        name: Crushing Slam
+        range: 1
+        damage: "3d6"
+        effect: "Target is Staggered"
+      flame_breath:
+        name: Flame Breath
+        range: 3
+        area: "cone (3 tiles)"
+        damage: "2d6"
+        effect: "Creates Burning terrain for 2 turns"
+      ground_pound:
+        name: Ground Pound
+        range: 0
+        area: "2-tile radius"
+        damage: "2d6+2"
+        effect: "All characters must pass Agility check or fall Prone"
+      inferno:
+        name: Inferno
+        range: 0
+        area: "entire arena"
+        damage: "1d6"
+        effect: "All non-hazard tiles become Burning terrain"
+    rulebook_notes: >
+      The Flame Giant tests party coordination. Spread out to avoid
+      Flame Breath, but stay close enough to support allies targeted
+      by Crushing Slam. Watch for phase transitions.
+
+  - name: Shadow Stalker
+    description: >
+      A creature of pure darkness that strikes from the shadows.
+      Fast and deadly, but fragile when exposed.
+    stats:
+      health: 60
+      armor: 0
+      speed: 4
+    phases:
+      - threshold: "100%"
+        behavior: ambush
+        attacks: [shadow_strike, vanish]
+      - threshold: "50%"
+        behavior: frenzied
+        attacks: [shadow_strike, shadow_barrage, vanish]
+        special: "Can Vanish twice per round"
+    attacks:
+      shadow_strike:
+        name: Shadow Strike
+        range: 1
+        damage: "4d6"
+        effect: "Target is Bleeding"
+      shadow_barrage:
+        name: Shadow Barrage
+        range: 2
+        area: "3 random targets"
+        damage: "2d6"
+        effect: null
+      vanish:
+        name: Vanish
+        range: 0
+        damage: "0"
+        effect: "Teleport to any unoccupied tile. Next attack deals +1d6"
+    rulebook_notes: >
+      The Shadow Stalker is a test of reaction and prediction. It hits
+      hard but can't take a hit. Corner it before it escapes, but beware
+      its devastating counter-attacks.

@@ -1,0 +1,11 @@
+---
+description: reorganising guidelines - Read before reorganising the codebase by moving files around
+globs:
+alwaysApply: false
+---
+# Use the right tools
+Use the right tools to reorganise the codebase.
+ - Use command line tools to move files and directories.
+ - Use the writing tools only to edit files:
+    - Update references in code
+    - Update documentation
