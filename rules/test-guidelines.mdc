@@ -1,27 +1,38 @@
 ---
-description: Guideline as to how to write tests. Read this before adding or modifying tests
+description: Guideline for writing tests - Read before adding or modifying tests
 globs:
 alwaysApply: false
 ---
-## BDD
-All tests use the BDD format with Gherkin feature files in `features/`.
+## TDD: Tests Come FIRST
 
-### Framework selection
-- **Unit/Integration tests** (`features/unit/`, `features/integration/`): Use **quickpickle** with vitest. Steps in `tests/steps/`. Run with `npm run test:unit`.
-- **E2E tests** (`features/e2e/`): Use **playwright-bdd** with Playwright. Steps in `tests/e2e/steps/`. Run with `npm run test:e2e`.
+Write tests BEFORE production code. See [coding-guidelines.mdc](mdc:rules/coding-guidelines.mdc).
 
-### Step definitions
-All step definitions must have valid TypeScript types on parameters and return types.
+| Task | Workflow |
+|------|----------|
+| New feature | Write scenario → verify it fails → write minimal code to pass |
+| Modify feature | Update scenario first → verify failure → update code |
+| Fix bug | Write scenario reproducing bug → verify failure → fix |
 
-## Test cases
-Test cases should focus on behavior and NOT on implementation details. If a method underlying code changes without impact on visible behavior, it should not break tests. This is why we limit mock usage to the minimum needed
+## BDD Framework
 
-## Mock usage
-Mocks usage must be reduced to its minimum. Limit mock usage to outside dependancies that we do not want to call during automated testing, such as databases and apis. Mocking of user code should be extremely rare. If you believe it to be necessary, validate with the user.
+- **Unit/Integration** (`features/unit/`, `features/integration/`): quickpickle + vitest. Steps in `tests/steps/`. Run: `npm run test:unit`
+- **E2E** (`features/e2e/`): playwright-bdd. Steps in `tests/e2e/steps/`. Run: `npm run test:e2e`
 
-## Changing the codebase
-Do not add something to the codebase simply because a test fail. Reflect as to what the correct behavior should be. If in doubt, ask the user.
+## Writing Scenarios
 
-Example: If your test try to pass a None value to a function that do not accept None value, DO NOT CHANGE THE FUNCTION TO ACCEPT NONE, change or remove the test.
+- **Behavior, not implementation**: Test WHAT, not HOW
+- **One behavior per scenario**: Small cycles, easy diagnosis
+- **Concrete examples**: Specific values, not vague descriptions
+- **Typed step definitions**: All parameters and returns must have types
 
-Do not add production code solely for test purposes. If you need set up code, let it live in the tests folder.
+## Mocks
+
+Minimize mocks. Only mock external dependencies (APIs, databases). Mocking user code is rare—ask first.
+
+## When Tests Fail
+
+- **After you wrote it (RED phase)**: Expected. Now write code to pass.
+- **Unexpectedly**: STOP. Investigate before changing anything.
+- **Wrong test assumption**: Fix the test, not the code. Example: test passes None to function that doesn't accept None → fix test, don't change function.
+
+Test setup code lives in `tests/`, not production code.
