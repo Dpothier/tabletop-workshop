@@ -19,12 +19,22 @@ Following PRD v4 implementation order.
 
 ---
 
-## Step 2: Monster Bead Bag AI ⏳ PENDING
+## Step 2: Monster Bead Bag AI ✅ COMPLETE
 
-- [ ] Create `BeadBag` system class
-- [ ] Create `MonsterStateMachine` class
-- [ ] Update monster data schema
-- [ ] Unit tests for bead mechanics
+### Completed
+- [x] Create `BeadBag` system class (`src/systems/BeadBag.ts`)
+- [x] Create `MonsterStateMachine` class (`src/systems/MonsterStateMachine.ts`)
+- [x] Update monster data schema (beads, states, start_state)
+- [x] Unit tests for bead mechanics (`features/unit/bead-bag.feature` - 14 scenarios)
+- [x] Unit tests for state machine (`features/unit/monster-state-machine.feature` - 11 scenarios)
+- [x] Integrate with MonsterToken and MonsterAI
+- [x] Add Bead Guardian test monster
+
+### Implementation Details
+- BeadBag: draw, peek, auto-reshuffle when empty
+- MonsterStateMachine: color-based state transitions
+- 4 bead colors: red, blue, green, white
+- States define damage, wheel_cost, range, area, transitions
 
 ---
 
@@ -126,9 +136,9 @@ Following PRD v4 implementation order.
 ## Test Results
 
 ```
-Unit/Integration Tests: 88 passed
+Unit/Integration Tests: 113 passed
 E2E Tests: 8 passed
-Total: 96 tests passing
+Total: 121 tests passing
 ```
 
 ---
@@ -146,16 +156,18 @@ Total: 96 tests passing
 ```
 src/
 ├── systems/
-│   ├── ActionWheel.ts       # Action wheel turn order (Step 1)
-│   ├── GridSystem.ts        # Grid coordinate conversion
-│   ├── MovementValidator.ts # Movement validation
-│   ├── CombatResolver.ts    # Combat resolution
-│   ├── MonsterAI.ts         # Monster AI decisions
-│   ├── DiceRoller.ts        # Dice rolling
-│   ├── TurnManager.ts       # Turn tracking (to be replaced Step 4)
-│   └── DataLoader.ts        # Data loading
+│   ├── ActionWheel.ts        # Action wheel turn order (Step 1)
+│   ├── BeadBag.ts            # Bead drawing system (Step 2)
+│   ├── MonsterStateMachine.ts# Monster state transitions (Step 2)
+│   ├── GridSystem.ts         # Grid coordinate conversion
+│   ├── MovementValidator.ts  # Movement validation
+│   ├── CombatResolver.ts     # Combat resolution
+│   ├── MonsterAI.ts          # Monster AI decisions
+│   ├── DiceRoller.ts         # Dice rolling
+│   ├── TurnManager.ts        # Turn tracking (to be replaced Step 4)
+│   └── DataLoader.ts         # Data loading
 ├── entities/
-│   └── Token.ts             # Token entities
+│   └── Token.ts              # Token entities
 └── scenes/
-    └── BattleScene.ts       # Scene orchestrator
+    └── BattleScene.ts        # Scene orchestrator
 ```
