@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { CharacterClass, Monster, MonsterPhase } from '@src/systems/DataLoader';
 import { BeadBag } from '@src/systems/BeadBag';
 import { MonsterStateMachine, MonsterStateDefinition } from '@src/systems/MonsterStateMachine';
+import { PlayerBeadHand } from '@src/systems/PlayerBeadHand';
 
 export abstract class Token {
   public sprite: Phaser.GameObjects.Container;
@@ -50,6 +51,7 @@ export class CharacterToken extends Token {
   public characterClass: CharacterClass;
   public hasMoved = false;
   public hasActed = false;
+  public beadHand?: PlayerBeadHand;
   private color: number;
   private background!: Phaser.GameObjects.Arc;
   private selectionRing!: Phaser.GameObjects.Arc;
@@ -133,6 +135,21 @@ export class CharacterToken extends Token {
 
     this.healthBar.fillStyle(color);
     this.healthBar.fillRect(-20, 17, barWidth, 6);
+  }
+
+  /**
+   * Initialize the player bead hand system.
+   * Creates a new PlayerBeadHand with default bead counts (3 of each color).
+   */
+  initializeBeadHand(): void {
+    this.beadHand = new PlayerBeadHand();
+  }
+
+  /**
+   * Check if this character has a bead hand system initialized.
+   */
+  hasBeadHand(): boolean {
+    return this.beadHand !== undefined;
   }
 }
 

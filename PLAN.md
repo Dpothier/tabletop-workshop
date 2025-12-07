@@ -38,11 +38,20 @@ Following PRD v4 implementation order.
 
 ---
 
-## Step 3: Player Bead System ⏳ PENDING
+## Step 3: Player Bead System ✅ COMPLETE
 
-- [ ] Create `PlayerBeadHand` class
-- [ ] Unit tests for hand management
-- [ ] Integrate with character tokens
+### Completed
+- [x] Create `PlayerBeadHand` class (`src/systems/PlayerBeadHand.ts`)
+- [x] Unit tests for hand management (`features/unit/player-bead-hand.feature` - 19 scenarios)
+- [x] Integrate with `CharacterToken` (beadHand property, initializeBeadHand(), hasBeadHand())
+
+### Implementation Details
+- Three pools: bag, hand, discard
+- Default: 3 beads of each color (12 total)
+- `drawToHand(count)`: Moves beads from bag to hand
+- `spend(color)`: Moves bead from hand to discard
+- `canAfford(costs)`: Checks if hand has required beads
+- Auto-reshuffle when bag empties
 
 ---
 
@@ -136,9 +145,9 @@ Following PRD v4 implementation order.
 ## Test Results
 
 ```
-Unit/Integration Tests: 113 passed
+Unit/Integration Tests: 132 passed
 E2E Tests: 8 passed
-Total: 121 tests passing
+Total: 140 tests passing
 ```
 
 ---
@@ -159,6 +168,7 @@ src/
 │   ├── ActionWheel.ts        # Action wheel turn order (Step 1)
 │   ├── BeadBag.ts            # Bead drawing system (Step 2)
 │   ├── MonsterStateMachine.ts# Monster state transitions (Step 2)
+│   ├── PlayerBeadHand.ts     # Player bead hand management (Step 3)
 │   ├── GridSystem.ts         # Grid coordinate conversion
 │   ├── MovementValidator.ts  # Movement validation
 │   ├── CombatResolver.ts     # Combat resolution
@@ -167,7 +177,7 @@ src/
 │   ├── TurnManager.ts        # Turn tracking (to be replaced Step 4)
 │   └── DataLoader.ts         # Data loading
 ├── entities/
-│   └── Token.ts              # Token entities
+│   └── Token.ts              # Token entities (CharacterToken has beadHand)
 └── scenes/
     └── BattleScene.ts        # Scene orchestrator
 ```

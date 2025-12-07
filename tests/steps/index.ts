@@ -13,3 +13,4 @@ import './monster-ai.steps';
 import './action-wheel.steps';
 import './bead-bag.steps';
 import './monster-state-machine.steps';
+import './player-bead-hand.steps';

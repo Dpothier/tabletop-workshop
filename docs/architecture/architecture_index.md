@@ -9,6 +9,7 @@ This document indexes all architecture documentation for the tabletop workshop p
 | ActionWheel | Turn order management using 8-segment wheel | [action-wheel.md](./action-wheel.md) |
 | BeadBag | Probabilistic bead drawing for monster AI | [bead-system.md](./bead-system.md) |
 | MonsterStateMachine | State transitions driven by bead colors | [bead-system.md](./bead-system.md) |
+| PlayerBeadHand | Player bead bag, hand, and discard management | [bead-system.md](./bead-system.md) |
 | GridSystem | Hex grid coordinate conversion and validation | - |
 | MovementValidator | Movement validation with occupation checks | - |
 | CombatResolver | Attack resolution and damage calculation | - |
