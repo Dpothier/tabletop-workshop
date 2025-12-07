@@ -1,4 +1,5 @@
 import yaml from 'js-yaml';
+import type { BeadCounts } from '@src/systems/BeadBag';
 
 export interface CharacterClass {
   name: string;
@@ -38,6 +39,25 @@ export interface MonsterPhase {
   special?: string;
 }
 
+// Re-export BeadCounts for consumers that import from DataLoader
+export type { BeadCounts } from '@src/systems/BeadBag';
+
+/**
+ * A state in the monster's bead-based state machine
+ */
+export interface MonsterStateDefinition {
+  damage?: number;
+  wheel_cost?: number;
+  range?: number;
+  area?: string;
+  transitions: {
+    red: string;
+    blue: string;
+    green: string;
+    white: string;
+  };
+}
+
 export interface Monster {
   name: string;
   description?: string;
@@ -49,6 +69,10 @@ export interface Monster {
   phases?: MonsterPhase[];
   attacks: Record<string, MonsterAttack>;
   rulebook_notes?: string;
+  // Bead-based AI system (optional - for new combat system)
+  beads?: BeadCounts;
+  start_state?: string;
+  states?: Record<string, MonsterStateDefinition>;
 }
 
 export interface Arena {

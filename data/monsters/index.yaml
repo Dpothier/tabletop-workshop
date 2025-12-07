@@ -126,3 +126,77 @@ monsters:
       The Shadow Stalker is a test of reaction and prediction. It hits
       hard but can't take a hit. Corner it before it escapes, but beware
       its devastating counter-attacks.
+
+  # New bead-based AI monster (Step 2 of PRD)
+  - name: Bead Guardian
+    description: >
+      A test monster using the new bead-based AI system.
+      Draws colored beads to determine its next attack.
+    stats:
+      health: 10
+      armor: 2
+      speed: 1
+    # Bead-based AI configuration
+    beads:
+      red: 3
+      blue: 2
+      green: 2
+      white: 1
+    start_state: idle
+    states:
+      idle:
+        transitions:
+          red: stone_slam
+          blue: ground_pound
+          green: idle
+          white: earthquake
+      stone_slam:
+        damage: 2
+        wheel_cost: 3
+        range: 1
+        transitions:
+          red: stone_slam
+          blue: ground_pound
+          green: idle
+          white: earthquake
+      ground_pound:
+        damage: 1
+        wheel_cost: 2
+        area: "radius 2"
+        transitions:
+          red: stone_slam
+          blue: idle
+          green: ground_pound
+          white: earthquake
+      earthquake:
+        damage: 3
+        wheel_cost: 4
+        area: "all"
+        transitions:
+          red: idle
+          blue: idle
+          green: idle
+          white: idle
+    # Legacy attacks for backward compatibility
+    attacks:
+      stone_slam:
+        name: Stone Slam
+        range: 1
+        damage: "2"
+        effect: null
+      ground_pound:
+        name: Ground Pound
+        range: 0
+        area: "radius 2"
+        damage: "1"
+        effect: null
+      earthquake:
+        name: Earthquake
+        range: 0
+        area: "all"
+        damage: "3"
+        effect: null
+    rulebook_notes: >
+      The Bead Guardian uses the new bead-based AI system. Watch the
+      discarded beads to predict its next move. Red beads lead to
+      aggressive attacks, green beads reset to idle.

@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
-import { CharacterClass, Monster, MonsterPhase } from '../systems/DataLoader';
+import { CharacterClass, Monster, MonsterPhase } from '@src/systems/DataLoader';
+import { BeadBag } from '@src/systems/BeadBag';
+import { MonsterStateMachine, MonsterStateDefinition } from '@src/systems/MonsterStateMachine';
 
 export abstract class Token {
   public sprite: Phaser.GameObjects.Container;
@@ -136,12 +138,45 @@ export class CharacterToken extends Token {
 
 export class MonsterToken extends Token {
   public monster: Monster;
+  public beadBag?: BeadBag;
+  public stateMachine?: MonsterStateMachine;
   private currentPhaseIndex = 0;
 
   constructor(scene: Phaser.Scene, x: number, y: number, monster: Monster) {
     super(scene, x, y, monster.stats.health);
     this.monster = monster;
+    this.initializeBeadSystem();
     this.createVisuals();
+  }
+
+  /**
+   * Initialize bead-based AI system if monster has bead configuration
+   */
+  private initializeBeadSystem(): void {
+    if (this.monster.beads && this.monster.states && this.monster.start_state) {
+      this.beadBag = new BeadBag(this.monster.beads);
+
+      // Convert states record to array of definitions
+      const stateDefinitions: MonsterStateDefinition[] = Object.entries(this.monster.states).map(
+        ([name, state]) => ({
+          name,
+          damage: state.damage,
+          wheel_cost: state.wheel_cost,
+          range: state.range,
+          area: state.area,
+          transitions: state.transitions,
+        })
+      );
+
+      this.stateMachine = new MonsterStateMachine(stateDefinitions, this.monster.start_state);
+    }
+  }
+
+  /**
+   * Check if this monster uses the bead-based AI system
+   */
+  hasBeadSystem(): boolean {
+    return this.beadBag !== undefined && this.stateMachine !== undefined;
   }
 
   private createVisuals() {

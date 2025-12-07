@@ -1,5 +1,7 @@
-import { CombatResolver } from './CombatResolver';
-import type { Monster, MonsterAttack, MonsterPhase } from './DataLoader';
+import { CombatResolver } from '@src/systems/CombatResolver';
+import type { Monster, MonsterAttack, MonsterPhase } from '@src/systems/DataLoader';
+import { type BeadBag, type BeadColor } from '@src/systems/BeadBag';
+import type { MonsterStateMachine, MonsterState } from '@src/systems/MonsterStateMachine';
 
 export interface Position {
   x: number;
@@ -16,6 +18,17 @@ export interface MonsterAction {
   type: 'attack' | 'move' | 'none';
   target?: CharacterInfo;
   attack?: MonsterAttack;
+  destination?: Position;
+}
+
+/**
+ * Extended action result for bead-based AI system
+ */
+export interface BeadBasedAction {
+  type: 'attack' | 'move' | 'none';
+  state?: MonsterState;
+  drawnBead?: BeadColor;
+  target?: CharacterInfo;
   destination?: Position;
 }
 
@@ -165,5 +178,78 @@ export class MonsterAI {
     }
 
     return { type: 'none' };
+  }
+
+  /**
+   * Select action using the bead-based AI system.
+   * Draws a bead, transitions the state machine, and determines the resulting action.
+   *
+   * @param beadBag - The monster's bead bag
+   * @param stateMachine - The monster's state machine
+   * @param monsterPosition - Current monster position
+   * @param monster - Monster data for speed calculation
+   * @param characters - Available targets
+   * @param arenaWidth - Arena width for movement bounds
+   * @param arenaHeight - Arena height for movement bounds
+   * @param blockedPositions - Positions monster cannot move to
+   * @returns BeadBasedAction with the drawn bead and resulting state
+   */
+  selectBeadBasedAction(
+    beadBag: BeadBag,
+    stateMachine: MonsterStateMachine,
+    monsterPosition: Position,
+    monster: Monster,
+    characters: CharacterInfo[],
+    arenaWidth: number,
+    arenaHeight: number,
+    blockedPositions: Position[]
+  ): BeadBasedAction {
+    // 1. Draw a bead
+    const drawnBead = beadBag.draw();
+
+    // 2. Transition the state machine
+    const newState = stateMachine.transition(drawnBead);
+
+    // 3. If state has no damage (idle-like state), return 'none'
+    if (!newState.damage) {
+      return { type: 'none', state: newState, drawnBead };
+    }
+
+    // 4. Find a target
+    const target = this.findClosestTarget(monsterPosition, characters);
+    if (!target) {
+      return { type: 'none', state: newState, drawnBead };
+    }
+
+    // 5. Check if in range
+    const range = newState.range || 1;
+    const inRange = this.combatResolver.isInRange(
+      monsterPosition.x,
+      monsterPosition.y,
+      target.x,
+      target.y,
+      range
+    );
+
+    if (inRange) {
+      return { type: 'attack', state: newState, drawnBead, target };
+    }
+
+    // 6. Out of range - calculate movement
+    const speed = monster.stats.speed || 2;
+    const destination = this.calculateMovement(
+      monsterPosition,
+      target,
+      speed,
+      arenaWidth,
+      arenaHeight,
+      blockedPositions
+    );
+
+    if (destination) {
+      return { type: 'move', state: newState, drawnBead, destination };
+    }
+
+    return { type: 'none', state: newState, drawnBead };
   }
 }
