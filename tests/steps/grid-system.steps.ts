@@ -1,7 +1,7 @@
 import { Given, When, Then } from 'quickpickle';
 import { expect } from 'vitest';
 import type { QuickPickleWorld } from 'quickpickle';
-import { GridSystem } from '../../src/systems/GridSystem';
+import { GridSystem } from '@src/systems/GridSystem';
 
 interface GridWorld extends QuickPickleWorld {
   gridSystem?: GridSystem;

@@ -1,8 +1,8 @@
 import { Given, When, Then } from 'quickpickle';
 import { expect } from 'vitest';
 import type { QuickPickleWorld } from 'quickpickle';
-import { CombatResolver } from '../../src/systems/CombatResolver';
-import { DiceRoller } from '../../src/systems/DiceRoller';
+import { CombatResolver } from '@src/systems/CombatResolver';
+import { DiceRoller } from '@src/systems/DiceRoller';
 
 interface Position {
   x: number;

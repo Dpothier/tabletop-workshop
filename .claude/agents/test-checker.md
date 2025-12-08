@@ -18,6 +18,7 @@ Analysis focus:
 - Edge cases not covered by scenarios
 - Error handling paths without tests
 - Complex logic branches missing coverage
+- **Tests without assertions**: Flag any step definitions that only use `waitForTimeout` or perform actions without `expect()` calls. A test with no assertion is not a test.
 
 Output format:
 1. **Coverage summary**: List tested vs untested components

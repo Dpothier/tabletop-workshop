@@ -1,6 +1,6 @@
 import { Given, When, Then } from 'quickpickle';
 import { expect } from 'vitest';
-import { DiceRoller } from '../../src/systems/DiceRoller';
+import { DiceRoller } from '@src/systems/DiceRoller';
 import type { QuickPickleWorld } from 'quickpickle';
 
 Given('a dice roller is initialized', function (world: QuickPickleWorld) {

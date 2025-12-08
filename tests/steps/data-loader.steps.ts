@@ -2,7 +2,7 @@ import { Given, When, Then } from 'quickpickle';
 import { expect } from 'vitest';
 import yaml from 'js-yaml';
 import type { QuickPickleWorld } from 'quickpickle';
-import type { CharacterClass, Monster, Arena } from '../../src/systems/DataLoader';
+import type { CharacterClass, Monster, Arena } from '@src/systems/DataLoader';
 
 interface DataWorld extends QuickPickleWorld {
   yamlData?: string;

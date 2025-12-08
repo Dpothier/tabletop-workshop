@@ -15,7 +15,6 @@ This document indexes all architecture documentation for the tabletop workshop p
 | CombatResolver | Attack resolution and damage calculation | - |
 | MonsterAI | Monster decision making and targeting | - |
 | DiceRoller | Dice rolling mechanics | - |
-| TurnManager | Legacy turn tracking (to be replaced) | - |
 | DataLoader | YAML data loading for game assets | - |
 
 ## Entities
@@ -30,7 +29,7 @@ This document indexes all architecture documentation for the tabletop workshop p
 
 | Scene | Description | Documentation |
 |-------|-------------|---------------|
-| BattleScene | Main combat orchestrator | - |
+| BattleScene | Main combat orchestrator using ActionWheel for turn order | - |
 
 ---
 

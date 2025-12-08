@@ -24,6 +24,7 @@ Write tests BEFORE production code. See [coding-guidelines.mdc](mdc:rules/coding
 - **One behavior per scenario**: Small cycles, easy diagnosis
 - **Concrete examples**: Specific values, not vague descriptions
 - **Typed step definitions**: All parameters and returns must have types
+- **Always assert**: Every test step MUST contain at least one assertion. Never produce tests that only wait or perform actions without verifying outcomes. A test with no assertion is not a test.
 
 ## Mocks
 

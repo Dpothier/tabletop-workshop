@@ -1,8 +1,8 @@
 import { Given, When, Then } from 'quickpickle';
 import { expect } from 'vitest';
 import type { QuickPickleWorld } from 'quickpickle';
-import { MovementValidator } from '../../src/systems/MovementValidator';
-import { GridSystem } from '../../src/systems/GridSystem';
+import { MovementValidator } from '@src/systems/MovementValidator';
+import { GridSystem } from '@src/systems/GridSystem';
 
 interface Position {
   x: number;

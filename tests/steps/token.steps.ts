@@ -1,9 +1,9 @@
 import { Given, When, Then } from 'quickpickle';
 import { expect } from 'vitest';
-import { CharacterToken, MonsterToken } from '../../src/entities/Token';
-import { createMockScene } from '../support/mocks';
+import { CharacterToken, MonsterToken } from '@src/entities/Token';
+import { createMockScene } from '@tests/support/mocks';
 import type { QuickPickleWorld } from 'quickpickle';
-import type { CharacterClass, Monster } from '../../src/systems/DataLoader';
+import type { CharacterClass, Monster } from '@src/systems/DataLoader';
 
 interface TokenWorld extends QuickPickleWorld {
   characterToken?: CharacterToken;

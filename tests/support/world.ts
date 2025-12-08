@@ -1,13 +1,11 @@
-import type { CharacterToken, MonsterToken } from '../../src/entities/Token';
-import type { TurnManager } from '../../src/systems/TurnManager';
-import type { DiceRoller } from '../../src/systems/DiceRoller';
-import type { ActionWheel } from '../../src/systems/ActionWheel';
-import type { CharacterClass, Monster, Arena } from '../../src/systems/DataLoader';
+import type { CharacterToken, MonsterToken } from '@src/entities/Token';
+import type { DiceRoller } from '@src/systems/DiceRoller';
+import type { ActionWheel } from '@src/systems/ActionWheel';
+import type { CharacterClass, Monster, Arena } from '@src/systems/DataLoader';
 
 export interface GameWorld {
   // Systems
   diceRoller?: DiceRoller;
-  turnManager?: TurnManager;
   actionWheel?: ActionWheel;
 
   // Entities

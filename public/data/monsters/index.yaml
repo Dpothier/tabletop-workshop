@@ -1,5 +1,6 @@
 # Monster Index
-# All available boss monsters for battle
+# All monsters use bead-based AI (Step 4)
+# Bosses have 10 HP and draw beads to determine their actions
 
 monsters:
   - name: Stone Guardian
@@ -7,122 +8,213 @@ monsters:
       An ancient construct awakened to protect forgotten ruins.
       Slow but devastating, it punishes poor positioning.
     stats:
-      health: 80
-      armor: 3
+      health: 10
+      armor: 2
       speed: 1
-    phases:
-      - threshold: "100%"
-        behavior: defensive
-        attacks: [stone_slam, rock_throw]
-      - threshold: "50%"
-        behavior: aggressive
-        attacks: [stone_slam, rock_throw, earthquake]
-        special: "Gains Enraged condition"
-    attacks:
+    # Bead-based AI configuration
+    beads:
+      red: 3
+      blue: 2
+      green: 2
+      white: 1
+    start_state: idle
+    states:
+      idle:
+        transitions:
+          red: stone_slam
+          blue: rock_throw
+          green: idle
+          white: earthquake
       stone_slam:
-        name: Stone Slam
+        damage: 2
+        wheel_cost: 3
         range: 1
-        damage: "3d6"
-        effect: "Target is Staggered"
+        transitions:
+          red: stone_slam
+          blue: rock_throw
+          green: idle
+          white: earthquake
       rock_throw:
-        name: Rock Throw
+        damage: 1
+        wheel_cost: 2
         range: 4
-        damage: "2d6"
-        effect: null
+        transitions:
+          red: stone_slam
+          blue: idle
+          green: rock_throw
+          white: earthquake
       earthquake:
-        name: Earthquake
-        range: 0
-        area: "3-tile radius"
-        damage: "2d6"
-        effect: "All characters must pass Agility check or fall Prone"
+        damage: 1
+        wheel_cost: 4
+        area: "all"
+        transitions:
+          red: idle
+          blue: idle
+          green: idle
+          white: idle
     rulebook_notes: >
-      The Stone Guardian is an introductory boss. Learn to read its
-      attacks and position accordingly. When it reaches 50% health,
-      its Earthquake attack demands the party spread out.
+      The Stone Guardian is an introductory boss. Watch the discarded
+      beads to predict its next move. Red beads lead to melee attacks,
+      white triggers the devastating Earthquake.
 
   - name: Flame Giant
     description: >
       A towering inferno given form. Its attacks leave burning
       ground that punishes positioning mistakes.
     stats:
-      health: 100
-      armor: 2
+      health: 10
+      armor: 1
       speed: 2
-    phases:
-      - threshold: "100%"
-        behavior: cautious
-        attacks: [crushing_slam, flame_breath]
-      - threshold: "60%"
-        behavior: aggressive
-        attacks: [crushing_slam, flame_breath, ground_pound]
-        special: "Speed increases to 3"
-      - threshold: "30%"
-        behavior: desperate
-        attacks: [crushing_slam, flame_breath, ground_pound, inferno]
-        special: "All attacks deal +2 damage"
-    attacks:
+    # Bead-based AI configuration
+    beads:
+      red: 4
+      blue: 2
+      green: 1
+      white: 1
+    start_state: idle
+    states:
+      idle:
+        transitions:
+          red: crushing_slam
+          blue: flame_breath
+          green: idle
+          white: ground_pound
       crushing_slam:
-        name: Crushing Slam
+        damage: 2
+        wheel_cost: 3
         range: 1
-        damage: "3d6"
-        effect: "Target is Staggered"
+        transitions:
+          red: crushing_slam
+          blue: flame_breath
+          green: idle
+          white: ground_pound
       flame_breath:
-        name: Flame Breath
+        damage: 1
+        wheel_cost: 2
         range: 3
-        area: "cone (3 tiles)"
-        damage: "2d6"
-        effect: "Creates Burning terrain for 2 turns"
+        area: "cone 3"
+        transitions:
+          red: crushing_slam
+          blue: idle
+          green: flame_breath
+          white: ground_pound
       ground_pound:
-        name: Ground Pound
-        range: 0
-        area: "2-tile radius"
-        damage: "2d6+2"
-        effect: "All characters must pass Agility check or fall Prone"
-      inferno:
-        name: Inferno
-        range: 0
-        area: "entire arena"
-        damage: "1d6"
-        effect: "All non-hazard tiles become Burning terrain"
+        damage: 1
+        wheel_cost: 3
+        area: "radius 2"
+        transitions:
+          red: crushing_slam
+          blue: flame_breath
+          green: idle
+          white: idle
     rulebook_notes: >
-      The Flame Giant tests party coordination. Spread out to avoid
-      Flame Breath, but stay close enough to support allies targeted
-      by Crushing Slam. Watch for phase transitions.
+      The Flame Giant is aggressive with many red beads. Spread out
+      to avoid Flame Breath and watch for Ground Pound after white
+      beads are drawn.
 
   - name: Shadow Stalker
     description: >
       A creature of pure darkness that strikes from the shadows.
       Fast and deadly, but fragile when exposed.
     stats:
-      health: 60
+      health: 10
       armor: 0
       speed: 4
-    phases:
-      - threshold: "100%"
-        behavior: ambush
-        attacks: [shadow_strike, vanish]
-      - threshold: "50%"
-        behavior: frenzied
-        attacks: [shadow_strike, shadow_barrage, vanish]
-        special: "Can Vanish twice per round"
-    attacks:
+    # Bead-based AI configuration
+    beads:
+      red: 2
+      blue: 1
+      green: 3
+      white: 2
+    start_state: idle
+    states:
+      idle:
+        transitions:
+          red: shadow_strike
+          blue: idle
+          green: vanish
+          white: shadow_barrage
       shadow_strike:
-        name: Shadow Strike
+        damage: 2
+        wheel_cost: 2
         range: 1
-        damage: "4d6"
-        effect: "Target is Bleeding"
-      shadow_barrage:
-        name: Shadow Barrage
-        range: 2
-        area: "3 random targets"
-        damage: "2d6"
-        effect: null
+        transitions:
+          red: shadow_strike
+          blue: vanish
+          green: idle
+          white: shadow_barrage
       vanish:
-        name: Vanish
-        range: 0
-        damage: "0"
-        effect: "Teleport to any unoccupied tile. Next attack deals +1d6"
+        damage: 0
+        wheel_cost: 1
+        transitions:
+          red: shadow_strike
+          blue: idle
+          green: vanish
+          white: shadow_barrage
+      shadow_barrage:
+        damage: 1
+        wheel_cost: 3
+        area: "3 targets"
+        transitions:
+          red: shadow_strike
+          blue: idle
+          green: vanish
+          white: idle
     rulebook_notes: >
-      The Shadow Stalker is a test of reaction and prediction. It hits
-      hard but can't take a hit. Corner it before it escapes, but beware
-      its devastating counter-attacks.
+      The Shadow Stalker has many green beads leading to Vanish,
+      making it unpredictable. Its low wheel costs mean it acts
+      frequently. Corner it before it escapes.
+
+  - name: Bead Guardian
+    description: >
+      A test monster using the bead-based AI system.
+      Draws colored beads to determine its next attack.
+    stats:
+      health: 10
+      armor: 2
+      speed: 1
+    # Bead-based AI configuration
+    beads:
+      red: 3
+      blue: 2
+      green: 2
+      white: 1
+    start_state: idle
+    states:
+      idle:
+        transitions:
+          red: stone_slam
+          blue: ground_pound
+          green: idle
+          white: earthquake
+      stone_slam:
+        damage: 2
+        wheel_cost: 3
+        range: 1
+        transitions:
+          red: stone_slam
+          blue: ground_pound
+          green: idle
+          white: earthquake
+      ground_pound:
+        damage: 1
+        wheel_cost: 2
+        area: "radius 2"
+        transitions:
+          red: stone_slam
+          blue: idle
+          green: ground_pound
+          white: earthquake
+      earthquake:
+        damage: 3
+        wheel_cost: 4
+        area: "all"
+        transitions:
+          red: idle
+          blue: idle
+          green: idle
+          white: idle
+    rulebook_notes: >
+      The Bead Guardian uses the bead-based AI system. Watch the
+      discarded beads to predict its next move. Red beads lead to
+      aggressive attacks, green beads reset to idle.

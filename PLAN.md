@@ -55,13 +55,22 @@ Following PRD v4 implementation order.
 
 ---
 
-## Step 4: Combat Integration ⏳ PENDING
+## Step 4: Combat Integration ✅ COMPLETE
 
-- [ ] Replace TurnManager with ActionWheel in BattleScene
-- [ ] Implement basic actions (Move, Run, Attack, Rest)
-- [ ] Update HP values (heroes: 3, bosses: 10)
-- [ ] Add wheel and bead UI visualization
-- [ ] E2E testing
+### Completed
+- [x] Replace TurnManager with ActionWheel in BattleScene
+- [x] Implement basic actions (Move, Run, Attack, Rest)
+- [x] Update HP values (heroes: 3, bosses: 10)
+- [x] Add wheel and bead UI visualization
+- [x] E2E testing (19 new scenarios)
+- [x] Convert all monsters to bead-based AI
+
+### Implementation Details
+- Continuous turn loop using `processTurn()` → `getNextActor()` → execute → `advanceEntity()`
+- Actions: Move (cost 1, 2 spaces), Run (cost 2, 6 spaces), Attack (cost 2, 1 damage), Rest (cost 2, draw 2 beads)
+- All 4 monsters now use bead-based state machines
+- Removed phase state machine and hasMoved/hasActed flags
+- UI: 8-segment wheel display, colored bead circles, monster discard counter
 
 ---
 
@@ -146,8 +155,8 @@ Following PRD v4 implementation order.
 
 ```
 Unit/Integration Tests: 132 passed
-E2E Tests: 8 passed
-Total: 140 tests passing
+E2E Tests: 27 passed
+Total: 159 tests passing
 ```
 
 ---

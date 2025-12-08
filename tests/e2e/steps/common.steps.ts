@@ -1,6 +1,6 @@
 import { createBdd } from 'playwright-bdd';
 import { expect } from '@playwright/test';
-import { waitForGameReady } from '../fixtures';
+import { waitForGameReady } from '@tests/e2e/fixtures';
 
 const { Given, When, Then } = createBdd();
 
@@ -23,6 +23,6 @@ Then('the canvas should be visible', async ({ page }) => {
 });
 
 Then('I should see the game title', async ({ page }) => {
-  await page.waitForTimeout(1000);
-  await page.screenshot({ path: 'title-check.png' });
+  const title = page.locator('text=Tabletop Workshop');
+  await expect(title).toBeVisible();
 });

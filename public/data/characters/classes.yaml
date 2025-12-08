@@ -1,5 +1,6 @@
 # Character Classes
-# Each class represents a role in the party with unique strengths
+# Simplified for bead-based combat system (Step 4)
+# Heroes have 3 HP and use basic actions: Move, Run, Attack, Rest
 
 classes:
   - name: Knight
@@ -8,98 +9,45 @@ classes:
       A heavily armored warrior who excels at drawing enemy attention
       and protecting allies.
     stats:
-      health: 30
+      health: 3
       speed: 2
-      damage: "2d6"
-      range: 1
       armor: 2
-    abilities:
-      - name: Shield Wall
-        description: "Raise your shield to protect yourself and adjacent allies"
-        effect: armor_buff
-        value: "+2 armor until next turn"
-        cooldown: 2
-      - name: Taunt
-        description: "Force the monster to target you with its next attack"
-        effect: taunt
-        value: "1 turn"
-        cooldown: 3
     rulebook_notes: >
       The Knight is the party's anchor. Position them between the boss
-      and your squishier allies.
+      and your squishier allies. Use Move to stay in melee range.
 
   - name: Ranger
     icon: "R"
     description: >
-      A nimble fighter who strikes from distance and can reposition quickly.
+      A nimble fighter who can reposition quickly to find optimal positioning.
     stats:
-      health: 20
+      health: 3
       speed: 4
-      damage: "2d6"
-      range: 4
       armor: 0
-    abilities:
-      - name: Aimed Shot
-        description: "Take careful aim for a powerful attack"
-        effect: damage
-        value: "3d6+2"
-        cooldown: 2
-      - name: Disengage
-        description: "Quickly reposition without triggering opportunity attacks"
-        effect: move
-        value: "3 tiles"
-        cooldown: 1
     rulebook_notes: >
-      The Ranger's strength is sustained damage from safety. Keep your
-      distance and use Disengage when the boss closes in.
+      The Ranger moves fast. Use Run to reposition across the arena
+      and Attack when adjacent to the monster.
 
   - name: Mage
     icon: "M"
     description: >
-      A glass cannon who wields devastating magical attacks but
-      crumbles under pressure.
+      A fragile but strategic fighter who must carefully manage positioning.
     stats:
-      health: 15
+      health: 3
       speed: 3
-      damage: "1d6"
-      range: 3
       armor: 0
-    abilities:
-      - name: Fireball
-        description: "Hurl a ball of flame that damages all enemies in an area"
-        effect: damage
-        value: "3d6"
-        cooldown: 2
-      - name: Frost Shield
-        description: "Encase yourself in protective ice"
-        effect: armor_buff
-        value: "+3 armor, speed -1 until next turn"
-        cooldown: 3
     rulebook_notes: >
-      The Mage deals massive damage but dies quickly. Stay behind the
-      Knight and save Frost Shield for emergencies.
+      The Mage is fragile. Stay behind the Knight and use Rest to
+      build up beads for future advanced actions.
 
   - name: Cleric
     icon: "C"
     description: >
-      A holy warrior who heals allies and can smite the unholy.
+      A balanced fighter who supports the party through positioning.
     stats:
-      health: 22
+      health: 3
       speed: 3
-      damage: "1d6+1"
-      range: 1
       armor: 1
-    abilities:
-      - name: Healing Light
-        description: "Restore health to yourself or an adjacent ally"
-        effect: heal
-        value: "2d6"
-        cooldown: 1
-      - name: Holy Smite
-        description: "Call down divine wrath on your enemy"
-        effect: damage
-        value: "2d6+3"
-        cooldown: 2
     rulebook_notes: >
-      The Cleric keeps the party alive. Prioritize healing the Knight
-      but don't neglect yourself - a dead healer heals no one.
+      The Cleric is versatile. Use Rest to draw beads and position
+      strategically to support the party.

@@ -1,7 +1,7 @@
 import { Given, When, Then } from 'quickpickle';
 import { expect } from 'vitest';
 import type { QuickPickleWorld } from 'quickpickle';
-import { ActionWheel, WheelEntry } from '../../src/systems/ActionWheel';
+import { ActionWheel, WheelEntry } from '@src/systems/ActionWheel';
 
 interface ActionWheelWorld extends QuickPickleWorld {
   actionWheel?: ActionWheel;

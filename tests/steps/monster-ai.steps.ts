@@ -1,10 +1,10 @@
 import { Given, When, Then } from 'quickpickle';
 import { expect } from 'vitest';
 import type { QuickPickleWorld } from 'quickpickle';
-import { MonsterAI, MonsterAction } from '../../src/systems/MonsterAI';
-import { CombatResolver } from '../../src/systems/CombatResolver';
-import { DiceRoller } from '../../src/systems/DiceRoller';
-import type { Monster, MonsterAttack, MonsterPhase } from '../../src/systems/DataLoader';
+import { MonsterAI, MonsterAction } from '@src/systems/MonsterAI';
+import { CombatResolver } from '@src/systems/CombatResolver';
+import { DiceRoller } from '@src/systems/DiceRoller';
+import type { Monster, MonsterAttack, MonsterPhase } from '@src/systems/DataLoader';
 
 interface CharacterInfo {
   x: number;

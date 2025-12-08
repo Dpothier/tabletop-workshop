@@ -1,7 +1,7 @@
 import { Given, When, Then } from 'quickpickle';
 import { expect } from 'vitest';
 import type { QuickPickleWorld } from 'quickpickle';
-import type { Monster, MonsterAttack } from '../../src/systems/DataLoader';
+import type { Monster, MonsterAttack } from '@src/systems/DataLoader';
 
 interface CombatWorld extends QuickPickleWorld {
   rawDamage?: number;

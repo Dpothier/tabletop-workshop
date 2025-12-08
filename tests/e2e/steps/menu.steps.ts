@@ -1,6 +1,6 @@
 import { createBdd } from 'playwright-bdd';
 import { expect } from '@playwright/test';
-import { waitForGameReady, clickGameCoords } from '../fixtures';
+import { waitForGameReady, clickGameCoords, getGameState } from '@tests/e2e/fixtures';
 
 const { Given, When, Then } = createBdd();
 
@@ -45,13 +45,19 @@ Then('I should see the menu', async ({ page }) => {
 });
 
 Then('the monster selection should change', async ({ page }) => {
-  await page.waitForTimeout(100);
+  const state = await getGameState(page);
+  // Verify we're still on menu scene
+  expect(state.scene).toBe('MenuScene');
 });
 
 Then('the arena selection should change', async ({ page }) => {
-  await page.waitForTimeout(100);
+  const state = await getGameState(page);
+  // Verify we're still on menu scene
+  expect(state.scene).toBe('MenuScene');
 });
 
 Then('the party size should change', async ({ page }) => {
-  await page.waitForTimeout(100);
+  const state = await getGameState(page);
+  // Verify we're still on menu scene
+  expect(state.scene).toBe('MenuScene');
 });

@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { loadGameData, GameData } from '../systems/DataLoader';
+import { loadGameData, GameData } from '@src/systems/DataLoader';
 
 export class MenuScene extends Phaser.Scene {
   private gameData!: GameData;
@@ -11,7 +11,7 @@ export class MenuScene extends Phaser.Scene {
     super({ key: 'MenuScene' });
   }
 
-  async create() {
+  async create(): Promise<void> {
     this.gameData = await loadGameData();
 
     const centerX = this.cameras.main.width / 2;
@@ -107,8 +107,8 @@ export class MenuScene extends Phaser.Scene {
     y: number,
     options: string[],
     onChange: (index: number) => void,
-    defaultIndex = 0
-  ) {
+    defaultIndex: number = 0
+  ): void {
     let currentIndex = defaultIndex;
 
     const displayText = this.add
@@ -147,7 +147,7 @@ export class MenuScene extends Phaser.Scene {
     });
   }
 
-  private startBattle() {
+  private startBattle(): void {
     this.scene.start('BattleScene', {
       monster: this.gameData.monsters[this.selectedMonster],
       arena: this.gameData.arenas[this.selectedArena],
