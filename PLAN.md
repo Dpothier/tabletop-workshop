@@ -74,7 +74,44 @@ Following PRD v4 implementation order.
 
 ---
 
-## Step 5: Defense and Evasion System ⏳ PENDING
+## Step 5: Turn Enforcement Bug Fix ⏳ PENDING
+
+### Bug
+Currently any player character can be selected and made to act, even when it's not their turn on the action wheel.
+
+### Fix
+- [ ] Validate that selected character matches current actor from action wheel
+- [ ] Prevent selecting non-active heroes during player turns
+- [ ] Auto-select the current actor when their turn begins
+- [ ] Gray out or disable non-active hero portraits
+
+---
+
+## Step 6: Battle UI Redesign ⏳ PENDING
+
+### Hero Selection Bar (Below Arena)
+- [ ] Create horizontal bar below the arena grid
+- [ ] Display hero portraits/icons for each player character
+- [ ] Show beads in hand as colored circles under each portrait
+- [ ] Show current weapon icon under each portrait (sword placeholder)
+- [ ] Show HP indicator for each hero
+- [ ] Highlight current actor's portrait
+- [ ] Click portrait to select hero (only if it's their turn)
+
+### Selected Hero Panel
+- [ ] Create inventory panel (empty slots placeholder)
+- [ ] Show action menu when hero is selected
+- [ ] Display wheel cost and bead cost for each action
+- [ ] Gray out actions that cannot be afforded
+
+### Visual Polish
+- [ ] Improve overall color scheme and styling
+- [ ] Add clear turn indicator
+- [ ] Better visual feedback for selectable vs non-selectable elements
+
+---
+
+## Step 7: Defense and Evasion System ⏳ PENDING
 
 - [ ] Add defensive stats (Armor, Guard, Evasion) to creature schema
 - [ ] Add offensive stats (Power, Agility) to attack schema
@@ -86,7 +123,7 @@ Following PRD v4 implementation order.
 
 ---
 
-## Step 6: Character Creation ⏳ PENDING
+## Step 8: Character Creation ⏳ PENDING
 
 - [ ] Create `CharacterCreation` scene
 - [ ] Implement attribute point allocation (STR, DEX, MND, SPR)
@@ -96,7 +133,7 @@ Following PRD v4 implementation order.
 
 ---
 
-## Step 7: Weapon System ⏳ PENDING
+## Step 9: Weapon System ⏳ PENDING
 
 - [ ] Define weapon data schema
 - [ ] Create weapon list with stats and special actions
@@ -105,7 +142,7 @@ Following PRD v4 implementation order.
 
 ---
 
-## Step 8: Terrain System ⏳ PENDING
+## Step 10: Terrain System ⏳ PENDING
 
 - [ ] Define terrain data schema
 - [ ] Create `TerrainSystem` for movement/LoS calculations
@@ -114,7 +151,7 @@ Following PRD v4 implementation order.
 
 ---
 
-## Step 9: Inventory System ⏳ PENDING
+## Step 11: Inventory System ⏳ PENDING
 
 - [ ] Define inventory and item data schemas
 - [ ] Create `InventoryManager` system
@@ -123,7 +160,7 @@ Following PRD v4 implementation order.
 
 ---
 
-## Step 10: Campaign & Progression ⏳ PENDING
+## Step 12: Campaign & Progression ⏳ PENDING
 
 - [ ] Define campaign data structure
 - [ ] Create `CampaignManager` system
@@ -133,7 +170,7 @@ Following PRD v4 implementation order.
 
 ---
 
-## Step 11: Monster Variety & Boss Phases ⏳ PENDING
+## Step 13: Monster Variety & Boss Phases ⏳ PENDING
 
 - [ ] Update monster schema for phases
 - [ ] Implement phase threshold detection
@@ -142,7 +179,7 @@ Following PRD v4 implementation order.
 
 ---
 
-## Step 12: Print-and-Play Export ⏳ PENDING
+## Step 14: Print-and-Play Export ⏳ PENDING
 
 - [ ] Character sheet PDF generator
 - [ ] Monster card generator
