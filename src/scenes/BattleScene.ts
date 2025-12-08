@@ -52,6 +52,9 @@ export class BattleScene extends Phaser.Scene {
   private currentActorId: string | null = null;
   private selectedToken: CharacterToken | null = null;
 
+  // Valid movement tiles for E2E testing
+  public currentValidMoves: { x: number; y: number }[] = [];
+
   // Constants
   private readonly GRID_SIZE = 64;
   private readonly GRID_OFFSET_X = 80;
@@ -552,6 +555,7 @@ export class BattleScene extends Phaser.Scene {
 
     // Use MovementValidator to get valid moves
     const validMoves = this.movementValidator.getValidMoves(currentX, currentY, range);
+    this.currentValidMoves = validMoves; // Store for E2E testing
 
     for (const move of validMoves) {
       graphics.fillRect(
@@ -562,16 +566,20 @@ export class BattleScene extends Phaser.Scene {
       );
     }
 
-    this.input.once('pointerdown', (pointer: Phaser.Input.Pointer) => {
-      graphics.destroy();
-      const gridX = this.gridSystem.worldToGrid(pointer.x);
-      const gridY = this.gridSystem.worldToGrid(pointer.y);
+    // Delay handler setup to avoid capturing the button click that triggered this
+    this.time.delayedCall(50, () => {
+      this.input.once('pointerdown', (pointer: Phaser.Input.Pointer) => {
+        graphics.destroy();
+        this.currentValidMoves = []; // Clear after click
+        const gridX = this.gridSystem.worldToGrid(pointer.x);
+        const gridY = this.gridSystem.worldToGrid(pointer.y);
 
-      if (this.movementValidator.isValidMove(currentX, currentY, gridX, gridY, range)) {
-        this.moveToken(this.selectedToken!, gridX, gridY, wheelCost);
-      } else {
-        this.log('Invalid move');
-      }
+        if (this.movementValidator.isValidMove(currentX, currentY, gridX, gridY, range)) {
+          this.moveToken(this.selectedToken!, gridX, gridY, wheelCost);
+        } else {
+          this.log('Invalid move');
+        }
+      });
     });
   }
 

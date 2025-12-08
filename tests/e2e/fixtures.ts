@@ -191,3 +191,88 @@ export async function getGameText(_page: Page): Promise<string> {
   // For actual text verification, use screenshot comparison or OCR
   return '';
 }
+
+// Grid constants matching BattleScene
+const GRID_SIZE = 64;
+const GRID_OFFSET_X = 80;
+const GRID_OFFSET_Y = 80;
+
+/**
+ * Get valid movement tiles from game state
+ */
+export async function getValidMovementTiles(page: Page): Promise<{ x: number; y: number }[]> {
+  return await page.evaluate(() => {
+    const game = window.__PHASER_GAME__;
+    if (!game) return [];
+
+    const activeScene = game.scene.scenes.find((s) => s.sys.isActive());
+    if (!activeScene) return [];
+
+    const battle = activeScene as { currentValidMoves?: { x: number; y: number }[] };
+    return battle.currentValidMoves || [];
+  });
+}
+
+/**
+ * Click on a valid movement tile (first available)
+ * Returns true if a tile was clicked, false if no valid tiles
+ */
+export async function clickValidMovementTile(page: Page): Promise<boolean> {
+  const validTiles = await getValidMovementTiles(page);
+  if (validTiles.length === 0) return false;
+
+  // Pick first valid tile and convert to screen coords (center of tile)
+  const tile = validTiles[0];
+  const gameX = GRID_OFFSET_X + tile.x * GRID_SIZE + GRID_SIZE / 2;
+  const gameY = GRID_OFFSET_Y + tile.y * GRID_SIZE + GRID_SIZE / 2;
+
+  await clickGameCoords(page, gameX, gameY);
+  return true;
+}
+
+/**
+ * Click on a specific grid tile by grid coordinates
+ */
+export async function clickGridTile(page: Page, gridX: number, gridY: number): Promise<void> {
+  const gameX = GRID_OFFSET_X + gridX * GRID_SIZE + GRID_SIZE / 2;
+  const gameY = GRID_OFFSET_Y + gridY * GRID_SIZE + GRID_SIZE / 2;
+  await clickGameCoords(page, gameX, gameY);
+}
+
+/**
+ * Get monster grid position from game state
+ */
+export async function getMonsterPosition(page: Page): Promise<{ x: number; y: number } | null> {
+  return await page.evaluate(() => {
+    const game = window.__PHASER_GAME__;
+    if (!game) return null;
+
+    const activeScene = game.scene.scenes.find((s) => s.sys.isActive());
+    if (!activeScene) return null;
+
+    const battle = activeScene as { monsterToken?: { gridX: number; gridY: number } };
+    if (!battle.monsterToken) return null;
+
+    return { x: battle.monsterToken.gridX, y: battle.monsterToken.gridY };
+  });
+}
+
+/**
+ * Get current selected character grid position
+ */
+export async function getSelectedCharacterPosition(
+  page: Page
+): Promise<{ x: number; y: number } | null> {
+  return await page.evaluate(() => {
+    const game = window.__PHASER_GAME__;
+    if (!game) return null;
+
+    const activeScene = game.scene.scenes.find((s) => s.sys.isActive());
+    if (!activeScene) return null;
+
+    const battle = activeScene as { selectedToken?: { gridX: number; gridY: number } };
+    if (!battle.selectedToken) return null;
+
+    return { x: battle.selectedToken.gridX, y: battle.selectedToken.gridY };
+  });
+}

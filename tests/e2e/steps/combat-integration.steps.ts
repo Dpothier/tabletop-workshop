@@ -6,6 +6,9 @@ import {
   getGameState,
   expectMonsterHealth,
   expectMonsterHasBeadSystem,
+  clickValidMovementTile,
+  getMonsterPosition,
+  clickGridTile,
 } from '@tests/e2e/fixtures';
 
 const { Given, When, Then } = createBdd();
@@ -52,19 +55,28 @@ Then('I should see the action buttons for the current actor', async ({ page }) =
 
 // Current actor steps
 Given('I am the current actor', async ({ page }) => {
-  // Wait for player turn
+  // Wait for player turn and game to stabilize
+  await page.waitForTimeout(500);
   const state = await getGameState(page);
   expect(state.currentActor, 'Should have a current actor').toBeDefined();
   expect(state.currentActor).toMatch(/^hero/);
+  // Click on first character token to ensure selection
+  await clickGameCoords(page, 144, 144); // Click near spawn point (1,1)
+  await page.waitForTimeout(200);
 });
 
 Given('I am adjacent to the monster', async ({ page }) => {
   // Move the character to be adjacent to monster using Run action
-  // Monster is at grid (4, 2). Click tile (3, 2) to be adjacent.
-  // Grid coords: offset=80, size=64. Tile (3,2) = 80+3*64+32, 80+2*64+32 = (304, 240)
+  // Get monster position dynamically
+  const monsterPos = await getMonsterPosition(page);
+  expect(monsterPos, 'Monster position should be available').not.toBeNull();
+
+  // Click Run button to get longer range
   await clickGameCoords(page, 900, 360); // Run button
   await page.waitForTimeout(300);
-  await clickGameCoords(page, 304, 240); // Tile adjacent to monster
+
+  // Click tile adjacent to monster (one tile to the left)
+  await clickGridTile(page, monsterPos!.x - 1, monsterPos!.y);
   await page.waitForTimeout(500);
 });
 
@@ -81,11 +93,11 @@ When('I click the Rest button', async ({ page }) => {
 
 When('I click a valid movement tile', async ({ page }) => {
   // Wait for movement highlighting to appear
+  await page.waitForTimeout(300);
+  // Use dynamic tile selection from game state
+  const clicked = await clickValidMovementTile(page);
+  expect(clicked, 'Should find a valid movement tile to click').toBe(true);
   await page.waitForTimeout(500);
-  // Grid: offset=80, size=64. Click on tile (0,2) = 80+0*64+32, 80+2*64+32 = (112, 240)
-  // This should be within range of spawn point (1,2) and (2,2)
-  await clickGameCoords(page, 112, 240);
-  await page.waitForTimeout(800);
 });
 
 When('I complete an action', async ({ page }) => {

@@ -14,8 +14,6 @@ Feature: Action Wheel Battle System
     Then the first character should be the current actor
     And I should see the action buttons for the current actor
 
-  # TODO: Movement tile click coordinates need visual debugging
-  @skip
   Scenario: Move action advances wheel by 1
     Given I am the current actor
     When I click the Move button
@@ -23,16 +21,12 @@ Feature: Action Wheel Battle System
     Then my wheel position should be 1
     And the next actor should be determined
 
-  # TODO: Movement tile click coordinates need visual debugging
-  @skip
   Scenario: Run action advances wheel by 2
     Given I am the current actor
     When I click the Run button
     And I click a valid movement tile
     Then my wheel position should be 2
 
-  # TODO: Movement to adjacent position needs visual debugging
-  @skip
   Scenario: Attack action advances wheel by 2
     Given I am the current actor
     And I am adjacent to the monster
