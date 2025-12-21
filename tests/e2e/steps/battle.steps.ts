@@ -4,6 +4,10 @@ import { waitForGameReady, clickGameCoords, getGameState } from '@tests/e2e/fixt
 
 const { Given, When, Then } = createBdd();
 
+// Wheel position tracking for delta verification
+let lastActorPosition = 0;
+let lastActorId = '';
+
 Given('I have started a battle', async ({ page }) => {
   await page.goto('/');
   await waitForGameReady(page);
@@ -27,15 +31,49 @@ When('I click the End Turn button', async ({ page }) => {
 });
 
 When('I click the Attack button', async ({ page }) => {
+  // Capture position before action for delta verification
+  const state = await getGameState(page);
+  lastActorId = state.currentActor || '';
+  lastActorPosition = state.wheelPositions?.[lastActorId] || 0;
   // Attack button at y=400 (Move=320, Run=360, Attack=400, Rest=440)
   await clickGameCoords(page, 900, 400);
   await page.waitForTimeout(300);
 });
 
 When('I click the Move button', async ({ page }) => {
+  // Capture position before action for delta verification
+  const state = await getGameState(page);
+  lastActorId = state.currentActor || '';
+  lastActorPosition = state.wheelPositions?.[lastActorId] || 0;
   // Move button at y=320 (Move=320, Run=360, Attack=400, Rest=440)
   await clickGameCoords(page, 900, 320);
   await page.waitForTimeout(300);
+});
+
+When('I click the Run button', async ({ page }) => {
+  // Capture position before action for delta verification
+  const state = await getGameState(page);
+  lastActorId = state.currentActor || '';
+  lastActorPosition = state.wheelPositions?.[lastActorId] || 0;
+  await clickGameCoords(page, 900, 360);
+  await page.waitForTimeout(300);
+});
+
+When('I click the Rest button', async ({ page }) => {
+  // Capture position before action for delta verification
+  const state = await getGameState(page);
+  lastActorId = state.currentActor || '';
+  lastActorPosition = state.wheelPositions?.[lastActorId] || 0;
+  await clickGameCoords(page, 900, 440);
+  await page.waitForTimeout(300);
+});
+
+Then('my wheel position should be {int}', async ({ page }, expectedDelta: number) => {
+  const state = await getGameState(page);
+  // Check the actor who just acted advanced by the expected amount
+  const newPosition = state.wheelPositions?.[lastActorId] || 0;
+  const actualDelta = newPosition - lastActorPosition;
+  expect(actualDelta, `Wheel should have advanced by ${expectedDelta}`).toBe(expectedDelta);
 });
 
 Then('the battle scene should be visible', async ({ page }) => {

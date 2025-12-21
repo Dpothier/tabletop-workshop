@@ -113,14 +113,23 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private initializeActionWheel(): void {
-    // Add all characters to wheel at position 0
+    // Add all characters to wheel at position 0 using stable index-based IDs
     for (const token of this.characterTokens) {
-      this.actionWheel.addEntity(`hero-${token.gridX}-${token.gridY}`, 0);
+      this.actionWheel.addEntity(`hero-${token.index}`, 0);
     }
     // Add monster at position 0
     this.actionWheel.addEntity('monster', 0);
 
     this.updateWheelDisplay();
+  }
+
+  /**
+   * Find a CharacterToken by its action wheel ID
+   */
+  private getCharacterTokenById(wheelId: string): CharacterToken | null {
+    if (!wheelId.startsWith('hero-')) return null;
+    const index = parseInt(wheelId.replace('hero-', ''), 10);
+    return this.characterTokens.find((t) => t.index === index) ?? null;
   }
 
   private initializeBeadHands(): void {
@@ -462,15 +471,14 @@ export class BattleScene extends Phaser.Scene {
       this.selectedToken.setSelected(false);
     }
 
-    // Find the character token for current actor
-    // For now, select first alive character (we need better ID mapping)
-    const aliveChars = this.characterTokens.filter((c) => c.currentHealth > 0);
-    if (aliveChars.length > 0) {
-      this.selectedToken = aliveChars[0];
+    // Find and select the current actor's token
+    const currentToken = this.getCharacterTokenById(this.currentActorId!);
+    if (currentToken && currentToken.currentHealth > 0) {
+      this.selectedToken = currentToken;
       this.selectedToken.setSelected(true);
     }
 
-    // Make characters selectable
+    // Make characters clickable (validation happens in selectCharacter)
     for (const token of this.characterTokens) {
       if (token.currentHealth > 0) {
         token.setInteractive(true);
@@ -484,6 +492,13 @@ export class BattleScene extends Phaser.Scene {
 
   private selectCharacter(token: CharacterToken): void {
     if (this.currentActorId === 'monster') return;
+
+    // Verify this token is the current actor
+    const expectedId = `hero-${token.index}`;
+    if (expectedId !== this.currentActorId) {
+      this.log(`Not ${token.characterClass.name}'s turn`);
+      return;
+    }
 
     if (this.selectedToken) {
       this.selectedToken.setSelected(false);

@@ -15,6 +15,7 @@ export interface GameState {
   playerBeadCount?: number;
   actionButtons?: string[];
   battleLog?: string[];
+  selectedTokenIndex?: number;
 }
 
 /**
@@ -48,7 +49,7 @@ export async function getGameState(page: Page): Promise<GameState> {
       };
       selectedToken?: { beadHand?: { getHandTotal: () => number } };
       characterTokens?: { beadHand?: { getHandTotal: () => number } }[];
-      battleLog?: { text: string }[];
+      logMessages?: string[];
       actionButtons?: { text?: string }[];
     };
 
@@ -84,6 +85,19 @@ export async function getGameState(page: Page): Promise<GameState> {
       }
     } else if (battle.selectedToken?.beadHand) {
       state.playerBeadCount = battle.selectedToken.beadHand.getHandTotal();
+    }
+
+    // Get selected token index
+    if (battle.selectedToken && battle.characterTokens) {
+      const selectedIndex = (battle.characterTokens as unknown[]).indexOf(battle.selectedToken);
+      if (selectedIndex >= 0) {
+        state.selectedTokenIndex = selectedIndex;
+      }
+    }
+
+    // Get battle log entries
+    if (battle.logMessages) {
+      state.battleLog = battle.logMessages as string[];
     }
 
     return state;

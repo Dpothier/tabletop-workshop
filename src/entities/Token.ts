@@ -55,7 +55,7 @@ export class CharacterToken extends Token {
   private color: number;
   private background!: Phaser.GameObjects.Arc;
   private selectionRing!: Phaser.GameObjects.Arc;
-  private index: number;
+  public readonly index: number;
 
   constructor(
     scene: Phaser.Scene,

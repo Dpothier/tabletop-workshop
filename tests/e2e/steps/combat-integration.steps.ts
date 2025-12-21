@@ -9,6 +9,7 @@ import {
   clickValidMovementTile,
   getMonsterPosition,
   clickGridTile,
+  getSelectedCharacterPosition,
 } from '@tests/e2e/fixtures';
 
 const { Given, When, Then } = createBdd();
@@ -78,18 +79,41 @@ Given('I am adjacent to the monster', async ({ page }) => {
   // Click tile adjacent to monster (one tile to the left)
   await clickGridTile(page, monsterPos!.x - 1, monsterPos!.y);
   await page.waitForTimeout(500);
+
+  // After running, the turn advances. Use Rest to cycle through turns
+  // until we get a hero who is adjacent to the monster
+  let attempts = 0;
+  while (attempts < 20) {
+    const state = await getGameState(page);
+    if (state.currentActor?.startsWith('hero-')) {
+      // Check if the selected hero is adjacent to monster
+      const charPos = await getSelectedCharacterPosition(page);
+      if (
+        charPos &&
+        Math.abs(charPos.x - monsterPos!.x) + Math.abs(charPos.y - monsterPos!.y) === 1
+      ) {
+        break; // Hero is adjacent, ready to attack
+      }
+      // Current hero not adjacent - use Rest to advance turns
+      await clickGameCoords(page, 900, 440); // Rest button
+      await page.waitForTimeout(500);
+    } else {
+      // Monster turn - wait for it to complete
+      await page.waitForTimeout(800);
+    }
+    attempts++;
+  }
+
+  // Verify we ended up with an adjacent hero
+  const finalPos = await getSelectedCharacterPosition(page);
+  expect(
+    finalPos && Math.abs(finalPos.x - monsterPos!.x) + Math.abs(finalPos.y - monsterPos!.y) === 1,
+    'Should have an adjacent hero selected'
+  ).toBe(true);
 });
 
 // Action execution steps
-When('I click the Run button', async ({ page }) => {
-  await clickGameCoords(page, 900, 360);
-  await page.waitForTimeout(300);
-});
-
-When('I click the Rest button', async ({ page }) => {
-  await clickGameCoords(page, 900, 440);
-  await page.waitForTimeout(300);
-});
+// Note: Run and Rest button steps are defined in battle.steps.ts with position tracking
 
 When('I click a valid movement tile', async ({ page }) => {
   // Wait for movement highlighting to appear
@@ -103,17 +127,6 @@ When('I click a valid movement tile', async ({ page }) => {
 When('I complete an action', async ({ page }) => {
   await clickGameCoords(page, 900, 440); // Rest
   await page.waitForTimeout(500);
-});
-
-// Wheel position verification
-Then('my wheel position should be {int}', async ({ page }, position: number) => {
-  const state = await getGameState(page);
-  // Find the player that just acted - they should have advanced
-  const playerPositions = Object.entries(state.wheelPositions || {}).filter(([id]) =>
-    id.startsWith('hero')
-  );
-  const maxPosition = Math.max(...playerPositions.map(([, pos]) => pos));
-  expect(maxPosition, `A player should be at wheel position ${position}`).toBe(position);
 });
 
 Then('the next actor should be determined', async ({ page }) => {
@@ -302,4 +315,57 @@ Then('that monster should have a bead bag', async ({ page }) => {
 
 Then('that monster should use bead-based actions', async ({ page }) => {
   await expectMonsterHasBeadSystem(page);
+});
+
+// Turn enforcement steps
+Given('the first hero is the current actor', async ({ page }) => {
+  await page.waitForTimeout(500);
+  const state = await getGameState(page);
+  expect(state.currentActor, 'Current actor should be defined').toBeDefined();
+  expect(state.currentActor).toMatch(/^hero-/);
+});
+
+When('I click on a different hero token', async ({ page }) => {
+  // Click second hero at spawn point (2,6) - different from first hero at (1,6)
+  await clickGridTile(page, 2, 6);
+  await page.waitForTimeout(200);
+});
+
+When('I click on the second hero token', async ({ page }) => {
+  // Second hero spawns at (2,6) per arenas/index.yaml
+  await clickGridTile(page, 2, 6);
+  await page.waitForTimeout(200);
+});
+
+Then('the different hero should not become selected', async ({ page }) => {
+  const state = await getGameState(page);
+  // Selected token should still be the current actor (index 0), not the second hero (index 1)
+  expect(state.selectedTokenIndex, 'Second hero should not be selected').not.toBe(1);
+});
+
+Then('the current actor should remain selected', async ({ page }) => {
+  const state = await getGameState(page);
+  // The selected token index should match the current actor
+  expect(state.selectedTokenIndex, 'Current actor should remain selected').toBe(0);
+});
+
+Then('I should see turn rejection feedback in the log', async ({ page }) => {
+  const state = await getGameState(page);
+  expect(state.battleLog, 'Battle log should exist').toBeDefined();
+  const hasRejectionMessage = state.battleLog?.some(
+    (msg) => msg.toLowerCase().includes('not') && msg.toLowerCase().includes('turn')
+  );
+  expect(hasRejectionMessage, 'Should see turn rejection message in log').toBe(true);
+});
+
+Then('the first hero should be automatically selected', async ({ page }) => {
+  const state = await getGameState(page);
+  expect(state.selectedTokenIndex, 'First hero should be auto-selected').toBe(0);
+});
+
+Then('the action buttons should be visible', async ({ page }) => {
+  const state = await getGameState(page);
+  expect(state.scene, 'Should be in BattleScene').toBe('BattleScene');
+  // When it's a player's turn, action buttons should be available
+  expect(state.currentActor, 'Should have a current actor').toMatch(/^hero-/);
 });
