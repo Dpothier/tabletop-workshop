@@ -95,12 +95,7 @@ export class BattleScene extends Phaser.Scene {
 
   private createBattleUI(): void {
     this.battleUI = new BattleUI(this);
-    this.battleUI.createAllPanels({
-      onMove: () => this.startMove(),
-      onRun: () => this.startRun(),
-      onAttack: () => this.executeAttack(),
-      onRest: () => this.executeRest(),
-    });
+    this.battleUI.createAllPanels();
 
     // Create hero selection bar
     this.createHeroSelectionBar();
@@ -471,7 +466,6 @@ export class BattleScene extends Phaser.Scene {
       }
     }
 
-    this.battleUI.showActionButtons(false);
     this.updateUI();
   }
 
@@ -500,7 +494,6 @@ export class BattleScene extends Phaser.Scene {
     // Show selected hero panel
     this.selectedHeroPanel.showPanel(characterId);
 
-    this.battleUI.showActionButtons(false);
     this.updateUI();
     this.battleUI.log(`Selected: ${visual?.getClassName() || characterId}`);
   }
@@ -636,7 +629,6 @@ export class BattleScene extends Phaser.Scene {
       visual?.setSelected(false);
       this.selectedCharacterId = null;
     }
-    this.battleUI.hideActionButtons();
 
     // Sync all visuals with state
     this.syncVisuals();

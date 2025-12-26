@@ -3,29 +3,9 @@ import type { BeadCounts } from '@src/types/Beads';
 import type { WheelEntry } from '@src/systems/ActionWheel';
 
 /**
- * Callbacks for action buttons
- */
-export interface ActionCallbacks {
-  onMove: () => void;
-  onRun: () => void;
-  onAttack: () => void;
-  onRest: () => void;
-}
-
-/**
- * Action costs for button labels
- */
-const ACTION_COSTS = {
-  move: 1,
-  run: 2,
-  attack: 2,
-  rest: 2,
-} as const;
-
-/**
  * BattleUI handles all Phaser-based UI rendering for the battle scene.
- * This includes status panels, action wheel display, bead displays,
- * action buttons, and battle log.
+ * This includes status panels, action wheel display, bead displays, and battle log.
+ * Action buttons are handled by SelectedHeroPanel.
  */
 export class BattleUI {
   private scene: Phaser.Scene;
@@ -37,7 +17,6 @@ export class BattleUI {
   private monsterBeadText!: Phaser.GameObjects.Text;
   private logText!: Phaser.GameObjects.Text;
   private logMessages: string[] = [];
-  private actionButtons: Phaser.GameObjects.Container[] = [];
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -46,16 +25,12 @@ export class BattleUI {
   /**
    * Create all UI panels and elements
    */
-  createAllPanels(callbacks: ActionCallbacks): void {
+  createAllPanels(): void {
     this.createStatusPanel();
     this.createWheelDisplay();
-    this.createActionButtonsArea();
     this.createBeadDisplay();
     this.createBattleLog();
-    this.callbacks = callbacks;
   }
-
-  private callbacks!: ActionCallbacks;
 
   // ===== Creation Methods =====
 
@@ -73,16 +48,6 @@ export class BattleUI {
     this.scene.add
       .text(900, 180, 'Action Wheel', {
         fontSize: '12px',
-        color: '#aaaaaa',
-      })
-      .setOrigin(0.5);
-  }
-
-  private createActionButtonsArea(): void {
-    this.scene.add.rectangle(900, 380, 200, 180, 0x1a1a2e).setStrokeStyle(2, 0x4a4a6a);
-    this.scene.add
-      .text(900, 300, 'Actions', {
-        fontSize: '18px',
         color: '#aaaaaa',
       })
       .setOrigin(0.5);
@@ -229,72 +194,6 @@ export class BattleUI {
     );
   }
 
-  // ===== Action Buttons =====
-
-  showActionButtons(_canAttack: boolean): void {
-    this.hideActionButtons();
-
-    let yOffset = 320;
-
-    // Move button
-    const moveBtn = this.createButton(900, yOffset, `Move (${ACTION_COSTS.move})`, () =>
-      this.callbacks.onMove()
-    );
-    this.actionButtons.push(moveBtn);
-    yOffset += 40;
-
-    // Run button
-    const runBtn = this.createButton(900, yOffset, `Run (${ACTION_COSTS.run})`, () =>
-      this.callbacks.onRun()
-    );
-    this.actionButtons.push(runBtn);
-    yOffset += 40;
-
-    // Attack button
-    const attackBtn = this.createButton(900, yOffset, `Attack (${ACTION_COSTS.attack})`, () =>
-      this.callbacks.onAttack()
-    );
-    this.actionButtons.push(attackBtn);
-    yOffset += 40;
-
-    // Rest button
-    const restBtn = this.createButton(900, yOffset, `Rest (${ACTION_COSTS.rest})`, () =>
-      this.callbacks.onRest()
-    );
-    this.actionButtons.push(restBtn);
-  }
-
-  hideActionButtons(): void {
-    this.actionButtons.forEach((btn) => btn.destroy());
-    this.actionButtons = [];
-  }
-
-  private createButton(
-    x: number,
-    y: number,
-    text: string,
-    callback: () => void
-  ): Phaser.GameObjects.Container {
-    const container = this.scene.add.container(x, y);
-
-    const bg = this.scene.add
-      .rectangle(0, 0, 160, 36, 0x444466)
-      .setInteractive({ useHandCursor: true });
-    const label = this.scene.add
-      .text(0, 0, text, {
-        fontSize: '14px',
-        color: '#ffffff',
-      })
-      .setOrigin(0.5);
-
-    bg.on('pointerover', () => bg.setFillStyle(0x555588));
-    bg.on('pointerout', () => bg.setFillStyle(0x444466));
-    bg.on('pointerdown', callback);
-
-    container.add([bg, label]);
-    return container;
-  }
-
   // ===== Logging =====
 
   log(message: string): void {
@@ -315,7 +214,6 @@ export class BattleUI {
   // ===== Cleanup =====
 
   destroy(): void {
-    this.hideActionButtons();
     // Phaser scene will clean up other elements
   }
 }
