@@ -186,11 +186,11 @@ Then(
     action3: string,
     action4: string
   ) {
-    const actions = world.character!.getAvailableActions();
-    expect(actions).toContain(action1);
-    expect(actions).toContain(action2);
-    expect(actions).toContain(action3);
-    expect(actions).toContain(action4);
+    const actionIds = world.character!.getAvailableActionIds();
+    expect(actionIds).toContain(action1);
+    expect(actionIds).toContain(action2);
+    expect(actionIds).toContain(action3);
+    expect(actionIds).toContain(action4);
   }
 );
 

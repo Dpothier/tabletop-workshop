@@ -1,5 +1,7 @@
 import yaml from 'js-yaml';
 import type { BeadCounts } from '@src/types/Beads';
+import type { ActionDefinition } from '@src/types/Action';
+import type { EquipmentDefinition } from '@src/types/Equipment';
 
 export interface CharacterClass {
   name: string;
@@ -119,6 +121,8 @@ export interface GameData {
   monsters: Monster[];
   arenas: Arena[];
   rules: Rules;
+  actions: ActionDefinition[];
+  equipment: EquipmentDefinition[];
 }
 
 async function loadYaml<T>(path: string): Promise<T> {
@@ -128,17 +132,22 @@ async function loadYaml<T>(path: string): Promise<T> {
 }
 
 export async function loadGameData(): Promise<GameData> {
-  const [classesData, monstersData, arenasData, rules] = await Promise.all([
-    loadYaml<{ classes: CharacterClass[] }>('/data/characters/classes.yaml'),
-    loadYaml<{ monsters: Monster[] }>('/data/monsters/index.yaml'),
-    loadYaml<{ arenas: Arena[] }>('/data/arenas/index.yaml'),
-    loadYaml<Rules>('/data/rules/core.yaml'),
-  ]);
+  const [classesData, monstersData, arenasData, rules, actionsData, equipmentData] =
+    await Promise.all([
+      loadYaml<{ classes: CharacterClass[] }>('/data/characters/classes.yaml'),
+      loadYaml<{ monsters: Monster[] }>('/data/monsters/index.yaml'),
+      loadYaml<{ arenas: Arena[] }>('/data/arenas/index.yaml'),
+      loadYaml<Rules>('/data/rules/core.yaml'),
+      loadYaml<{ actions: ActionDefinition[] }>('/data/actions/core.yaml'),
+      loadYaml<{ equipment: EquipmentDefinition[] }>('/data/equipment/core.yaml'),
+    ]);
 
   return {
     classes: classesData.classes,
     monsters: monstersData.monsters,
     arenas: arenasData.arenas,
     rules,
+    actions: actionsData.actions,
+    equipment: equipmentData.equipment,
   };
 }

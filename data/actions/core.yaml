@@ -1,0 +1,28 @@
+actions:
+  - id: move
+    name: Move
+    cost: 1
+    handlerId: movement
+    description: "Move up to 2 tiles"
+    range: 2
+
+  - id: run
+    name: Run
+    cost: 2
+    handlerId: movement
+    description: "Run up to 6 tiles"
+    range: 6
+
+  - id: attack
+    name: Attack
+    cost: 2
+    handlerId: melee_attack
+    description: "Attack an adjacent enemy"
+    range: 1
+    damage: 1
+
+  - id: rest
+    name: Rest
+    cost: 2
+    handlerId: rest
+    description: "Draw 2 beads to your hand"

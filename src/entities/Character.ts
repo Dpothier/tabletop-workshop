@@ -1,31 +1,18 @@
-import { BattleGrid, Position } from '@src/state/BattleGrid';
+import { BattleGrid } from '@src/state/BattleGrid';
 import { Entity } from '@src/entities/Entity';
 import { PlayerBeadHand } from '@src/systems/PlayerBeadHand';
-import type { AnimationEvent } from '@src/types/AnimationEvent';
 import type { IEntityRegistry } from '@src/types/EntityRegistry';
+import type { ActionDefinition, ActionParams, ActionResult } from '@src/types/Action';
+import type { EquipmentDefinition, EquipmentSlot } from '@src/types/Equipment';
+import type { ActionRegistry } from '@src/systems/ActionRegistry';
+
+// Re-export for backwards compatibility
+export type { ActionParams, ActionResult } from '@src/types/Action';
 
 /**
- * Parameters for action resolution.
+ * Legacy action definition for backwards compatibility.
  */
-export interface ActionParams {
-  target?: Position;
-  targetEntityId?: string;
-}
-
-/**
- * Result of an action resolution.
- */
-export interface ActionResult {
-  success: boolean;
-  reason?: string;
-  wheelCost: number;
-  events: AnimationEvent[];
-}
-
-/**
- * Definition of an available action.
- */
-interface ActionDefinition {
+interface LegacyActionDefinition {
   cost: number;
   handler: (params: ActionParams) => ActionResult;
 }
@@ -33,18 +20,35 @@ interface ActionDefinition {
 /**
  * Character represents a player-controlled entity.
  * It knows what actions it can take and resolves them when requested.
+ * Actions are granted by equipment and innate abilities.
  */
 export class Character extends Entity {
   private beadHand?: PlayerBeadHand;
   private readonly entityRegistry: IEntityRegistry;
-  private readonly availableActions: Map<string, ActionDefinition>;
+  private readonly actionRegistry?: ActionRegistry;
 
-  constructor(id: string, maxHealth: number, grid: BattleGrid, entityRegistry: IEntityRegistry) {
+  /** Equipment currently worn by this character */
+  private equipment: Map<EquipmentSlot, EquipmentDefinition> = new Map();
+
+  /** Action IDs that are always available (base actions any character can do) */
+  private innateActions: string[] = ['move', 'run', 'attack', 'rest'];
+
+  /** Legacy action handlers for backwards compatibility */
+  private readonly legacyHandlers: Map<string, LegacyActionDefinition>;
+
+  constructor(
+    id: string,
+    maxHealth: number,
+    grid: BattleGrid,
+    entityRegistry: IEntityRegistry,
+    actionRegistry?: ActionRegistry
+  ) {
     super(id, maxHealth, grid);
     this.entityRegistry = entityRegistry;
+    this.actionRegistry = actionRegistry;
 
-    // Define available actions with their wheel costs and handlers
-    this.availableActions = new Map<string, ActionDefinition>([
+    // Legacy handlers for backwards compatibility
+    this.legacyHandlers = new Map<string, LegacyActionDefinition>([
       ['move', { cost: 1, handler: this.executeMove.bind(this) }],
       ['run', { cost: 2, handler: this.executeRun.bind(this) }],
       ['attack', { cost: 2, handler: this.executeAttack.bind(this) }],
@@ -53,32 +57,124 @@ export class Character extends Entity {
   }
 
   /**
+   * Equip an item to this character.
+   * Replaces any existing item in the same slot.
+   */
+  equip(equipment: EquipmentDefinition): void {
+    this.equipment.set(equipment.slot, equipment);
+  }
+
+  /**
+   * Unequip an item from a slot.
+   */
+  unequip(slot: EquipmentSlot): void {
+    this.equipment.delete(slot);
+  }
+
+  /**
+   * Get equipped item in a slot.
+   */
+  getEquipment(slot: EquipmentSlot): EquipmentDefinition | undefined {
+    return this.equipment.get(slot);
+  }
+
+  /**
+   * Set the innate actions for this character.
+   */
+  setInnateActions(actionIds: string[]): void {
+    this.innateActions = actionIds;
+  }
+
+  /**
+   * Get all action IDs available to this character.
+   * Combines actions from equipment and innate abilities.
+   */
+  getAvailableActionIds(): string[] {
+    const actionIds = new Set<string>(this.innateActions);
+
+    // Add actions from all equipped items
+    for (const equipment of this.equipment.values()) {
+      for (const actionId of equipment.actions) {
+        actionIds.add(actionId);
+      }
+    }
+
+    return Array.from(actionIds);
+  }
+
+  /**
+   * Get all available action definitions.
+   * Returns ActionDefinition objects if actionRegistry is available,
+   * otherwise returns legacy-style definitions.
+   */
+  getAvailableActions(): ActionDefinition[] {
+    const actionIds = this.getAvailableActionIds();
+
+    if (this.actionRegistry) {
+      return this.actionRegistry.getMultiple(actionIds);
+    }
+
+    // Fallback: create ActionDefinition from legacy handlers
+    const actions: ActionDefinition[] = [];
+    for (const id of actionIds) {
+      const legacy = this.legacyHandlers.get(id);
+      if (legacy) {
+        actions.push({
+          id,
+          name: id.charAt(0).toUpperCase() + id.slice(1),
+          cost: legacy.cost,
+          handlerId: id,
+        });
+      }
+    }
+    return actions;
+  }
+
+  /**
+   * Get a specific action definition by ID.
+   */
+  getAction(actionId: string): ActionDefinition | undefined {
+    if (this.actionRegistry) {
+      return this.actionRegistry.get(actionId);
+    }
+
+    const legacy = this.legacyHandlers.get(actionId);
+    if (legacy) {
+      return {
+        id: actionId,
+        name: actionId.charAt(0).toUpperCase() + actionId.slice(1),
+        cost: legacy.cost,
+        handlerId: actionId,
+      };
+    }
+    return undefined;
+  }
+
+  /**
    * Resolve an action by its ID.
    * Validates the character has access to the action, then executes it.
    * @throws Error if action is not available
    */
   resolveAction(actionId: string, params: ActionParams): ActionResult {
-    const action = this.availableActions.get(actionId);
-
-    if (!action) {
+    const availableIds = this.getAvailableActionIds();
+    if (!availableIds.includes(actionId)) {
       throw new Error(`Character does not have action: ${actionId}`);
     }
 
-    return action.handler(params);
-  }
+    // Use legacy handler for execution
+    const legacy = this.legacyHandlers.get(actionId);
+    if (!legacy) {
+      throw new Error(`No handler for action: ${actionId}`);
+    }
 
-  /**
-   * Get list of available action IDs.
-   */
-  getAvailableActions(): string[] {
-    return Array.from(this.availableActions.keys());
+    return legacy.handler(params);
   }
 
   /**
    * Get the wheel cost for a specific action.
    */
   getActionWheelCost(actionId: string): number {
-    const action = this.availableActions.get(actionId);
+    const action = this.getAction(actionId);
     if (!action) {
       throw new Error(`Unknown action: ${actionId}`);
     }
@@ -100,6 +196,13 @@ export class Character extends Entity {
   }
 
   /**
+   * Get the bead hand instance.
+   */
+  getBeadHand(): PlayerBeadHand | undefined {
+    return this.beadHand;
+  }
+
+  /**
    * Draw beads to hand.
    * @param count Number of beads to draw
    * @returns Array of drawn bead colors
@@ -118,7 +221,7 @@ export class Character extends Entity {
     return this.beadHand?.getHandCounts();
   }
 
-  // Action Handlers
+  // Legacy Action Handlers
 
   private executeMove(params: ActionParams): ActionResult {
     if (!params.target) {
@@ -148,7 +251,6 @@ export class Character extends Entity {
       return { success: false, reason: 'no target', wheelCost: 2, events: [] };
     }
 
-    // Run allows moving up to 6 tiles (range check is in BattleScene)
     const from = this.getPosition();
     const moveResult = this.moveTo(params.target);
     if (!moveResult.success) {
@@ -175,12 +277,10 @@ export class Character extends Entity {
       return { success: false, reason: 'target not found', wheelCost: 2, events: [] };
     }
 
-    // Check adjacency
     if (!this.grid.isAdjacent(this.id, targetId)) {
       return { success: false, reason: 'target not adjacent', wheelCost: 2, events: [] };
     }
 
-    // Deal 1 damage to target
     target.receiveAttack(1);
 
     return {
@@ -201,7 +301,6 @@ export class Character extends Entity {
   private executeRest(_params: ActionParams): ActionResult {
     let beadsDrawn: string[] = [];
     if (this.beadHand) {
-      // Draw 2 beads when resting
       beadsDrawn = this.beadHand.drawToHand(2);
     }
 

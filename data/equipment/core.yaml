@@ -1,0 +1,15 @@
+equipment:
+  - id: basic_sword
+    name: Basic Sword
+    slot: weapon
+    actions:
+      - attack
+    description: "A simple sword for melee combat"
+
+  - id: basic_boots
+    name: Basic Boots
+    slot: accessory
+    actions:
+      - move
+      - run
+    description: "Standard footwear for movement"

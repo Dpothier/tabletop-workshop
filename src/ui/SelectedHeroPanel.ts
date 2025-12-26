@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import type { BeadCounts } from '@src/types/Beads';
+import type { ActionDefinition } from '@src/types/Action';
 
 /**
  * Action button configuration
@@ -60,7 +61,7 @@ const DISABLED_TEXT_COLOR = '#666666';
 const COST_COLOR = '#ffcc00';
 
 /**
- * Default action configurations
+ * Default action configurations (fallback when no actions provided)
  */
 const DEFAULT_ACTIONS: Omit<ActionButtonConfig, 'callback'>[] = [
   { name: 'Move', cost: 1 },
@@ -68,6 +69,16 @@ const DEFAULT_ACTIONS: Omit<ActionButtonConfig, 'callback'>[] = [
   { name: 'Attack', cost: 2 },
   { name: 'Rest', cost: 2 },
 ];
+
+/**
+ * Convert ActionDefinition to button config
+ */
+function actionToButtonConfig(action: ActionDefinition): Omit<ActionButtonConfig, 'callback'> {
+  return {
+    name: action.name,
+    cost: action.cost,
+  };
+}
 
 /**
  * SelectedHeroPanel displays the selected hero's inventory and action menu.
@@ -80,6 +91,7 @@ export class SelectedHeroPanel {
   private selectedHeroId: string | null = null;
   private actionButtons: ActionButton[] = [];
   private actionCallbacks: Map<string, () => void> = new Map();
+  private currentActions: Omit<ActionButtonConfig, 'callback'>[] = DEFAULT_ACTIONS;
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -144,9 +156,22 @@ export class SelectedHeroPanel {
    * Create action buttons with costs
    */
   private createActionButtons(): void {
-    const startX = PANEL_WIDTH / 2;
+    this.rebuildActionButtons();
+  }
 
-    DEFAULT_ACTIONS.forEach((action, index) => {
+  /**
+   * Rebuild action buttons based on currentActions
+   */
+  private rebuildActionButtons(): void {
+    // Remove existing buttons
+    for (const button of this.actionButtons) {
+      button.container.destroy(true);
+    }
+    this.actionButtons = [];
+
+    // Create new buttons
+    const startX = PANEL_WIDTH / 2;
+    this.currentActions.forEach((action, index) => {
       const y = ACTION_BUTTON_Y_OFFSET + index * (ACTION_BUTTON_HEIGHT + ACTION_BUTTON_GAP);
       const callback = this.actionCallbacks.get(action.name) || (() => {});
 
@@ -154,6 +179,15 @@ export class SelectedHeroPanel {
       this.actionButtons.push(button);
       this.container.add(button.container);
     });
+  }
+
+  /**
+   * Set actions from ActionDefinition array.
+   * Call this when the selected character changes.
+   */
+  setActions(actions: ActionDefinition[]): void {
+    this.currentActions = actions.map(actionToButtonConfig);
+    this.rebuildActionButtons();
   }
 
   /**
