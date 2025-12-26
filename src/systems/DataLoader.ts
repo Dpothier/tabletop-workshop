@@ -1,5 +1,5 @@
 import yaml from 'js-yaml';
-import type { BeadCounts } from '@src/systems/BeadBag';
+import type { BeadCounts } from '@src/types/Beads';
 
 export interface CharacterClass {
   name: string;
@@ -40,7 +40,7 @@ export interface MonsterPhase {
 }
 
 // Re-export BeadCounts for consumers that import from DataLoader
-export type { BeadCounts } from '@src/systems/BeadBag';
+export type { BeadCounts } from '@src/types/Beads';
 
 /**
  * A state in the monster's bead-based state machine

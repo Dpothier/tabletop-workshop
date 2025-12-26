@@ -1,6 +1,6 @@
-import type { BeadColor, BeadCounts } from '@src/systems/BeadBag';
-
-const BEAD_COLORS: BeadColor[] = ['red', 'blue', 'green', 'white'];
+import type { BeadColor, BeadCounts } from '@src/types/Beads';
+import { BEAD_COLORS } from '@src/types/Beads';
+import { selectRandomBead } from '@src/utils/beadUtils';
 
 const DEFAULT_BEAD_COUNTS: BeadCounts = {
   red: 3,
@@ -174,26 +174,13 @@ export class PlayerBeadHand {
    * Draw one bead from bag using weighted random selection.
    */
   private drawOneBead(): BeadColor | null {
-    const total = this.getBagTotal();
-    if (total === 0) {
-      return null;
+    const color = selectRandomBead(this.getBagCounts(), this.randomFn);
+
+    if (color) {
+      this.bag.set(color, this.bag.get(color)! - 1);
     }
 
-    const roll = this.randomFn() * total;
-    let cumulative = 0;
-
-    for (const color of BEAD_COLORS) {
-      cumulative += this.bag.get(color)!;
-      if (roll < cumulative) {
-        this.bag.set(color, this.bag.get(color)! - 1);
-        return color;
-      }
-    }
-
-    // Fallback (should not reach)
-    const lastColor = BEAD_COLORS[BEAD_COLORS.length - 1];
-    this.bag.set(lastColor, this.bag.get(lastColor)! - 1);
-    return lastColor;
+    return color;
   }
 
   /**

@@ -6,7 +6,7 @@ import {
   MonsterState,
   MonsterStateDefinition,
 } from '@src/systems/MonsterStateMachine';
-import type { BeadColor } from '@src/systems/BeadBag';
+import type { BeadColor } from '@src/types/Beads';
 
 interface StateRow {
   name: string;

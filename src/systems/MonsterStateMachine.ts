@@ -1,4 +1,4 @@
-import type { BeadColor } from '@src/systems/BeadBag';
+import type { BeadColor } from '@src/types/Beads';
 
 /**
  * Represents a monster state with attack properties and transitions.

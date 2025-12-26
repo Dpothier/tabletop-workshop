@@ -1,19 +1,9 @@
-/**
- * Bead colors used in the monster AI system
- */
-export type BeadColor = 'red' | 'blue' | 'green' | 'white';
+import type { BeadColor, BeadCounts } from '@src/types/Beads';
+import { BEAD_COLORS } from '@src/types/Beads';
+import { selectRandomBead } from '@src/utils/beadUtils';
 
-/**
- * Counts of beads by color
- */
-export interface BeadCounts {
-  red: number;
-  blue: number;
-  green: number;
-  white: number;
-}
-
-const BEAD_COLORS: BeadColor[] = ['red', 'blue', 'green', 'white'];
+// Re-export types for backwards compatibility
+export type { BeadColor, BeadCounts } from '@src/types/Beads';
 
 /**
  * Bead Bag System
@@ -60,25 +50,13 @@ export class BeadBag {
       this.reshuffle();
     }
 
-    const total = this.getTotalRemaining();
-    const roll = this.randomFn() * total;
+    const color = selectRandomBead(this.getRemainingCounts(), this.randomFn)!;
 
-    let cumulative = 0;
-    for (const color of BEAD_COLORS) {
-      cumulative += this.remaining.get(color)!;
-      if (roll < cumulative) {
-        // Decrement remaining and increment discarded
-        this.remaining.set(color, this.remaining.get(color)! - 1);
-        this.discarded.set(color, this.discarded.get(color)! + 1);
-        return color;
-      }
-    }
+    // Decrement remaining and increment discarded
+    this.remaining.set(color, this.remaining.get(color)! - 1);
+    this.discarded.set(color, this.discarded.get(color)! + 1);
 
-    // Fallback (should not reach here)
-    const lastColor = BEAD_COLORS[BEAD_COLORS.length - 1];
-    this.remaining.set(lastColor, this.remaining.get(lastColor)! - 1);
-    this.discarded.set(lastColor, this.discarded.get(lastColor)! + 1);
-    return lastColor;
+    return color;
   }
 
   /**

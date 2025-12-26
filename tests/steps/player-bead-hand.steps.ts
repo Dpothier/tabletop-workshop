@@ -2,7 +2,7 @@ import { Given, When, Then } from 'quickpickle';
 import { expect } from 'vitest';
 import type { QuickPickleWorld } from 'quickpickle';
 import { PlayerBeadHand } from '@src/systems/PlayerBeadHand';
-import type { BeadColor, BeadCounts } from '@src/systems/BeadBag';
+import type { BeadColor, BeadCounts } from '@src/types/Beads';
 
 interface PlayerBeadHandWorld extends QuickPickleWorld {
   beadHand?: PlayerBeadHand;

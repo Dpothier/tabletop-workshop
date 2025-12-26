@@ -1,7 +1,8 @@
 import { Given, When, Then } from 'quickpickle';
 import { expect } from 'vitest';
 import type { QuickPickleWorld } from 'quickpickle';
-import { BeadBag, BeadColor, BeadCounts } from '@src/systems/BeadBag';
+import type { BeadColor, BeadCounts } from '@src/types/Beads';
+import { BeadBag } from '@src/systems/BeadBag';
 
 interface BeadBagWorld extends QuickPickleWorld {
   beadBag?: BeadBag;
