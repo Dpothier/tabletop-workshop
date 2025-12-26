@@ -590,3 +590,46 @@ The following features from previous iterations are replaced by the new combat s
 | Complex HP/damage numbers | Simplified HP (3/10) |
 | Cooldown-based abilities | Bead-cost abilities |
 | Speed stat for turn order | Wheel cost per action |
+
+---
+
+# ARCHITECTURE PRINCIPLES
+
+## Two-Phase Turn Resolution
+
+Turn resolution separates state computation from visual animation:
+
+1. **Phase 1 (State)**: All game state changes computed first
+2. **Phase 2 (Visual)**: All animations play after state is finalized
+3. **Advance turn**: Only after animations complete
+
+This ensures atomic state changes and testable logic without Phaser dependencies.
+
+## Event-Driven Animation
+
+Actions return events describing what happened, not how to animate:
+
+| Component | Responsibility |
+|-----------|----------------|
+| Entity (Character/Monster) | Compute state changes, return AnimationEvent[] |
+| AnimationExecutor | Interpret events, delegate to Visuals |
+| Visual classes | Own their specific animations |
+| BattleScene | Orchestrate phases, no direct tween creation |
+
+## Visual Ownership
+
+Each Visual class owns its animations:
+- EntityVisual: movement, damage flash, health updates
+- CharacterVisual: rest feedback
+- MonsterVisual: bead draw, state change
+
+Visuals expose Promise-based animation methods. BattleScene awaits them.
+
+## Two-Step Actions
+
+Multi-step actions (like movement) separate UI feedback from turn consumption:
+
+1. **Show Options**: Pure UI feedback, no state change, no turn cost
+2. **Execute Choice**: Full two-phase resolution, turn advances
+
+Example: Click Move button (shows tiles) → Click destination (executes move)

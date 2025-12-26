@@ -1,16 +1,9 @@
-import type { CharacterToken, MonsterToken } from '@src/entities/Token';
-import type { DiceRoller } from '@src/systems/DiceRoller';
 import type { ActionWheel } from '@src/systems/ActionWheel';
 import type { CharacterClass, Monster, Arena } from '@src/systems/DataLoader';
 
 export interface GameWorld {
   // Systems
-  diceRoller?: DiceRoller;
   actionWheel?: ActionWheel;
-
-  // Entities
-  characters?: CharacterToken[];
-  monster?: MonsterToken;
 
   // Data
   loadedClasses?: CharacterClass[];

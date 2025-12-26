@@ -16,10 +16,9 @@ Four bead colors exist: `red`, `blue`, `green`, `white`.
 |-----------|----------------|
 | `BeadBag` | Manages monster bead pool, handles drawing and auto-reshuffling when empty |
 | `MonsterStateMachine` | Tracks monster current state, executes color-based transitions |
-| `MonsterToken` | Owns BeadBag and StateMachine instances for bead-enabled monsters |
-| `MonsterAI` | Coordinates bead draw with action selection via `selectBeadBasedAction()` |
+| `MonsterEntity` | Owns BeadBag and StateMachine, integrates AI via `decideTurn()` |
 | `PlayerBeadHand` | Manages player bag, hand, and discard piles for action costs |
-| `CharacterToken` | Owns PlayerBeadHand instance for player characters |
+| `Character` | Owns PlayerBeadHand instance for player characters |
 
 ## Class Diagram
 
@@ -72,57 +71,64 @@ classDiagram
         +transitions: Record~BeadColor, string~
     }
 
-    class MonsterToken {
-        +beadBag?: BeadBag
-        +stateMachine?: MonsterStateMachine
-        +hasBeadSystem(): boolean
+    class MonsterEntity {
+        -beadBag?: BeadBag
+        -stateMachine?: MonsterStateMachine
+        -grid: BattleGrid
+        +decideTurn(targets: Entity[]): MonsterAction
+        +hasBeadBag(): boolean
+        +getDiscardedCounts(): BeadCounts
     }
 
-    class CharacterToken {
-        +beadHand?: PlayerBeadHand
-        +initializeBeadHand(): void
+    class Character {
+        -beadHand?: PlayerBeadHand
+        -grid: BattleGrid
+        +drawBeadsToHand(count: number): void
         +hasBeadHand(): boolean
-    }
-
-    class MonsterAI {
-        +selectBeadBasedAction(): BeadBasedAction
+        +getHandCounts(): BeadCounts
     }
 
     MonsterStateMachine --> MonsterState : uses
-    MonsterToken ..o BeadBag : owns
-    MonsterToken ..o MonsterStateMachine : owns
-    MonsterAI --> BeadBag : uses
-    MonsterAI --> MonsterStateMachine : uses
-    CharacterToken ..o PlayerBeadHand : owns
+    MonsterEntity ..o BeadBag : owns
+    MonsterEntity ..o MonsterStateMachine : owns
+    Character ..o PlayerBeadHand : owns
 ```
 
 ## Sequence Diagrams
 
-### Monster Bead Draw
+### Monster Turn (Bead-Based AI)
 
 ```mermaid
 sequenceDiagram
     participant Battle as BattleScene
-    participant AI as MonsterAI
+    participant Monster as MonsterEntity
     participant Bag as BeadBag
     participant SM as MonsterStateMachine
+    participant Grid as BattleGrid
 
-    Battle->>AI: selectBeadBasedAction(beadBag, stateMachine, ...)
-    AI->>Bag: draw()
+    Battle->>Monster: decideTurn(targets)
+    Monster->>Bag: draw()
 
     alt bag is empty
         Bag->>Bag: reshuffle()
     end
 
-    Bag-->>AI: BeadColor (e.g., "red")
-    AI->>SM: transition(color)
-    SM-->>AI: MonsterState
+    Bag-->>Monster: BeadColor (e.g., "red")
+    Monster->>SM: transition(color)
+    SM-->>Monster: MonsterState
 
     alt state has damage
-        AI->>AI: find target, check range
-        AI-->>Battle: BeadBasedAction {type: "attack", state, drawnBead}
+        Monster->>Monster: findClosestTarget(targets)
+        Monster->>Grid: getDistance(monsterId, targetId)
+        Grid-->>Monster: distance
+        alt distance <= range
+            Monster-->>Battle: MonsterAction {type: "attack", target, state, drawnBead}
+        else
+            Monster->>Monster: calculateMoveToward(target)
+            Monster-->>Battle: MonsterAction {type: "move", destination, state, drawnBead}
+        end
     else state is idle-like
-        AI-->>Battle: BeadBasedAction {type: "none", state, drawnBead}
+        Monster-->>Battle: MonsterAction {type: "idle", state, drawnBead}
     end
 ```
 
@@ -131,15 +137,15 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant Battle as BattleScene
-    participant Token as CharacterToken
+    participant Char as Character
     participant Hand as PlayerBeadHand
 
-    Note over Battle: Turn Start
-    Battle->>Token: (trigger turn start)
-    Token->>Hand: drawToHand(3)
-    Hand-->>Token: BeadColor[]
+    Note over Battle: Rest Action
+    Battle->>Char: drawBeadsToHand(2)
+    Char->>Hand: drawToHand(2)
+    Hand-->>Char: BeadColor[]
 
-    Note over Battle: Action Selection
+    Note over Battle: Check Action Cost
     Battle->>Hand: canAfford({red: 1, blue: 0, green: 0, white: 0})
     Hand-->>Battle: boolean
 
@@ -191,7 +197,7 @@ states:
 ```
 
 **Integration:**
-`MonsterToken.initializeBeadSystem()` creates BeadBag and StateMachine if monster data includes bead configuration. `hasBeadSystem()` checks availability before using bead-based AI.
+`MonsterEntity.initializeBeadBag()` creates a BeadBag if monster data includes bead configuration. `MonsterEntity.initializeStateMachine()` creates the state machine. `hasBeadBag()` checks availability before using bead-based AI.
 
 ### Player Bead Hand
 
@@ -206,4 +212,17 @@ states:
 - `canAfford(costs)`: Checks if hand contains required beads
 
 **Integration:**
-`CharacterToken.initializeBeadHand()` creates a PlayerBeadHand with default bead counts. `hasBeadHand()` checks availability. UI integration deferred to Step 4 (Combat Integration).
+`Character.initializeBeadHand()` creates a PlayerBeadHand with default bead counts. `hasBeadHand()` checks availability.
+
+### MonsterEntity.decideTurn()
+
+The `decideTurn()` method encapsulates all AI logic:
+
+1. Draw a bead from BeadBag
+2. Transition the state machine based on bead color
+3. Find closest target using BattleGrid distance queries
+4. If target is in range: return attack action
+5. If target is out of range: calculate movement toward target
+6. Return the action with drawn bead and state info for logging
+
+This design keeps all AI decision-making within MonsterEntity, using BattleGrid for spatial queries.

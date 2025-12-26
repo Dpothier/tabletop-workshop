@@ -1,12 +1,18 @@
 import Phaser from 'phaser';
 import { Arena, Monster, CharacterClass } from '@src/systems/DataLoader';
-import { Token, CharacterToken, MonsterToken } from '@src/entities/Token';
-import { DiceRoller } from '@src/systems/DiceRoller';
 import { GridSystem } from '@src/systems/GridSystem';
-import { MovementValidator } from '@src/systems/MovementValidator';
-import { CombatResolver } from '@src/systems/CombatResolver';
-import { MonsterAI, BeadBasedAction } from '@src/systems/MonsterAI';
 import { ActionWheel } from '@src/systems/ActionWheel';
+
+// New architecture imports
+import { BattleGrid } from '@src/state/BattleGrid';
+import { Character } from '@src/entities/Character';
+import { MonsterEntity, StateConfig } from '@src/entities/MonsterEntity';
+import { Entity } from '@src/entities/Entity';
+import { CharacterVisual, MonsterVisual } from '@src/visuals';
+import { BattleUI } from '@src/ui/BattleUI';
+import { AnimationExecutor } from '@src/ui/AnimationExecutor';
+import { HeroSelectionBar, HeroCardData } from '@src/ui/HeroSelectionBar';
+import { SelectedHeroPanel } from '@src/ui/SelectedHeroPanel';
 
 interface BattleData {
   monster: Monster;
@@ -14,14 +20,6 @@ interface BattleData {
   partySize: number;
   classes: CharacterClass[];
 }
-
-// Action costs for the wheel
-const ACTION_COSTS = {
-  move: 1,
-  run: 2,
-  attack: 2,
-  rest: 2,
-} as const;
 
 // Movement ranges for actions
 const MOVEMENT_RANGES = {
@@ -35,41 +33,43 @@ export class BattleScene extends Phaser.Scene {
   private partySize!: number;
   private classes!: CharacterClass[];
 
-  // Visual elements
+  // === STATE (Game Logic) ===
+  private battleGrid!: BattleGrid;
+  private characters: Character[] = [];
+  private monsterEntity!: MonsterEntity;
+  private entityMap: Map<string, Entity> = new Map();
+
+  // === VISUALS (Rendering) ===
+  private characterVisuals: Map<string, CharacterVisual> = new Map();
+  private monsterVisual!: MonsterVisual;
   private grid!: Phaser.GameObjects.Graphics;
-  private tokens: Token[] = [];
-  private characterTokens: CharacterToken[] = [];
-  private monsterToken!: MonsterToken;
 
   // Systems
   private actionWheel!: ActionWheel;
   private gridSystem!: GridSystem;
-  private movementValidator!: MovementValidator;
-  private combatResolver!: CombatResolver;
-  private monsterAI!: MonsterAI;
 
-  // State - no more phases, just track current actor
+  // Turn state
   private currentActorId: string | null = null;
-  private selectedToken: CharacterToken | null = null;
+  private selectedCharacterId: string | null = null;
 
   // Valid movement tiles for E2E testing
   public currentValidMoves: { x: number; y: number }[] = [];
+
+  // Expose log messages for E2E testing
+  public get logMessages(): string[] {
+    return this.battleUI?.getLogMessages() ?? [];
+  }
 
   // Constants
   private readonly GRID_SIZE = 64;
   private readonly GRID_OFFSET_X = 80;
   private readonly GRID_OFFSET_Y = 80;
 
-  // UI elements
-  private statusText!: Phaser.GameObjects.Text;
-  private actionButtons: Phaser.GameObjects.Container[] = [];
-  private logText!: Phaser.GameObjects.Text;
-  private logMessages: string[] = [];
-
-  // UI for wheel and beads
-  private wheelGraphics!: Phaser.GameObjects.Graphics;
-  private beadHandContainer!: Phaser.GameObjects.Container;
-  private monsterBeadText!: Phaser.GameObjects.Text;
+  // UI
+  private battleUI!: BattleUI;
+  private animationExecutor!: AnimationExecutor;
+  public heroSelectionBar!: HeroSelectionBar;
+  public selectedHeroPanel!: SelectedHeroPanel;
 
   constructor() {
     super({ key: 'BattleScene' });
@@ -84,17 +84,79 @@ export class BattleScene extends Phaser.Scene {
 
   create(): void {
     this.initializeSystems();
+    this.initializeState();
     this.drawGrid();
-    this.createTokens();
-    this.createUI();
+    this.createEntitiesAndVisuals();
+    this.createBattleUI();
     this.initializeActionWheel();
     this.initializeBeadHands();
     this.processTurn();
   }
 
-  private initializeSystems(): void {
-    const diceRoller = new DiceRoller();
+  private createBattleUI(): void {
+    this.battleUI = new BattleUI(this);
+    this.battleUI.createAllPanels({
+      onMove: () => this.startMove(),
+      onRun: () => this.startRun(),
+      onAttack: () => this.executeAttack(),
+      onRest: () => this.executeRest(),
+    });
 
+    // Create hero selection bar
+    this.createHeroSelectionBar();
+
+    // Create selected hero panel
+    this.createSelectedHeroPanel();
+
+    // Create animation executor after UI and visuals are ready
+    this.animationExecutor = new AnimationExecutor(
+      this.gridSystem,
+      this.characterVisuals,
+      this.monsterVisual,
+      this.battleUI
+    );
+  }
+
+  private createHeroSelectionBar(): void {
+    this.heroSelectionBar = new HeroSelectionBar(this);
+
+    // Build hero card data from characters
+    const heroCardData: HeroCardData[] = this.characters.map((character, index) => {
+      const charClass = this.classes[index % this.classes.length];
+      const beadCounts = character.getHandCounts() ?? { red: 0, blue: 0, green: 0, white: 0 };
+      const classColors = [0x4488ff, 0xff4444, 0x44ff44, 0xffff44];
+
+      return {
+        heroId: character.id,
+        className: charClass.name,
+        classIcon: charClass.icon || charClass.name[0],
+        color: classColors[index],
+        currentHp: character.currentHealth,
+        maxHp: character.maxHealth,
+        beadCounts,
+      };
+    });
+
+    this.heroSelectionBar.create(heroCardData);
+    this.heroSelectionBar.onHeroClick((heroId) => this.handleHeroBarClick(heroId));
+  }
+
+  private handleHeroBarClick(heroId: string): void {
+    // Use same logic as selectCharacter
+    this.selectCharacter(heroId);
+  }
+
+  private createSelectedHeroPanel(): void {
+    this.selectedHeroPanel = new SelectedHeroPanel(this);
+    this.selectedHeroPanel.create({
+      Move: () => this.startMove(),
+      Run: () => this.startRun(),
+      Attack: () => this.executeAttack(),
+      Rest: () => this.executeRest(),
+    });
+  }
+
+  private initializeSystems(): void {
     this.gridSystem = new GridSystem(
       this.GRID_SIZE,
       this.GRID_OFFSET_X,
@@ -103,43 +165,98 @@ export class BattleScene extends Phaser.Scene {
       this.arena.height
     );
 
-    this.movementValidator = new MovementValidator(this.gridSystem, () =>
-      this.tokens.filter((t) => t.currentHealth > 0).map((t) => ({ x: t.gridX, y: t.gridY }))
-    );
-
-    this.combatResolver = new CombatResolver(diceRoller);
-    this.monsterAI = new MonsterAI(this.combatResolver);
     this.actionWheel = new ActionWheel();
   }
 
+  private initializeState(): void {
+    // Create the single source of truth for positions
+    this.battleGrid = new BattleGrid(this.arena.width, this.arena.height);
+    this.characters = [];
+    this.entityMap = new Map();
+    this.characterVisuals = new Map();
+  }
+
   private initializeActionWheel(): void {
-    // Add all characters to wheel at position 0 using stable index-based IDs
-    for (const token of this.characterTokens) {
-      this.actionWheel.addEntity(`hero-${token.index}`, 0);
+    // Add all characters to wheel at position 0
+    for (const character of this.characters) {
+      this.actionWheel.addEntity(character.id, 0);
     }
     // Add monster at position 0
     this.actionWheel.addEntity('monster', 0);
 
-    this.updateWheelDisplay();
-  }
-
-  /**
-   * Find a CharacterToken by its action wheel ID
-   */
-  private getCharacterTokenById(wheelId: string): CharacterToken | null {
-    if (!wheelId.startsWith('hero-')) return null;
-    const index = parseInt(wheelId.replace('hero-', ''), 10);
-    return this.characterTokens.find((t) => t.index === index) ?? null;
+    this.updateUI();
   }
 
   private initializeBeadHands(): void {
     // Initialize bead hands for all characters
-    for (const token of this.characterTokens) {
-      token.initializeBeadHand();
+    for (const character of this.characters) {
+      character.initializeBeadHand();
       // Draw starting beads (3)
-      token.beadHand?.drawToHand(3);
+      if (character.hasBeadHand()) {
+        character.drawBeadsToHand(3);
+      }
     }
-    this.updateBeadHandDisplay();
+    this.updateUI();
+  }
+
+  /**
+   * Update all UI elements to reflect current state
+   */
+  private updateUI(): void {
+    const nextActorId = this.actionWheel.getNextActor();
+    const nextActorPosition = nextActorId ? this.actionWheel.getPosition(nextActorId) : undefined;
+
+    this.battleUI.updateStatusText(
+      this.monster.name,
+      this.monsterEntity.currentHealth,
+      this.monster.stats.health,
+      nextActorId
+    );
+
+    this.battleUI.updateWheelDisplay(
+      (pos: number) => this.actionWheel.getEntitiesAtPosition(pos),
+      nextActorId,
+      nextActorPosition
+    );
+
+    // Update bead displays
+    const selectedChar = this.selectedCharacterId
+      ? this.characters.find((c) => c.id === this.selectedCharacterId)
+      : null;
+    this.battleUI.updateBeadHandDisplay(selectedChar?.getHandCounts() ?? null);
+    this.battleUI.updateMonsterBeadDisplay(
+      this.monsterEntity.hasBeadBag() ? (this.monsterEntity.getDiscardedCounts() ?? null) : null
+    );
+
+    // Update hero selection bar
+    this.heroSelectionBar.updateCurrentActor(this.currentActorId);
+    for (const character of this.characters) {
+      const beadCounts = character.getHandCounts();
+      if (beadCounts) {
+        this.heroSelectionBar.updateHeroBeads(character.id, beadCounts);
+      }
+      this.heroSelectionBar.updateHeroHP(
+        character.id,
+        character.currentHealth,
+        character.maxHealth
+      );
+    }
+
+    // Update selected hero panel affordability
+    if (this.selectedCharacterId) {
+      const selectedChar = this.characters.find((c) => c.id === this.selectedCharacterId);
+      if (selectedChar) {
+        const beadCounts = selectedChar.getHandCounts();
+        if (beadCounts) {
+          this.selectedHeroPanel.updateAffordability(beadCounts);
+        }
+      }
+    }
+
+    // Hide panel during monster turn
+    if (this.currentActorId === 'monster') {
+      this.selectedHeroPanel.hidePanel();
+    }
   }
 
   private drawGrid(): void {
@@ -194,7 +311,7 @@ export class BattleScene extends Phaser.Scene {
     return colors[type] || colors.normal;
   }
 
-  private createTokens(): void {
+  private createEntitiesAndVisuals(): void {
     const spawnPoints = this.arena.playerSpawns || [
       { x: 1, y: 1 },
       { x: 2, y: 1 },
@@ -204,229 +321,95 @@ export class BattleScene extends Phaser.Scene {
 
     const classColors = [0x4488ff, 0xff4444, 0x44ff44, 0xffff44];
 
+    // Create characters (state) and their visuals
     for (let i = 0; i < this.partySize; i++) {
       const charClass = this.classes[i % this.classes.length];
       const spawn = spawnPoints[i];
-      const token = new CharacterToken(
-        this,
-        this.gridSystem.gridToWorld(spawn.x),
-        this.gridSystem.gridToWorld(spawn.y),
-        charClass,
-        classColors[i],
-        i
+      const characterId = `hero-${i}`;
+
+      // Register position in grid (single source of truth)
+      this.battleGrid.register(characterId, spawn.x, spawn.y);
+
+      // Create Character entity (game logic)
+      const character = new Character(
+        characterId,
+        charClass.stats.health,
+        this.battleGrid,
+        this.entityMap
       );
-      token.setGridPosition(spawn.x, spawn.y);
-      this.characterTokens.push(token);
-      this.tokens.push(token);
+      this.characters.push(character);
+      this.entityMap.set(characterId, character);
+
+      // Create CharacterVisual (rendering)
+      const worldX = this.gridSystem.gridToWorld(spawn.x);
+      const worldY = this.gridSystem.gridToWorld(spawn.y);
+      const visual = new CharacterVisual(this, worldX, worldY, charClass, classColors[i], i);
+      this.characterVisuals.set(characterId, visual);
     }
 
+    // Create monster entity and visual
     const monsterSpawn = this.arena.monsterSpawn || { x: 5, y: 4 };
-    this.monsterToken = new MonsterToken(
-      this,
-      this.gridSystem.gridToWorld(monsterSpawn.x),
-      this.gridSystem.gridToWorld(monsterSpawn.y),
-      this.monster
-    );
-    this.monsterToken.setGridPosition(monsterSpawn.x, monsterSpawn.y);
-    this.tokens.push(this.monsterToken);
-  }
 
-  private createUI(): void {
-    // Status panel
-    this.add.rectangle(900, 100, 200, 150, 0x1a1a2e).setStrokeStyle(2, 0x4a4a6a);
-    this.statusText = this.add.text(810, 40, '', {
-      fontSize: '14px',
-      color: '#ffffff',
-      lineSpacing: 6,
-    });
-    this.updateStatusText();
+    // Register monster position
+    this.battleGrid.register('monster', monsterSpawn.x, monsterSpawn.y);
 
-    // Action wheel display area
-    this.wheelGraphics = this.add.graphics();
-    this.add
-      .text(900, 180, 'Action Wheel', {
-        fontSize: '12px',
-        color: '#aaaaaa',
-      })
-      .setOrigin(0.5);
+    // Create MonsterEntity (game logic)
+    this.monsterEntity = new MonsterEntity('monster', this.monster.stats.health, this.battleGrid);
+    this.entityMap.set('monster', this.monsterEntity);
 
-    // Action buttons area
-    this.add.rectangle(900, 380, 200, 180, 0x1a1a2e).setStrokeStyle(2, 0x4a4a6a);
-    this.add
-      .text(900, 300, 'Actions', {
-        fontSize: '18px',
-        color: '#aaaaaa',
-      })
-      .setOrigin(0.5);
+    // Initialize monster bead system if configured
+    if (this.monster.beads && this.monster.states && this.monster.start_state) {
+      this.monsterEntity.initializeBeadBag(this.monster.beads);
 
-    // Bead hand display area
-    this.beadHandContainer = this.add.container(810, 480);
-    this.add
-      .text(900, 475, 'Beads in Hand', {
-        fontSize: '12px',
-        color: '#aaaaaa',
-      })
-      .setOrigin(0.5);
-
-    // Monster bead discard display
-    this.monsterBeadText = this.add.text(810, 155, '', {
-      fontSize: '11px',
-      color: '#cccccc',
-    });
-
-    // Battle log
-    this.add.rectangle(900, 640, 200, 180, 0x1a1a2e).setStrokeStyle(2, 0x4a4a6a);
-    this.add
-      .text(900, 555, 'Battle Log', {
-        fontSize: '16px',
-        color: '#aaaaaa',
-      })
-      .setOrigin(0.5);
-    this.logText = this.add.text(810, 570, '', {
-      fontSize: '11px',
-      color: '#cccccc',
-      wordWrap: { width: 180 },
-      lineSpacing: 3,
-    });
-  }
-
-  private createButton(
-    x: number,
-    y: number,
-    text: string,
-    callback: () => void
-  ): Phaser.GameObjects.Container {
-    const container = this.add.container(x, y);
-
-    const bg = this.add.rectangle(0, 0, 160, 36, 0x444466).setInteractive({ useHandCursor: true });
-    const label = this.add
-      .text(0, 0, text, {
-        fontSize: '14px',
-        color: '#ffffff',
-      })
-      .setOrigin(0.5);
-
-    bg.on('pointerover', () => bg.setFillStyle(0x555588));
-    bg.on('pointerout', () => bg.setFillStyle(0x444466));
-    bg.on('pointerdown', callback);
-
-    container.add([bg, label]);
-    return container;
-  }
-
-  private updateStatusText(): void {
-    const nextActor = this.actionWheel.getNextActor();
-    const actorName = nextActor === 'monster' ? this.monster.name : 'Player';
-
-    const lines = [
-      `Monster: ${this.monster.name}`,
-      `HP: ${this.monsterToken.currentHealth}/${this.monster.stats.health}`,
-      '',
-      `Current Actor: ${actorName}`,
-    ];
-    this.statusText.setText(lines.join('\n'));
-  }
-
-  private updateWheelDisplay(): void {
-    this.wheelGraphics.clear();
-
-    const centerX = 900;
-    const centerY = 240;
-    const radius = 50;
-
-    // Draw wheel segments
-    for (let i = 0; i < 8; i++) {
-      const angle = (i * Math.PI) / 4 - Math.PI / 2;
-      const nextAngle = ((i + 1) * Math.PI) / 4 - Math.PI / 2;
-
-      this.wheelGraphics.lineStyle(2, 0x4a4a6a);
-      this.wheelGraphics.beginPath();
-      this.wheelGraphics.moveTo(centerX, centerY);
-      this.wheelGraphics.lineTo(
-        centerX + Math.cos(angle) * radius,
-        centerY + Math.sin(angle) * radius
+      // Convert states record to array of StateConfig
+      const stateConfigs: StateConfig[] = Object.entries(this.monster.states).map(
+        ([name, state]) => ({
+          name,
+          damage: state.damage,
+          wheel_cost: state.wheel_cost,
+          range: state.range,
+          area: state.area,
+          transitions: state.transitions,
+        })
       );
-      this.wheelGraphics.arc(centerX, centerY, radius, angle, nextAngle, false);
-      this.wheelGraphics.lineTo(centerX, centerY);
-      this.wheelGraphics.strokePath();
 
-      // Position number
-      const midAngle = (angle + nextAngle) / 2;
-      const textX = centerX + Math.cos(midAngle) * (radius * 0.6);
-      const textY = centerY + Math.sin(midAngle) * (radius * 0.6);
+      this.monsterEntity.initializeStateMachine(stateConfigs, this.monster.start_state);
+    }
 
-      // Count entities at this position
-      const entitiesAtPos = this.actionWheel.getEntitiesAtPosition(i);
-      if (entitiesAtPos.length > 0) {
-        this.wheelGraphics.fillStyle(0x88ff88, 0.3);
-        this.wheelGraphics.fillCircle(textX, textY, 12);
+    // Create MonsterVisual (rendering)
+    const monsterWorldX = this.gridSystem.gridToWorld(monsterSpawn.x);
+    const monsterWorldY = this.gridSystem.gridToWorld(monsterSpawn.y);
+    this.monsterVisual = new MonsterVisual(this, monsterWorldX, monsterWorldY, this.monster);
+  }
+
+  /**
+   * Sync visual state with game state.
+   * Called after any state mutation.
+   */
+  private syncVisuals(): void {
+    // Sync character visuals
+    for (const character of this.characters) {
+      const pos = character.getPosition();
+      const visual = this.characterVisuals.get(character.id);
+      if (pos && visual) {
+        const worldX = this.gridSystem.gridToWorld(pos.x);
+        const worldY = this.gridSystem.gridToWorld(pos.y);
+        visual.updatePosition(worldX, worldY);
+        visual.updateHealth(character.currentHealth, character.maxHealth);
       }
     }
 
-    // Highlight next actor's position
-    const nextActor = this.actionWheel.getNextActor();
-    if (nextActor) {
-      const pos = this.actionWheel.getPosition(nextActor) || 0;
-      const angle = (pos * Math.PI) / 4 - Math.PI / 2;
-      const nextAngle = ((pos + 1) * Math.PI) / 4 - Math.PI / 2;
-
-      this.wheelGraphics.fillStyle(0xffff00, 0.4);
-      this.wheelGraphics.beginPath();
-      this.wheelGraphics.moveTo(centerX, centerY);
-      this.wheelGraphics.lineTo(
-        centerX + Math.cos(angle) * radius,
-        centerY + Math.sin(angle) * radius
-      );
-      this.wheelGraphics.arc(centerX, centerY, radius, angle, nextAngle, false);
-      this.wheelGraphics.lineTo(centerX, centerY);
-      this.wheelGraphics.fillPath();
-    }
-  }
-
-  private updateBeadHandDisplay(): void {
-    // Clear existing bead display
-    this.beadHandContainer.removeAll(true);
-
-    if (!this.selectedToken?.beadHand) return;
-
-    const counts = this.selectedToken.beadHand.getHandCounts();
-    const colors: Record<string, number> = {
-      red: 0xff4444,
-      blue: 0x4444ff,
-      green: 0x44ff44,
-      white: 0xffffff,
-    };
-
-    let x = 0;
-    for (const [color, count] of Object.entries(counts)) {
-      for (let i = 0; i < count; i++) {
-        const bead = this.add.circle(x, 10, 8, colors[color]).setStrokeStyle(1, 0x000000);
-        this.beadHandContainer.add(bead);
-        x += 20;
-      }
-    }
-  }
-
-  private updateMonsterBeadDisplay(): void {
-    if (!this.monsterToken.hasBeadSystem()) {
-      this.monsterBeadText.setText('');
-      return;
-    }
-
-    const discarded = this.monsterToken.beadBag?.getDiscardedCounts();
-    if (discarded) {
-      this.monsterBeadText.setText(
-        `Discards: R:${discarded.red} B:${discarded.blue} G:${discarded.green} W:${discarded.white}`
+    // Sync monster visual
+    const monsterPos = this.monsterEntity.getPosition();
+    if (monsterPos) {
+      const worldX = this.gridSystem.gridToWorld(monsterPos.x);
+      const worldY = this.gridSystem.gridToWorld(monsterPos.y);
+      this.monsterVisual.updatePosition(worldX, worldY);
+      this.monsterVisual.updateHealth(
+        this.monsterEntity.currentHealth,
+        this.monsterEntity.maxHealth
       );
     }
-  }
-
-  private log(message: string): void {
-    this.logMessages.unshift(message);
-    if (this.logMessages.length > 8) {
-      this.logMessages.pop();
-    }
-    this.logText.setText(this.logMessages.join('\n'));
   }
 
   /**
@@ -434,12 +417,12 @@ export class BattleScene extends Phaser.Scene {
    */
   private processTurn(): void {
     // Check for victory/defeat
-    if (this.monsterToken.currentHealth <= 0) {
+    if (!this.monsterEntity.isAlive()) {
       this.victory();
       return;
     }
 
-    const aliveCharacters = this.characterTokens.filter((c) => c.currentHealth > 0);
+    const aliveCharacters = this.characters.filter((c) => c.isAlive());
     if (aliveCharacters.length === 0) {
       this.defeat();
       return;
@@ -449,127 +432,105 @@ export class BattleScene extends Phaser.Scene {
     this.currentActorId = this.actionWheel.getNextActor();
 
     if (!this.currentActorId) {
-      this.log('No actors on wheel!');
+      this.battleUI.log('No actors on wheel!');
       return;
     }
 
-    this.updateStatusText();
-    this.updateWheelDisplay();
+    this.updateUI();
 
     if (this.currentActorId === 'monster') {
-      this.log('--- Monster Turn ---');
+      this.battleUI.log('--- Monster Turn ---');
       this.time.delayedCall(500, () => this.executeMonsterTurn());
     } else {
-      this.log('--- Player Turn ---');
+      this.battleUI.log('--- Player Turn ---');
       this.showPlayerActions();
     }
   }
 
   private showPlayerActions(): void {
     // Clear any existing selection
-    if (this.selectedToken) {
-      this.selectedToken.setSelected(false);
+    if (this.selectedCharacterId) {
+      const prevVisual = this.characterVisuals.get(this.selectedCharacterId);
+      prevVisual?.setSelected(false);
     }
 
-    // Find and select the current actor's token
-    const currentToken = this.getCharacterTokenById(this.currentActorId!);
-    if (currentToken && currentToken.currentHealth > 0) {
-      this.selectedToken = currentToken;
-      this.selectedToken.setSelected(true);
+    // Find and select the current actor
+    const currentCharacter = this.characters.find((c) => c.id === this.currentActorId);
+    if (currentCharacter && currentCharacter.isAlive()) {
+      this.selectedCharacterId = currentCharacter.id;
+      const visual = this.characterVisuals.get(currentCharacter.id);
+      visual?.setSelected(true);
     }
 
     // Make characters clickable (validation happens in selectCharacter)
-    for (const token of this.characterTokens) {
-      if (token.currentHealth > 0) {
-        token.setInteractive(true);
-        token.onClick(() => this.selectCharacter(token));
+    for (const character of this.characters) {
+      if (character.isAlive()) {
+        const visual = this.characterVisuals.get(character.id);
+        visual?.setInteractive(true);
+        visual?.onClick(() => this.selectCharacter(character.id));
       }
     }
 
-    this.updateActionButtons();
-    this.updateBeadHandDisplay();
+    this.battleUI.showActionButtons(false);
+    this.updateUI();
   }
 
-  private selectCharacter(token: CharacterToken): void {
+  private selectCharacter(characterId: string): void {
     if (this.currentActorId === 'monster') return;
 
-    // Verify this token is the current actor
-    const expectedId = `hero-${token.index}`;
-    if (expectedId !== this.currentActorId) {
-      this.log(`Not ${token.characterClass.name}'s turn`);
+    // Verify this is the current actor
+    if (characterId !== this.currentActorId) {
+      const character = this.characters.find((c) => c.id === characterId);
+      if (character) {
+        this.battleUI.log(`Not this character's turn`);
+      }
       return;
     }
 
-    if (this.selectedToken) {
-      this.selectedToken.setSelected(false);
+    // Update selection visual
+    if (this.selectedCharacterId) {
+      const prevVisual = this.characterVisuals.get(this.selectedCharacterId);
+      prevVisual?.setSelected(false);
     }
 
-    this.selectedToken = token;
-    token.setSelected(true);
-    this.updateActionButtons();
-    this.updateBeadHandDisplay();
-    this.log(`Selected: ${token.characterClass.name}`);
-  }
+    this.selectedCharacterId = characterId;
+    const visual = this.characterVisuals.get(characterId);
+    visual?.setSelected(true);
 
-  private updateActionButtons(): void {
-    this.actionButtons.forEach((btn) => btn.destroy());
-    this.actionButtons = [];
+    // Show selected hero panel
+    this.selectedHeroPanel.showPanel(characterId);
 
-    if (!this.selectedToken || this.currentActorId === 'monster') return;
-
-    let yOffset = 320;
-
-    // Move button (cost 1)
-    const moveBtn = this.createButton(900, yOffset, `Move (${ACTION_COSTS.move})`, () =>
-      this.startMove()
-    );
-    this.actionButtons.push(moveBtn);
-    yOffset += 40;
-
-    // Run button (cost 2)
-    const runBtn = this.createButton(900, yOffset, `Run (${ACTION_COSTS.run})`, () =>
-      this.startRun()
-    );
-    this.actionButtons.push(runBtn);
-    yOffset += 40;
-
-    // Attack button (cost 2)
-    const attackBtn = this.createButton(900, yOffset, `Attack (${ACTION_COSTS.attack})`, () =>
-      this.executeAttack()
-    );
-    this.actionButtons.push(attackBtn);
-    yOffset += 40;
-
-    // Rest button (cost 2)
-    const restBtn = this.createButton(900, yOffset, `Rest (${ACTION_COSTS.rest})`, () =>
-      this.executeRest()
-    );
-    this.actionButtons.push(restBtn);
+    this.battleUI.showActionButtons(false);
+    this.updateUI();
+    this.battleUI.log(`Selected: ${visual?.getClassName() || characterId}`);
   }
 
   private startMove(): void {
-    if (!this.selectedToken) return;
-    this.log('Click a tile to move');
-    this.highlightMovementRange(MOVEMENT_RANGES.move, ACTION_COSTS.move);
+    if (!this.selectedCharacterId) return;
+    this.battleUI.log('Click a tile to move');
+    this.highlightMovementRange(MOVEMENT_RANGES.move, 'move');
   }
 
   private startRun(): void {
-    if (!this.selectedToken) return;
-    this.log('Click a tile to run');
-    this.highlightMovementRange(MOVEMENT_RANGES.run, ACTION_COSTS.run);
+    if (!this.selectedCharacterId) return;
+    this.battleUI.log('Click a tile to run');
+    this.highlightMovementRange(MOVEMENT_RANGES.run, 'run');
   }
 
-  private highlightMovementRange(range: number, wheelCost: number): void {
-    if (!this.selectedToken) return;
+  private highlightMovementRange(range: number, actionType: 'move' | 'run'): void {
+    if (!this.selectedCharacterId) return;
+
+    const character = this.characters.find((c) => c.id === this.selectedCharacterId);
+    if (!character) return;
+
+    const currentPos = character.getPosition();
+    if (!currentPos) return;
 
     const graphics = this.add.graphics();
     graphics.fillStyle(0x00ff00, 0.2);
 
-    const currentX = this.selectedToken.gridX;
-    const currentY = this.selectedToken.gridY;
-
-    // Use MovementValidator to get valid moves
-    const validMoves = this.movementValidator.getValidMoves(currentX, currentY, range);
+    // Use BattleGrid to get valid moves
+    const validMoves = this.battleGrid.getValidMoves(this.selectedCharacterId, range);
     this.currentValidMoves = validMoves; // Store for E2E testing
 
     for (const move of validMoves) {
@@ -586,175 +547,141 @@ export class BattleScene extends Phaser.Scene {
       this.input.once('pointerdown', (pointer: Phaser.Input.Pointer) => {
         graphics.destroy();
         this.currentValidMoves = []; // Clear after click
+
         const gridX = this.gridSystem.worldToGrid(pointer.x);
         const gridY = this.gridSystem.worldToGrid(pointer.y);
 
-        if (this.movementValidator.isValidMove(currentX, currentY, gridX, gridY, range)) {
-          this.moveToken(this.selectedToken!, gridX, gridY, wheelCost);
+        // Check if this is a valid move using BattleGrid
+        const isValid = validMoves.some((m) => m.x === gridX && m.y === gridY);
+
+        if (isValid) {
+          this.moveCharacter(character, gridX, gridY, actionType);
         } else {
-          this.log('Invalid move');
+          this.battleUI.log('Invalid move');
         }
       });
     });
   }
 
-  private moveToken(token: CharacterToken, gridX: number, gridY: number, wheelCost: number): void {
-    token.setGridPosition(gridX, gridY);
+  private async moveCharacter(
+    character: Character,
+    gridX: number,
+    gridY: number,
+    actionType: 'move' | 'run'
+  ): Promise<void> {
+    // Phase 1: State - resolve the action
+    const result = character.resolveAction(actionType, { target: { x: gridX, y: gridY } });
 
-    this.tweens.add({
-      targets: token.sprite,
-      x: this.gridSystem.gridToWorld(gridX),
-      y: this.gridSystem.gridToWorld(gridY),
-      duration: 200,
-      ease: 'Power2',
-      onComplete: () => {
-        this.log(`${token.characterClass.name} moved`);
-        this.advanceAndProcessTurn(this.currentActorId!, wheelCost);
-      },
-    });
-  }
-
-  private executeAttack(): void {
-    if (!this.selectedToken) return;
-
-    // Check if adjacent to monster (range 1)
-    const inRange = this.combatResolver.isInRange(
-      this.selectedToken.gridX,
-      this.selectedToken.gridY,
-      this.monsterToken.gridX,
-      this.monsterToken.gridY,
-      1
-    );
-
-    if (!inRange) {
-      this.log('Monster out of range! Must be adjacent.');
+    if (!result.success) {
+      this.battleUI.log(result.reason || 'Move failed');
       return;
     }
 
-    // Fixed damage of 1
-    this.monsterToken.takeDamage(1);
-    this.log(`${this.selectedToken.characterClass.name} attacks for 1 damage!`);
+    // Phase 2: Animate - play all events
+    await this.animationExecutor.execute(result.events);
 
-    this.updateStatusText();
-    this.advanceAndProcessTurn(this.currentActorId!, ACTION_COSTS.attack);
+    const visual = this.characterVisuals.get(character.id);
+    this.battleUI.log(`${visual?.getClassName() || character.id} moved`);
+    this.advanceAndProcessTurn(this.currentActorId!, result.wheelCost);
   }
 
-  private executeRest(): void {
-    if (!this.selectedToken?.beadHand) return;
+  private async executeAttack(): Promise<void> {
+    if (!this.selectedCharacterId) return;
 
-    const drawn = this.selectedToken.beadHand.drawToHand(2);
-    this.log(`${this.selectedToken.characterClass.name} rests, draws: ${drawn.join(', ')}`);
+    const character = this.characters.find((c) => c.id === this.selectedCharacterId);
+    if (!character) return;
 
-    this.updateBeadHandDisplay();
-    this.advanceAndProcessTurn(this.currentActorId!, ACTION_COSTS.rest);
+    // Phase 1: State - resolve the action
+    const result = character.resolveAction('attack', { targetEntityId: 'monster' });
+
+    if (!result.success) {
+      this.battleUI.log(result.reason || 'Attack failed');
+      return;
+    }
+
+    // Phase 2: Animate - play all events
+    await this.animationExecutor.execute(result.events);
+
+    this.updateUI();
+    this.advanceAndProcessTurn(this.currentActorId!, result.wheelCost);
+  }
+
+  private async executeRest(): Promise<void> {
+    if (!this.selectedCharacterId) return;
+
+    const character = this.characters.find((c) => c.id === this.selectedCharacterId);
+    if (!character) return;
+
+    // Phase 1: State - resolve the action
+    const result = character.resolveAction('rest', {});
+
+    if (!result.success) {
+      this.battleUI.log(result.reason || 'Rest failed');
+      return;
+    }
+
+    // Phase 2: Animate - play all events
+    await this.animationExecutor.execute(result.events);
+
+    this.updateUI();
+    this.advanceAndProcessTurn(this.currentActorId!, result.wheelCost);
   }
 
   private advanceAndProcessTurn(entityId: string, wheelCost: number): void {
     this.actionWheel.advanceEntity(entityId, wheelCost);
 
-    // Clear selection and buttons
-    if (this.selectedToken) {
-      this.selectedToken.setSelected(false);
-      this.selectedToken = null;
+    // Clear selection
+    if (this.selectedCharacterId) {
+      const visual = this.characterVisuals.get(this.selectedCharacterId);
+      visual?.setSelected(false);
+      this.selectedCharacterId = null;
     }
-    this.updateActionButtons();
+    this.battleUI.hideActionButtons();
+
+    // Sync all visuals with state
+    this.syncVisuals();
 
     // Small delay before next turn
     this.time.delayedCall(300, () => this.processTurn());
   }
 
-  private executeMonsterTurn(): void {
-    if (!this.monsterToken.hasBeadSystem()) {
-      this.log('Monster has no bead system!');
+  private async executeMonsterTurn(): Promise<void> {
+    if (!this.monsterEntity.hasBeadBag() || !this.monsterEntity.hasStateMachine()) {
+      this.battleUI.log('Monster has no bead system!');
       this.advanceAndProcessTurn('monster', 2);
       return;
     }
 
-    // Build character info for AI
-    const characterInfo = this.characterTokens
-      .filter((c) => c.currentHealth > 0)
-      .map((c) => ({
-        x: c.gridX,
-        y: c.gridY,
-        health: c.currentHealth,
-      }));
+    // Get alive characters as targets
+    const targets = this.characters.filter((c) => c.isAlive());
 
-    // Build blocked positions (alive tokens)
-    const blockedPositions = this.tokens
-      .filter((t) => t.currentHealth > 0)
-      .map((t) => ({ x: t.gridX, y: t.gridY }));
+    // Phase 1: Decide - get the monster's decision
+    const decision = this.monsterEntity.decideTurn(targets);
 
-    // Use bead-based AI
-    const action: BeadBasedAction = this.monsterAI.selectBeadBasedAction(
-      this.monsterToken.beadBag!,
-      this.monsterToken.stateMachine!,
-      { x: this.monsterToken.gridX, y: this.monsterToken.gridY },
-      this.monster,
-      characterInfo,
-      this.arena.width,
-      this.arena.height,
-      blockedPositions
-    );
+    // Phase 1: Execute - apply state changes and get events
+    const events = this.monsterEntity.executeDecision(decision);
 
-    // Log the bead draw and state
-    const beadColor = action.drawnBead || 'unknown';
-    const stateName = action.state?.name || 'unknown';
-    this.log(`Drew ${beadColor} → ${stateName}`);
-    this.updateMonsterBeadDisplay();
+    // Phase 2: Animate - play all events
+    await this.animationExecutor.execute(events);
 
-    // Determine wheel cost from state
-    const wheelCost = action.state?.wheel_cost || 2;
+    this.updateUI();
 
-    if (action.type === 'attack' && action.target && action.state) {
-      // Find the actual character token
-      const targetToken = this.characterTokens.find(
-        (c) => c.gridX === action.target!.x && c.gridY === action.target!.y
-      );
-
-      if (targetToken) {
-        const damage = action.state.damage || 1;
-        targetToken.takeDamage(damage);
-        this.log(`${this.monster.name} hits for ${damage}!`);
-
-        // Check for defeat
-        const aliveChars = this.characterTokens.filter((c) => c.currentHealth > 0);
-        if (aliveChars.length === 0) {
-          this.time.delayedCall(500, () => this.defeat());
-          return;
-        }
-      }
-
-      this.time.delayedCall(500, () => this.advanceAndProcessTurn('monster', wheelCost));
-    } else if (action.type === 'move' && action.destination) {
-      this.log(`${this.monster.name} moves`);
-      this.moveMonster(action.destination.x, action.destination.y, wheelCost);
-    } else {
-      // 'none' action - monster does nothing useful
-      this.log(`${this.monster.name} hesitates...`);
-      this.time.delayedCall(500, () => this.advanceAndProcessTurn('monster', wheelCost));
+    // Check for defeat after damage
+    const aliveChars = this.characters.filter((c) => c.isAlive());
+    if (aliveChars.length === 0) {
+      this.time.delayedCall(500, () => this.defeat());
+      return;
     }
-  }
 
-  private moveMonster(gridX: number, gridY: number, wheelCost: number): void {
-    this.monsterToken.setGridPosition(gridX, gridY);
-
-    this.tweens.add({
-      targets: this.monsterToken.sprite,
-      x: this.gridSystem.gridToWorld(gridX),
-      y: this.gridSystem.gridToWorld(gridY),
-      duration: 300,
-      ease: 'Power2',
-      onComplete: () => {
-        this.time.delayedCall(300, () => this.advanceAndProcessTurn('monster', wheelCost));
-      },
-    });
+    // Phase 3: Advance turn
+    this.advanceAndProcessTurn('monster', decision.wheelCost);
   }
 
   private victory(): void {
     this.scene.start('VictoryScene', {
       victory: true,
       monster: this.monster.name,
-      turns: 0, // We no longer track turns the same way
+      turns: 0,
     });
   }
 

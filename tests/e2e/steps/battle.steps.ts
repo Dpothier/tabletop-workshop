@@ -1,12 +1,20 @@
 import { createBdd } from 'playwright-bdd';
 import { expect } from '@playwright/test';
-import { waitForGameReady, clickGameCoords, getGameState } from '@tests/e2e/fixtures';
+import {
+  waitForGameReady,
+  clickGameCoords,
+  getGameState,
+  captureActionState,
+  expectWheelAdvanced,
+  UI_PANEL_COORDS,
+  HERO_BAR_COORDS,
+  ActionState,
+} from '@tests/e2e/fixtures';
 
 const { Given, When, Then } = createBdd();
 
-// Wheel position tracking for delta verification
-let lastActorPosition = 0;
-let lastActorId = '';
+// State captured before actions for wheel position verification
+let lastActionState: ActionState;
 
 Given('I have started a battle', async ({ page }) => {
   await page.goto('/');
@@ -31,49 +39,59 @@ When('I click the End Turn button', async ({ page }) => {
 });
 
 When('I click the Attack button', async ({ page }) => {
-  // Capture position before action for delta verification
+  // Capture state before action for wheel position verification
+  lastActionState = await captureActionState(page);
+
+  // Verify the current actor is a hero
   const state = await getGameState(page);
-  lastActorId = state.currentActor || '';
-  lastActorPosition = state.wheelPositions?.[lastActorId] || 0;
-  // Attack button at y=400 (Move=320, Run=360, Attack=400, Rest=440)
-  await clickGameCoords(page, 900, 400);
-  await page.waitForTimeout(300);
+  expect(state.currentActor?.startsWith('hero-'), 'Current actor should be a hero for Attack').toBe(
+    true
+  );
+
+  // Ensure panel is visible - select current actor if needed
+  if (!state.selectedHeroPanel?.visible || state.selectedHeroPanel?.heroId !== state.currentActor) {
+    const heroIndex = parseInt(state.currentActor!.split('-')[1]);
+    const cardX =
+      HERO_BAR_COORDS.X +
+      heroIndex * (HERO_BAR_COORDS.CARD_WIDTH + HERO_BAR_COORDS.CARD_GAP) +
+      HERO_BAR_COORDS.CARD_WIDTH / 2;
+    const cardY = HERO_BAR_COORDS.Y + HERO_BAR_COORDS.CARD_CLICK_Y_OFFSET;
+    await clickGameCoords(page, cardX, cardY);
+    await page.waitForTimeout(300);
+  }
+
+  // Verify panel is visible and Attack is affordable
+  const finalState = await getGameState(page);
+  expect(finalState.selectedHeroPanel?.visible, 'Panel should be visible before Attack').toBe(true);
+  const attackBtn = finalState.selectedHeroPanel?.actionButtons?.find((b) => b.name === 'Attack');
+  expect(attackBtn?.affordable, 'Attack should be affordable').toBe(true);
+
+  await clickGameCoords(page, UI_PANEL_COORDS.BUTTON_X, UI_PANEL_COORDS.ATTACK_BUTTON_Y);
+  // Wait for async animation to complete (damage flash takes ~600ms)
+  await page.waitForTimeout(1000);
 });
 
 When('I click the Move button', async ({ page }) => {
-  // Capture position before action for delta verification
-  const state = await getGameState(page);
-  lastActorId = state.currentActor || '';
-  lastActorPosition = state.wheelPositions?.[lastActorId] || 0;
-  // Move button at y=320 (Move=320, Run=360, Attack=400, Rest=440)
-  await clickGameCoords(page, 900, 320);
+  lastActionState = await captureActionState(page);
+  await clickGameCoords(page, UI_PANEL_COORDS.BUTTON_X, UI_PANEL_COORDS.MOVE_BUTTON_Y);
   await page.waitForTimeout(300);
 });
 
 When('I click the Run button', async ({ page }) => {
-  // Capture position before action for delta verification
-  const state = await getGameState(page);
-  lastActorId = state.currentActor || '';
-  lastActorPosition = state.wheelPositions?.[lastActorId] || 0;
-  await clickGameCoords(page, 900, 360);
+  lastActionState = await captureActionState(page);
+  await clickGameCoords(page, UI_PANEL_COORDS.BUTTON_X, UI_PANEL_COORDS.RUN_BUTTON_Y);
   await page.waitForTimeout(300);
 });
 
 When('I click the Rest button', async ({ page }) => {
-  // Capture position before action for delta verification
-  const state = await getGameState(page);
-  lastActorId = state.currentActor || '';
-  lastActorPosition = state.wheelPositions?.[lastActorId] || 0;
-  await clickGameCoords(page, 900, 440);
-  await page.waitForTimeout(300);
+  lastActionState = await captureActionState(page);
+  await clickGameCoords(page, UI_PANEL_COORDS.BUTTON_X, UI_PANEL_COORDS.REST_BUTTON_Y);
+  // Wait longer for async animation to complete
+  await page.waitForTimeout(1000);
 });
 
 Then('my wheel position should be {int}', async ({ page }, expectedDelta: number) => {
-  const state = await getGameState(page);
-  // Check the actor who just acted advanced by the expected amount
-  const newPosition = state.wheelPositions?.[lastActorId] || 0;
-  const actualDelta = newPosition - lastActorPosition;
-  expect(actualDelta, `Wheel should have advanced by ${expectedDelta}`).toBe(expectedDelta);
+  await expectWheelAdvanced(page, lastActionState, expectedDelta);
 });
 
 Then('the battle scene should be visible', async ({ page }) => {

@@ -7,9 +7,9 @@ import {
   expectMonsterHealth,
   expectMonsterHasBeadSystem,
   clickValidMovementTile,
-  getMonsterPosition,
   clickGridTile,
-  getSelectedCharacterPosition,
+  getCharacterPosition,
+  teleportCurrentActorAdjacentToMonster,
 } from '@tests/e2e/fixtures';
 
 const { Given, When, Then } = createBdd();
@@ -61,55 +61,23 @@ Given('I am the current actor', async ({ page }) => {
   const state = await getGameState(page);
   expect(state.currentActor, 'Should have a current actor').toBeDefined();
   expect(state.currentActor).toMatch(/^hero/);
-  // Click on first character token to ensure selection
-  await clickGameCoords(page, 144, 144); // Click near spawn point (1,1)
-  await page.waitForTimeout(200);
+
+  // Get the actual position of the current actor and click on them
+  const heroPos = await getCharacterPosition(page, state.currentActor!);
+  if (heroPos) {
+    await clickGridTile(page, heroPos.x, heroPos.y);
+    await page.waitForTimeout(200);
+  }
 });
 
 Given('I am adjacent to the monster', async ({ page }) => {
-  // Move the character to be adjacent to monster using Run action
-  // Get monster position dynamically
-  const monsterPos = await getMonsterPosition(page);
-  expect(monsterPos, 'Monster position should be available').not.toBeNull();
+  // Teleport the current actor directly to a position adjacent to the monster.
+  // This is a test setup step - no turn cost, no wheel advancement.
+  const success = await teleportCurrentActorAdjacentToMonster(page);
+  expect(success, 'Should be able to teleport current actor adjacent to monster').toBe(true);
 
-  // Click Run button to get longer range
-  await clickGameCoords(page, 900, 360); // Run button
-  await page.waitForTimeout(300);
-
-  // Click tile adjacent to monster (one tile to the left)
-  await clickGridTile(page, monsterPos!.x - 1, monsterPos!.y);
-  await page.waitForTimeout(500);
-
-  // After running, the turn advances. Use Rest to cycle through turns
-  // until we get a hero who is adjacent to the monster
-  let attempts = 0;
-  while (attempts < 20) {
-    const state = await getGameState(page);
-    if (state.currentActor?.startsWith('hero-')) {
-      // Check if the selected hero is adjacent to monster
-      const charPos = await getSelectedCharacterPosition(page);
-      if (
-        charPos &&
-        Math.abs(charPos.x - monsterPos!.x) + Math.abs(charPos.y - monsterPos!.y) === 1
-      ) {
-        break; // Hero is adjacent, ready to attack
-      }
-      // Current hero not adjacent - use Rest to advance turns
-      await clickGameCoords(page, 900, 440); // Rest button
-      await page.waitForTimeout(500);
-    } else {
-      // Monster turn - wait for it to complete
-      await page.waitForTimeout(800);
-    }
-    attempts++;
-  }
-
-  // Verify we ended up with an adjacent hero
-  const finalPos = await getSelectedCharacterPosition(page);
-  expect(
-    finalPos && Math.abs(finalPos.x - monsterPos!.x) + Math.abs(finalPos.y - monsterPos!.y) === 1,
-    'Should have an adjacent hero selected'
-  ).toBe(true);
+  // Brief wait for any visual updates
+  await page.waitForTimeout(100);
 });
 
 // Action execution steps
@@ -149,9 +117,11 @@ Then('there is no End Turn button', async ({ page }) => {
 // Monster turn steps
 Given('all players have higher wheel positions than the monster', async ({ page }) => {
   // Execute rest actions to advance player positions
+  // Each rest advances wheel by 2, need enough rests to get monster to front
   for (let i = 0; i < 4; i++) {
     await clickGameCoords(page, 900, 440); // Rest
-    await page.waitForTimeout(800);
+    // Wait for async animation (rest animation ~150ms) + turn processing (~300ms)
+    await page.waitForTimeout(1500);
   }
 });
 

@@ -67,12 +67,12 @@ sequenceDiagram
 
     Note over Battle: Initialize combat
 
-    Battle->>Wheel: addEntity("hero1", 0)
-    Battle->>Wheel: addEntity("hero2", 0)
-    Battle->>Wheel: addEntity("monster1", 2)
+    Battle->>Wheel: addEntity("hero-0", 0)
+    Battle->>Wheel: addEntity("hero-1", 0)
+    Battle->>Wheel: addEntity("monster", 0)
 
     Battle->>Wheel: getNextActor()
-    Wheel-->>Battle: "hero1" (position 0, arrived first)
+    Wheel-->>Battle: "hero-0" (position 0, arrived first)
 ```
 
 ## Implementation Details
