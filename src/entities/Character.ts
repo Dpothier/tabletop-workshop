@@ -1,6 +1,6 @@
 import { BattleGrid } from '@src/state/BattleGrid';
 import { Entity } from '@src/entities/Entity';
-import { PlayerBeadHand } from '@src/systems/PlayerBeadHand';
+import { PlayerBeadSystem } from '@src/systems/PlayerBeadSystem';
 import type { IEntityRegistry } from '@src/types/EntityRegistry';
 import type { ActionDefinition, ActionParams, ActionResult } from '@src/types/Action';
 import type { EquipmentDefinition, EquipmentSlot } from '@src/types/Equipment';
@@ -23,7 +23,7 @@ interface LegacyActionDefinition {
  * Actions are granted by equipment and innate abilities.
  */
 export class Character extends Entity {
-  private beadHand?: PlayerBeadHand;
+  private beadHand?: PlayerBeadSystem;
   private readonly entityRegistry: IEntityRegistry;
   private readonly actionRegistry?: ActionRegistry;
 
@@ -185,7 +185,7 @@ export class Character extends Entity {
    * Initialize the player bead hand system.
    */
   initializeBeadHand(): void {
-    this.beadHand = new PlayerBeadHand();
+    this.beadHand = new PlayerBeadSystem();
   }
 
   /**
@@ -198,7 +198,7 @@ export class Character extends Entity {
   /**
    * Get the bead hand instance.
    */
-  getBeadHand(): PlayerBeadHand | undefined {
+  getBeadHand(): PlayerBeadSystem | undefined {
     return this.beadHand;
   }
 

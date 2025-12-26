@@ -7,7 +7,7 @@ import type {
 import type { BattleGrid } from '@src/state/BattleGrid';
 import type { IEntityRegistry } from '@src/types/EntityRegistry';
 import type { Entity } from '@src/entities/Entity';
-import type { PlayerBeadHand } from '@src/systems/PlayerBeadHand';
+import type { PlayerBeadSystem } from '@src/systems/PlayerBeadSystem';
 
 /**
  * Context provided to action handlers.
@@ -16,7 +16,7 @@ import type { PlayerBeadHand } from '@src/systems/PlayerBeadHand';
 export interface ActionContext {
   grid: BattleGrid;
   entityRegistry: IEntityRegistry;
-  getBeadHand: (entityId: string) => PlayerBeadHand | undefined;
+  getBeadHand: (entityId: string) => PlayerBeadSystem | undefined;
 }
 
 /**

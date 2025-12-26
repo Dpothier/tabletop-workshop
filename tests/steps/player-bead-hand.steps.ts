@@ -1,11 +1,11 @@
 import { Given, When, Then } from 'quickpickle';
 import { expect } from 'vitest';
 import type { QuickPickleWorld } from 'quickpickle';
-import { PlayerBeadHand } from '@src/systems/PlayerBeadHand';
+import { PlayerBeadSystem } from '@src/systems/PlayerBeadSystem';
 import type { BeadColor, BeadCounts } from '@src/types/Beads';
 
 interface PlayerBeadHandWorld extends QuickPickleWorld {
-  beadHand?: PlayerBeadHand;
+  beadHand?: PlayerBeadSystem;
   drawnBeads?: BeadColor[];
   randomSequence?: number[];
   randomIndex?: number;
@@ -29,7 +29,7 @@ function createRandomFn(world: PlayerBeadHandWorld): () => number {
 // Initialization
 Given('a player bead hand with default beads', function (world: PlayerBeadHandWorld) {
   const randomFn = createRandomFn(world);
-  world.beadHand = new PlayerBeadHand(undefined, randomFn);
+  world.beadHand = new PlayerBeadSystem(undefined, randomFn);
   world.drawnBeads = [];
   world.reshuffleCount = 0;
 });
@@ -39,7 +39,7 @@ Given(
   function (world: PlayerBeadHandWorld, red: number, blue: number, green: number, white: number) {
     const counts: BeadCounts = { red, blue, green, white };
     const randomFn = createRandomFn(world);
-    world.beadHand = new PlayerBeadHand(counts, randomFn);
+    world.beadHand = new PlayerBeadSystem(counts, randomFn);
     world.drawnBeads = [];
     world.reshuffleCount = 0;
   }
@@ -50,7 +50,7 @@ When(
   function (world: PlayerBeadHandWorld, red: number, blue: number, green: number, white: number) {
     try {
       const counts: BeadCounts = { red, blue, green, white };
-      world.beadHand = new PlayerBeadHand(counts);
+      world.beadHand = new PlayerBeadSystem(counts);
     } catch (e) {
       world.error = e as Error;
     }
@@ -72,7 +72,7 @@ Given('hand random function returns {float}', function (world: PlayerBeadHandWor
       green: bagCounts.green + handCounts.green + discardCounts.green,
       white: bagCounts.white + handCounts.white + discardCounts.white,
     };
-    world.beadHand = new PlayerBeadHand(original, createRandomFn(world));
+    world.beadHand = new PlayerBeadSystem(original, createRandomFn(world));
     world.drawnBeads = [];
   }
 });
@@ -93,7 +93,7 @@ Given(
         green: bagCounts.green + handCounts.green + discardCounts.green,
         white: bagCounts.white + handCounts.white + discardCounts.white,
       };
-      world.beadHand = new PlayerBeadHand(original, createRandomFn(world));
+      world.beadHand = new PlayerBeadSystem(original, createRandomFn(world));
       world.drawnBeads = [];
     }
   }

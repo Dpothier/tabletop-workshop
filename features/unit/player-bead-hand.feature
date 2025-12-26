@@ -17,7 +17,7 @@ Feature: Player Bead Hand
 
   Scenario: Cannot create hand with zero total beads
     When I try to create a player bead hand with 0 red, 0 blue, 0 green, 0 white beads
-    Then a player bead hand error should be thrown with message "Cannot create empty bead bag"
+    Then a player bead hand error should be thrown with message "Cannot create empty bead pool"
 
   # FR-3.2: Draw N beads from bag to hand
   Scenario: Draw beads to hand

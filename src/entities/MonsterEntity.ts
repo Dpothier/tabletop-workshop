@@ -1,7 +1,8 @@
 import { BattleGrid } from '@src/state/BattleGrid';
 import { Entity } from '@src/entities/Entity';
 import type { BeadColor, BeadCounts } from '@src/types/Beads';
-import { BeadBag } from '@src/systems/BeadBag';
+import { BeadPile } from '@src/systems/BeadPile';
+import { BeadPool } from '@src/systems/BeadPool';
 import { MonsterStateMachine, MonsterStateDefinition } from '@src/systems/MonsterStateMachine';
 import type { AnimationEvent } from '@src/types/AnimationEvent';
 
@@ -39,10 +40,11 @@ export interface MonsterAction {
 
 /**
  * MonsterEntity represents an enemy controlled by bead-based AI.
- * It integrates BeadBag for randomness and MonsterStateMachine for behavior.
+ * It integrates BeadPool + BeadPile for randomness and MonsterStateMachine for behavior.
  */
 export class MonsterEntity extends Entity {
-  private beadBag?: BeadBag;
+  private beadPool?: BeadPool;
+  private beadDiscard?: BeadPile;
   private stateMachine?: MonsterStateMachine;
   private previousStateName?: string;
 
@@ -54,7 +56,8 @@ export class MonsterEntity extends Entity {
    * Initialize the bead bag for this monster.
    */
   initializeBeadBag(beads: BeadCounts): void {
-    this.beadBag = new BeadBag(beads);
+    this.beadDiscard = new BeadPile();
+    this.beadPool = new BeadPool(beads, this.beadDiscard);
   }
 
   /**
@@ -77,7 +80,7 @@ export class MonsterEntity extends Entity {
    * Check if this monster has a bead bag initialized.
    */
   hasBeadBag(): boolean {
-    return this.beadBag !== undefined;
+    return this.beadPool !== undefined;
   }
 
   /**
@@ -91,7 +94,7 @@ export class MonsterEntity extends Entity {
    * Get the discarded bead counts from the bead bag.
    */
   getDiscardedCounts(): BeadCounts | undefined {
-    return this.beadBag?.getDiscardedCounts();
+    return this.beadDiscard?.getCounts();
   }
 
   /**
@@ -101,7 +104,7 @@ export class MonsterEntity extends Entity {
    */
   decideTurn(targets: Entity[]): MonsterAction {
     // Default action if no bead system
-    if (!this.beadBag || !this.stateMachine) {
+    if (!this.beadPool || !this.beadDiscard || !this.stateMachine) {
       return {
         type: 'idle',
         wheelCost: 1,
@@ -112,8 +115,11 @@ export class MonsterEntity extends Entity {
     this.previousStateName = this.stateMachine.getCurrentState().name;
 
     // Draw bead and transition state
-    const drawnBead = this.beadBag.draw();
+    const drawnBead = this.beadPool.draw();
     const state = this.stateMachine.transition(drawnBead);
+
+    // Discard the bead after using it for state transition
+    this.beadDiscard.add(drawnBead);
 
     // Find closest target
     const target = this.findClosestTarget(targets);
