@@ -10,6 +10,7 @@ import {
   clickGridTile,
   getCharacterPosition,
   teleportCurrentActorAdjacentToMonster,
+  UI_PANEL_COORDS,
 } from '@tests/e2e/fixtures';
 
 const { Given, When, Then } = createBdd();
@@ -93,7 +94,7 @@ When('I click a valid movement tile', async ({ page }) => {
 });
 
 When('I complete an action', async ({ page }) => {
-  await clickGameCoords(page, 900, 440); // Rest
+  await clickGameCoords(page, UI_PANEL_COORDS.BUTTON_X, UI_PANEL_COORDS.REST_BUTTON_Y);
   await page.waitForTimeout(500);
 });
 
@@ -116,13 +117,41 @@ Then('there is no End Turn button', async ({ page }) => {
 
 // Monster turn steps
 Given('all players have higher wheel positions than the monster', async ({ page }) => {
-  // Execute rest actions to advance player positions
-  // Each rest advances wheel by 2, need enough rests to get monster to front
+  // Strategy: Make all heroes rest to advance their wheel positions.
+  // After all heroes have acted once, the monster will be at the lowest position
+  // and will automatically take its turn.
+
+  // First, make all 4 heroes rest in sequence
   for (let i = 0; i < 4; i++) {
-    await clickGameCoords(page, 900, 440); // Rest
-    // Wait for async animation (rest animation ~150ms) + turn processing (~300ms)
-    await page.waitForTimeout(1500);
+    // Wait for a hero to be current actor
+    await expect(async () => {
+      const state = await getGameState(page);
+      expect(state.currentActor).toMatch(/^hero-/);
+    }).toPass({ timeout: 5000 });
+
+    // Get current actor and click on them to open the panel
+    const state = await getGameState(page);
+    const heroPos = await getCharacterPosition(page, state.currentActor!);
+    if (heroPos) {
+      await clickGridTile(page, heroPos.x, heroPos.y);
+      await page.waitForTimeout(300);
+    }
+
+    // Click Rest button (in SelectedHeroPanel)
+    await clickGameCoords(page, UI_PANEL_COORDS.BUTTON_X, UI_PANEL_COORDS.REST_BUTTON_Y);
+
+    // Wait for rest animation and turn processing
+    await page.waitForTimeout(1000);
   }
+
+  // Wait for the monster to take its turn (it auto-executes after 500ms)
+  // Give extra time for all turns to process
+  await page.waitForTimeout(2000);
+
+  // Verify the monster took its turn by checking the battle log
+  const state = await getGameState(page);
+  const hasMonsterTurn = state.battleLog?.some((msg) => msg.includes('Monster Turn'));
+  expect(hasMonsterTurn, 'Battle log should show Monster Turn').toBe(true);
 });
 
 Given('the monster is the current actor', async ({ page }) => {
@@ -134,8 +163,11 @@ Given('the monster is the current actor', async ({ page }) => {
 });
 
 Then('the monster should be the current actor', async ({ page }) => {
+  // The monster auto-acts when it becomes current actor, so we verify
+  // it WAS the current actor by checking the battle log
   const state = await getGameState(page);
-  expect(state.currentActor).toBe('monster');
+  const hasMonsterTurn = state.battleLog?.some((msg) => msg.includes('Monster Turn'));
+  expect(hasMonsterTurn, 'Monster should have been the current actor (see battle log)').toBe(true);
 });
 
 Then('the monster should draw a bead and act', async ({ page }) => {
@@ -224,7 +256,7 @@ Then('the battle log should show the transition', async ({ page }) => {
 
 Given('the monster has taken several turns', async ({ page }) => {
   for (let i = 0; i < 3; i++) {
-    await clickGameCoords(page, 900, 440); // Rest
+    await clickGameCoords(page, UI_PANEL_COORDS.BUTTON_X, UI_PANEL_COORDS.REST_BUTTON_Y);
     await page.waitForTimeout(1500);
   }
 });

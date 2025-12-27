@@ -1,6 +1,11 @@
 import { createBdd } from 'playwright-bdd';
 import { expect } from '@playwright/test';
-import { getGameState, clickGameCoords } from '@tests/e2e/fixtures';
+import {
+  getGameState,
+  clickGameCoords,
+  getCharacterPosition,
+  clickGridTile,
+} from '@tests/e2e/fixtures';
 
 const { Given, When, Then } = createBdd();
 
@@ -72,7 +77,15 @@ Given('I wait until the monster is the current actor', async ({ page }) => {
       break;
     }
     if (state.currentActor?.startsWith('hero-')) {
-      await clickGameCoords(page, 900, 440); // Rest button
+      // Click on hero to show panel first
+      const heroPos = await getCharacterPosition(page, state.currentActor);
+      if (heroPos) {
+        await clickGridTile(page, heroPos.x, heroPos.y);
+        await page.waitForTimeout(300);
+      }
+      // Click Rest button using correct panel coordinates
+      const pos = getActionButtonCenter(3);
+      await clickGameCoords(page, pos.x, pos.y);
       await page.waitForTimeout(1000);
     } else {
       await page.waitForTimeout(500);
@@ -104,7 +117,15 @@ Given('the second hero becomes the current actor', async ({ page }) => {
     }
     // If it's a hero turn, rest to advance
     if (state.currentActor?.startsWith('hero-')) {
-      await clickGameCoords(page, 900, 440); // Rest button
+      // Click on hero to show panel first
+      const heroPos = await getCharacterPosition(page, state.currentActor);
+      if (heroPos) {
+        await clickGridTile(page, heroPos.x, heroPos.y);
+        await page.waitForTimeout(300);
+      }
+      // Click Rest button using correct panel coordinates
+      const pos = getActionButtonCenter(3);
+      await clickGameCoords(page, pos.x, pos.y);
       await page.waitForTimeout(1000);
     } else {
       // Monster turn, wait for it to complete

@@ -1,6 +1,12 @@
 import { createBdd } from 'playwright-bdd';
 import { expect } from '@playwright/test';
-import { getGameState, clickGameCoords } from '@tests/e2e/fixtures';
+import {
+  getGameState,
+  clickGameCoords,
+  getCharacterPosition,
+  clickGridTile,
+  UI_PANEL_COORDS,
+} from '@tests/e2e/fixtures';
 
 const { Given, When, Then } = createBdd();
 
@@ -122,8 +128,14 @@ Given('I wait for the monster to attack a hero', async ({ page }) => {
     if (state.currentActor === 'monster') {
       await page.waitForTimeout(1500);
     } else if (state.currentActor?.startsWith('hero-')) {
-      // Rest to advance turns
-      await clickGameCoords(page, 900, 440); // Rest button
+      // Click on hero to show panel first
+      const heroPos = await getCharacterPosition(page, state.currentActor);
+      if (heroPos) {
+        await clickGridTile(page, heroPos.x, heroPos.y);
+        await page.waitForTimeout(300);
+      }
+      // Rest to advance turns using correct panel coordinates
+      await clickGameCoords(page, UI_PANEL_COORDS.BUTTON_X, UI_PANEL_COORDS.REST_BUTTON_Y);
       await page.waitForTimeout(1000);
     }
   }
