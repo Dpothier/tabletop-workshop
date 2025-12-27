@@ -10,54 +10,82 @@ The bead system provides resource management for both monsters and players throu
 
 Four bead colors exist: `red`, `blue`, `green`, `white`.
 
+## Architecture
+
+The bead system uses three composable abstractions:
+
+```
+Monster:                    Player:
+┌──────────┐               ┌──────────┐
+│ BeadPool │               │ BeadPool │
+└────┬─────┘               └────┬─────┘
+     │ draw()                   │ draw()
+     ▼                          ▼
+┌──────────┐               ┌──────────┐
+│ BeadPile │               │ BeadPile │ (hand)
+│ (discard)│               └────┬─────┘
+└──────────┘                    │ spend()
+     ↑                          ▼
+     │ reshuffle()         ┌──────────┐
+     └─────────────────────│ BeadPile │ (discard)
+                           └──────────┘
+```
+
+**Key design**: `BeadPool.draw()` only removes from pool. It does NOT auto-discard. The consumer decides where the bead goes next.
+
 ## Component List
 
 | Component | Responsibility |
 |-----------|----------------|
-| `BeadBag` | Manages monster bead pool, handles drawing and auto-reshuffling when empty |
+| `BeadPile` | Simple bead collection with add/remove/clear operations |
+| `BeadPool` | Draw bag that auto-reshuffles from linked discard pile when empty |
+| `PlayerBeadSystem` | Composition of Pool → Hand → Discard for player bead management |
 | `MonsterStateMachine` | Tracks monster current state, executes color-based transitions |
-| `MonsterEntity` | Owns BeadBag and StateMachine, integrates AI via `decideTurn()` |
-| `PlayerBeadHand` | Manages player bag, hand, and discard piles for action costs |
-| `Character` | Owns PlayerBeadHand instance for player characters |
+| `MonsterEntity` | Owns BeadPool + BeadPile + StateMachine, integrates AI via `decideTurn()` |
+| `Character` | Owns PlayerBeadSystem instance for player characters |
 
 ## Class Diagram
 
 ```mermaid
 classDiagram
-    class BeadBag {
+    class BeadPile {
+        -beads: Map~BeadColor, number~
+        +add(color, count): void
+        +remove(color, count): boolean
+        +getCounts(): BeadCounts
+        +getTotal(): number
+        +isEmpty(): boolean
+        +clear(): BeadCounts
+    }
+
+    class BeadPool {
         -remaining: Map~BeadColor, number~
-        -discarded: Map~BeadColor, number~
+        -discard: BeadPile
         -randomFn: () => number
         +draw(): BeadColor
         +getRemainingCounts(): BeadCounts
-        +getDiscardedCounts(): BeadCounts
         +getTotalRemaining(): number
         +isEmpty(): boolean
+        -reshuffle(): void
     }
 
-    class PlayerBeadHand {
-        -bag: Map~BeadColor, number~
-        -hand: Map~BeadColor, number~
-        -discarded: Map~BeadColor, number~
-        -randomFn: () => number
-        +drawToHand(count: number): BeadColor[]
-        +spend(color: BeadColor): boolean
-        +canAfford(costs: BeadCounts): boolean
+    class PlayerBeadSystem {
+        -pool: BeadPool
+        -hand: BeadPile
+        -discard: BeadPile
+        +drawToHand(count): BeadColor[]
+        +spend(color): boolean
+        +canAfford(costs): boolean
         +getHandCounts(): BeadCounts
         +getBagCounts(): BeadCounts
         +getDiscardedCounts(): BeadCounts
-        +getHandTotal(): number
-        +getBagTotal(): number
-        +isEmpty(): boolean
     }
 
     class MonsterStateMachine {
         -states: Map~string, MonsterState~
-        -startStateName: string
         -currentStateName: string
         +getCurrentState(): MonsterState
-        +getCurrentStateName(): string
-        +transition(color: BeadColor): MonsterState
+        +transition(color): MonsterState
         +reset(): void
     }
 
@@ -67,31 +95,33 @@ classDiagram
         +damage?: number
         +wheel_cost?: number
         +range?: number
-        +area?: string
         +transitions: Record~BeadColor, string~
     }
 
     class MonsterEntity {
-        -beadBag?: BeadBag
+        -beadPool?: BeadPool
+        -beadDiscard?: BeadPile
         -stateMachine?: MonsterStateMachine
-        -grid: BattleGrid
-        +decideTurn(targets: Entity[]): MonsterAction
-        +hasBeadBag(): boolean
+        +decideTurn(targets): MonsterAction
+        +executeDecision(decision): AnimationEvent[]
         +getDiscardedCounts(): BeadCounts
     }
 
     class Character {
-        -beadHand?: PlayerBeadHand
-        -grid: BattleGrid
-        +drawBeadsToHand(count: number): void
-        +hasBeadHand(): boolean
+        -beadHand?: PlayerBeadSystem
+        +drawBeadsToHand(count): string[]
         +getHandCounts(): BeadCounts
     }
 
+    BeadPool --> BeadPile : reshuffles from
+    PlayerBeadSystem *-- BeadPool : pool
+    PlayerBeadSystem *-- BeadPile : hand
+    PlayerBeadSystem *-- BeadPile : discard
     MonsterStateMachine --> MonsterState : uses
-    MonsterEntity ..o BeadBag : owns
-    MonsterEntity ..o MonsterStateMachine : owns
-    Character ..o PlayerBeadHand : owns
+    MonsterEntity o-- BeadPool : owns
+    MonsterEntity o-- BeadPile : discard
+    MonsterEntity o-- MonsterStateMachine : owns
+    Character o-- PlayerBeadSystem : owns
 ```
 
 ## Sequence Diagrams
@@ -102,33 +132,29 @@ classDiagram
 sequenceDiagram
     participant Battle as BattleScene
     participant Monster as MonsterEntity
-    participant Bag as BeadBag
+    participant Pool as BeadPool
+    participant Discard as BeadPile
     participant SM as MonsterStateMachine
-    participant Grid as BattleGrid
 
     Battle->>Monster: decideTurn(targets)
-    Monster->>Bag: draw()
+    Monster->>Pool: draw()
 
-    alt bag is empty
-        Bag->>Bag: reshuffle()
+    alt pool is empty
+        Pool->>Discard: clear()
+        Discard-->>Pool: BeadCounts
+        Pool->>Pool: add to remaining
     end
 
-    Bag-->>Monster: BeadColor (e.g., "red")
+    Pool-->>Monster: BeadColor (e.g., "red")
     Monster->>SM: transition(color)
     SM-->>Monster: MonsterState
+    Monster->>Discard: add(color)
+    Note over Monster: Bead discarded AFTER use
 
-    alt state has damage
-        Monster->>Monster: findClosestTarget(targets)
-        Monster->>Grid: getDistance(monsterId, targetId)
-        Grid-->>Monster: distance
-        alt distance <= range
-            Monster-->>Battle: MonsterAction {type: "attack", target, state, drawnBead}
-        else
-            Monster->>Monster: calculateMoveToward(target)
-            Monster-->>Battle: MonsterAction {type: "move", destination, state, drawnBead}
-        end
-    else state is idle-like
-        Monster-->>Battle: MonsterAction {type: "idle", state, drawnBead}
+    alt target in range
+        Monster-->>Battle: MonsterAction {type: "attack"}
+    else target out of range
+        Monster-->>Battle: MonsterAction {type: "move"}
     end
 ```
 
@@ -138,35 +164,117 @@ sequenceDiagram
 sequenceDiagram
     participant Battle as BattleScene
     participant Char as Character
-    participant Hand as PlayerBeadHand
+    participant System as PlayerBeadSystem
+    participant Pool as BeadPool
+    participant Hand as BeadPile
+    participant Discard as BeadPile
 
-    Note over Battle: Rest Action
+    Note over Battle: Rest Action - Draw 2 beads
     Battle->>Char: drawBeadsToHand(2)
-    Char->>Hand: drawToHand(2)
-    Hand-->>Char: BeadColor[]
+    Char->>System: drawToHand(2)
+    loop 2 times
+        System->>Pool: draw()
+        Pool-->>System: BeadColor
+        System->>Hand: add(color)
+    end
+    System-->>Char: BeadColor[]
 
     Note over Battle: Check Action Cost
-    Battle->>Hand: canAfford({red: 1, blue: 0, green: 0, white: 0})
-    Hand-->>Battle: boolean
+    Battle->>System: canAfford({red: 1})
+    System->>Hand: getCounts()
+    System-->>Battle: boolean
 
     Note over Battle: Execute Action
-    Battle->>Hand: spend("red")
-    Hand-->>Battle: true/false
+    Battle->>System: spend("red")
+    System->>Hand: remove("red")
+    Hand-->>System: true
+    System->>Discard: add("red")
+    System-->>Battle: true
 ```
 
 ## Implementation Details
 
 ### Bead Colors
-Four colors: `red`, `blue`, `green`, `white`. Both monsters and players use the same `BeadColor` and `BeadCounts` types from `BeadBag.ts`.
 
-### Monster Bead Bag
+Four colors: `red`, `blue`, `green`, `white`. Types are defined in `src/types/Beads.ts`:
+
+```typescript
+type BeadColor = 'red' | 'blue' | 'green' | 'white';
+type BeadCounts = { red: number; blue: number; green: number; white: number };
+```
+
+### BeadPile
+
+A simple collection of beads. Used as a hand (beads available to spend) or discard pile.
+
+```typescript
+class BeadPile {
+  add(color: BeadColor, count?: number): void
+  remove(color: BeadColor, count?: number): boolean
+  getCounts(): BeadCounts
+  getTotal(): number
+  isEmpty(): boolean
+  clear(): BeadCounts  // removes all, returns what was there
+}
+```
+
+### BeadPool
+
+A bag you draw from. When empty, reshuffles from a linked discard pile.
+
+```typescript
+class BeadPool {
+  constructor(initial: BeadCounts, discard: BeadPile, randomFn?)
+  draw(): BeadColor           // auto-reshuffles if empty
+  getRemainingCounts(): BeadCounts
+  getTotalRemaining(): number
+  isEmpty(): boolean
+}
+```
 
 **Draw Mechanics:**
 - Weighted random selection based on remaining counts
-- Drawn beads move to discard pile
-- Auto-reshuffle when bag empties (all discards return to bag)
+- Auto-reshuffle when pool empties (clears discard pile, adds to remaining)
+- Does NOT add drawn bead to discard - consumer handles this
 
-**State Definitions:**
+### PlayerBeadSystem
+
+Composition of Pool → Hand → Discard for player bead management.
+
+```typescript
+class PlayerBeadSystem {
+  drawToHand(count: number): BeadColor[]  // pool → hand
+  spend(color: BeadColor): boolean        // hand → discard
+  canAfford(costs: BeadCounts): boolean
+  getHandCounts(): BeadCounts
+  getBagCounts(): BeadCounts
+  getDiscardedCounts(): BeadCounts
+}
+```
+
+Default initialization: 3 of each color (12 beads total).
+
+### Monster Bead Usage
+
+Monsters use BeadPool + BeadPile directly (no wrapper class):
+
+```typescript
+// In MonsterEntity
+private beadPool?: BeadPool;
+private beadDiscard?: BeadPile;
+
+decideTurn(targets: Entity[]): MonsterAction {
+  const drawnBead = this.beadPool.draw();     // remove from pool
+  const state = this.stateMachine.transition(drawnBead);  // use it
+  this.beadDiscard.add(drawnBead);            // discard after use
+  // ... targeting and action selection
+}
+```
+
+This explicit flow allows the bead color to be used for state transition before being discarded.
+
+### Monster State Definitions
+
 States are defined in monster YAML with:
 - `damage`, `wheel_cost`, `range`, `area` - action properties
 - `transitions` - map of bead color to next state name
@@ -196,33 +304,16 @@ states:
       white: special
 ```
 
-**Integration:**
-`MonsterEntity.initializeBeadBag()` creates a BeadBag if monster data includes bead configuration. `MonsterEntity.initializeStateMachine()` creates the state machine. `hasBeadBag()` checks availability before using bead-based AI.
-
-### Player Bead Hand
-
-**Three Pools:**
-- **Bag**: Source for drawing (default: 3 of each color = 12 beads)
-- **Hand**: Beads available for spending on actions
-- **Discard**: Spent beads, reshuffled back to bag when bag empties
-
-**Key Operations:**
-- `drawToHand(count)`: Moves N beads from bag to hand
-- `spend(color)`: Moves specific bead from hand to discard
-- `canAfford(costs)`: Checks if hand contains required beads
-
-**Integration:**
-`Character.initializeBeadHand()` creates a PlayerBeadHand with default bead counts. `hasBeadHand()` checks availability.
-
 ### MonsterEntity.decideTurn()
 
 The `decideTurn()` method encapsulates all AI logic:
 
-1. Draw a bead from BeadBag
+1. Draw a bead from BeadPool
 2. Transition the state machine based on bead color
-3. Find closest target using BattleGrid distance queries
-4. If target is in range: return attack action
-5. If target is out of range: calculate movement toward target
-6. Return the action with drawn bead and state info for logging
+3. Discard the bead after use
+4. Find closest target using BattleGrid distance queries
+5. If target is in range: return attack action
+6. If target is out of range: calculate movement toward target
+7. Return the action with drawn bead and state info for logging
 
 This design keeps all AI decision-making within MonsterEntity, using BattleGrid for spatial queries.

@@ -43,9 +43,10 @@ BattleScene (Thin Orchestrator)
 
 | System | Responsibility | Documentation |
 |--------|----------------|---------------|
-| `BeadBag` | Probabilistic bead drawing for monster AI | [bead-system.md](./bead-system.md) |
+| `BeadPile` | Simple bead collection (hand or discard) | [bead-system.md](./bead-system.md) |
+| `BeadPool` | Draw bag with auto-reshuffle from linked discard | [bead-system.md](./bead-system.md) |
+| `PlayerBeadSystem` | Player bag → hand → discard composition | [bead-system.md](./bead-system.md) |
 | `MonsterStateMachine` | State transitions driven by bead colors | [bead-system.md](./bead-system.md) |
-| `PlayerBeadHand` | Player bag, hand, and discard management | [bead-system.md](./bead-system.md) |
 | `DataLoader` | YAML data loading for game assets | - |
 
 ## Scenes
