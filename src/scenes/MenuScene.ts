@@ -153,7 +153,7 @@ export class MenuScene extends Phaser.Scene {
       arena: this.gameData.arenas[this.selectedArena],
       partySize: this.partySize,
       classes: this.gameData.classes,
-      rules: this.gameData.rules,
+      actions: this.gameData.actions,
     });
   }
 }

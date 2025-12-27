@@ -5,17 +5,10 @@ import type { IEntityRegistry } from '@src/types/EntityRegistry';
 import type { ActionDefinition, ActionParams, ActionResult } from '@src/types/Action';
 import type { EquipmentDefinition, EquipmentSlot } from '@src/types/Equipment';
 import type { ActionRegistry } from '@src/systems/ActionRegistry';
+import type { ActionHandlerRegistry } from '@src/systems/ActionHandlers';
 
 // Re-export for backwards compatibility
 export type { ActionParams, ActionResult } from '@src/types/Action';
-
-/**
- * Legacy action definition for backwards compatibility.
- */
-interface LegacyActionDefinition {
-  cost: number;
-  handler: (params: ActionParams) => ActionResult;
-}
 
 /**
  * Character represents a player-controlled entity.
@@ -24,8 +17,8 @@ interface LegacyActionDefinition {
  */
 export class Character extends Entity {
   private beadHand?: PlayerBeadSystem;
-  private readonly entityRegistry: IEntityRegistry;
   private readonly actionRegistry?: ActionRegistry;
+  private readonly actionHandlerRegistry?: ActionHandlerRegistry;
 
   /** Equipment currently worn by this character */
   private equipment: Map<EquipmentSlot, EquipmentDefinition> = new Map();
@@ -33,27 +26,17 @@ export class Character extends Entity {
   /** Action IDs that are always available (base actions any character can do) */
   private innateActions: string[] = ['move', 'run', 'attack', 'rest'];
 
-  /** Legacy action handlers for backwards compatibility */
-  private readonly legacyHandlers: Map<string, LegacyActionDefinition>;
-
   constructor(
     id: string,
     maxHealth: number,
     grid: BattleGrid,
-    entityRegistry: IEntityRegistry,
-    actionRegistry?: ActionRegistry
+    _entityRegistry: IEntityRegistry,
+    actionRegistry?: ActionRegistry,
+    actionHandlerRegistry?: ActionHandlerRegistry
   ) {
     super(id, maxHealth, grid);
-    this.entityRegistry = entityRegistry;
     this.actionRegistry = actionRegistry;
-
-    // Legacy handlers for backwards compatibility
-    this.legacyHandlers = new Map<string, LegacyActionDefinition>([
-      ['move', { cost: 1, handler: this.executeMove.bind(this) }],
-      ['run', { cost: 2, handler: this.executeRun.bind(this) }],
-      ['attack', { cost: 2, handler: this.executeAttack.bind(this) }],
-      ['rest', { cost: 2, handler: this.executeRest.bind(this) }],
-    ]);
+    this.actionHandlerRegistry = actionHandlerRegistry;
   }
 
   /**
@@ -104,56 +87,33 @@ export class Character extends Entity {
 
   /**
    * Get all available action definitions.
-   * Returns ActionDefinition objects if actionRegistry is available,
-   * otherwise returns legacy-style definitions.
+   * Requires actionRegistry to be configured.
    */
   getAvailableActions(): ActionDefinition[] {
     const actionIds = this.getAvailableActionIds();
 
-    if (this.actionRegistry) {
-      return this.actionRegistry.getMultiple(actionIds);
+    if (!this.actionRegistry) {
+      throw new Error('ActionRegistry not configured');
     }
 
-    // Fallback: create ActionDefinition from legacy handlers
-    const actions: ActionDefinition[] = [];
-    for (const id of actionIds) {
-      const legacy = this.legacyHandlers.get(id);
-      if (legacy) {
-        actions.push({
-          id,
-          name: id.charAt(0).toUpperCase() + id.slice(1),
-          cost: legacy.cost,
-          handlerId: id,
-        });
-      }
-    }
-    return actions;
+    return this.actionRegistry.getMultiple(actionIds);
   }
 
   /**
    * Get a specific action definition by ID.
    */
   getAction(actionId: string): ActionDefinition | undefined {
-    if (this.actionRegistry) {
-      return this.actionRegistry.get(actionId);
+    if (!this.actionRegistry) {
+      throw new Error('ActionRegistry not configured');
     }
 
-    const legacy = this.legacyHandlers.get(actionId);
-    if (legacy) {
-      return {
-        id: actionId,
-        name: actionId.charAt(0).toUpperCase() + actionId.slice(1),
-        cost: legacy.cost,
-        handlerId: actionId,
-      };
-    }
-    return undefined;
+    return this.actionRegistry.get(actionId);
   }
 
   /**
    * Resolve an action by its ID.
    * Validates the character has access to the action, then executes it.
-   * @throws Error if action is not available
+   * @throws Error if action is not available or registries not configured
    */
   resolveAction(actionId: string, params: ActionParams): ActionResult {
     const availableIds = this.getAvailableActionIds();
@@ -161,13 +121,16 @@ export class Character extends Entity {
       throw new Error(`Character does not have action: ${actionId}`);
     }
 
-    // Use legacy handler for execution
-    const legacy = this.legacyHandlers.get(actionId);
-    if (!legacy) {
-      throw new Error(`No handler for action: ${actionId}`);
+    if (!this.actionHandlerRegistry) {
+      throw new Error('ActionHandlerRegistry not configured');
     }
 
-    return legacy.handler(params);
+    const definition = this.getAction(actionId);
+    if (!definition) {
+      throw new Error(`No definition for action: ${actionId}`);
+    }
+
+    return this.actionHandlerRegistry.execute(this.id, params, definition);
   }
 
   /**
@@ -219,101 +182,5 @@ export class Character extends Entity {
    */
   getHandCounts(): { red: number; blue: number; green: number; white: number } | undefined {
     return this.beadHand?.getHandCounts();
-  }
-
-  // Legacy Action Handlers
-
-  private executeMove(params: ActionParams): ActionResult {
-    if (!params.target) {
-      return { success: false, reason: 'no target', wheelCost: 1, events: [] };
-    }
-
-    const from = this.getPosition();
-    const moveResult = this.moveTo(params.target);
-    if (!moveResult.success) {
-      return {
-        success: false,
-        reason: moveResult.reason,
-        wheelCost: 1,
-        events: [],
-      };
-    }
-
-    return {
-      success: true,
-      wheelCost: 1,
-      events: [{ type: 'move', entityId: this.id, from: from!, to: params.target }],
-    };
-  }
-
-  private executeRun(params: ActionParams): ActionResult {
-    if (!params.target) {
-      return { success: false, reason: 'no target', wheelCost: 2, events: [] };
-    }
-
-    const from = this.getPosition();
-    const moveResult = this.moveTo(params.target);
-    if (!moveResult.success) {
-      return {
-        success: false,
-        reason: moveResult.reason,
-        wheelCost: 2,
-        events: [],
-      };
-    }
-
-    return {
-      success: true,
-      wheelCost: 2,
-      events: [{ type: 'move', entityId: this.id, from: from!, to: params.target }],
-    };
-  }
-
-  private executeAttack(params: ActionParams): ActionResult {
-    const targetId = params.targetEntityId ?? 'monster';
-    const target = this.entityRegistry.get(targetId);
-
-    if (!target) {
-      return { success: false, reason: 'target not found', wheelCost: 2, events: [] };
-    }
-
-    if (!this.grid.isAdjacent(this.id, targetId)) {
-      return { success: false, reason: 'target not adjacent', wheelCost: 2, events: [] };
-    }
-
-    target.receiveAttack(1);
-
-    return {
-      success: true,
-      wheelCost: 2,
-      events: [
-        { type: 'attack', attackerId: this.id, targetId, damage: 1 },
-        {
-          type: 'damage',
-          entityId: targetId,
-          newHealth: target.currentHealth,
-          maxHealth: target.maxHealth,
-        },
-      ],
-    };
-  }
-
-  private executeRest(_params: ActionParams): ActionResult {
-    let beadsDrawn: string[] = [];
-    if (this.beadHand) {
-      beadsDrawn = this.beadHand.drawToHand(2);
-    }
-
-    return {
-      success: true,
-      wheelCost: 2,
-      events: [
-        {
-          type: 'rest',
-          entityId: this.id,
-          beadsDrawn: beadsDrawn as ('red' | 'blue' | 'green' | 'white')[],
-        },
-      ],
-    };
   }
 }

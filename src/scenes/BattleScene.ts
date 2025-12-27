@@ -2,6 +2,9 @@ import Phaser from 'phaser';
 import { Arena, Monster, CharacterClass } from '@src/systems/DataLoader';
 import { GridSystem } from '@src/systems/GridSystem';
 import { ActionWheel } from '@src/systems/ActionWheel';
+import { ActionRegistry } from '@src/systems/ActionRegistry';
+import { ActionHandlerRegistry, createDefaultHandlers } from '@src/systems/ActionHandlers';
+import type { ActionDefinition } from '@src/types/Action';
 
 // New architecture imports
 import { BattleGrid } from '@src/state/BattleGrid';
@@ -19,6 +22,7 @@ interface BattleData {
   arena: Arena;
   partySize: number;
   classes: CharacterClass[];
+  actions?: ActionDefinition[];
 }
 
 // Movement ranges for actions
@@ -32,6 +36,7 @@ export class BattleScene extends Phaser.Scene {
   private monster!: Monster;
   private partySize!: number;
   private classes!: CharacterClass[];
+  private actions: ActionDefinition[] = [];
 
   // === STATE (Game Logic) ===
   private battleGrid!: BattleGrid;
@@ -47,6 +52,8 @@ export class BattleScene extends Phaser.Scene {
   // Systems
   private actionWheel!: ActionWheel;
   private gridSystem!: GridSystem;
+  private actionRegistry!: ActionRegistry;
+  private actionHandlerRegistry!: ActionHandlerRegistry;
 
   // Turn state
   private currentActorId: string | null = null;
@@ -80,6 +87,7 @@ export class BattleScene extends Phaser.Scene {
     this.arena = data.arena;
     this.partySize = data.partySize;
     this.classes = data.classes;
+    this.actions = data.actions ?? [];
   }
 
   create(): void {
@@ -161,6 +169,13 @@ export class BattleScene extends Phaser.Scene {
     );
 
     this.actionWheel = new ActionWheel();
+
+    // Initialize action system
+    this.actionRegistry = new ActionRegistry();
+    this.actionRegistry.registerAll(this.actions);
+
+    this.actionHandlerRegistry = new ActionHandlerRegistry();
+    createDefaultHandlers(this.actionHandlerRegistry);
   }
 
   private initializeState(): void {
@@ -330,7 +345,9 @@ export class BattleScene extends Phaser.Scene {
         characterId,
         charClass.stats.health,
         this.battleGrid,
-        this.entityMap
+        this.entityMap,
+        this.actionRegistry,
+        this.actionHandlerRegistry
       );
       this.characters.push(character);
       this.entityMap.set(characterId, character);
@@ -375,6 +392,16 @@ export class BattleScene extends Phaser.Scene {
     const monsterWorldX = this.gridSystem.gridToWorld(monsterSpawn.x);
     const monsterWorldY = this.gridSystem.gridToWorld(monsterSpawn.y);
     this.monsterVisual = new MonsterVisual(this, monsterWorldX, monsterWorldY, this.monster);
+
+    // Set action handler context now that all entities exist
+    this.actionHandlerRegistry.setContext({
+      grid: this.battleGrid,
+      entityRegistry: this.entityMap,
+      getBeadHand: (entityId: string) => {
+        const character = this.characters.find((c) => c.id === entityId);
+        return character?.getBeadHand();
+      },
+    });
   }
 
   /**

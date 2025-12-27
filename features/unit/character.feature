@@ -47,7 +47,7 @@ Feature: Character Action Resolution
   Scenario: Attack action fails for non-adjacent target
     Given a monster entity "monster" with 20 health at position 6,3
     When the character resolves action "attack" with target entity "monster"
-    Then the action result should fail with reason "target not adjacent"
+    Then the action result should fail with reason "Target not adjacent"
     And monster "monster" should have 20 health
 
   # Rest Action

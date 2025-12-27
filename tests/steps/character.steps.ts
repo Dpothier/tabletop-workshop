@@ -4,15 +4,50 @@ import type { QuickPickleWorld } from 'quickpickle';
 import { BattleGrid } from '@src/state/BattleGrid';
 import { Character, ActionResult } from '@src/entities/Character';
 import { Entity } from '@src/entities/Entity';
+import { ActionRegistry } from '@src/systems/ActionRegistry';
+import { ActionHandlerRegistry, createDefaultHandlers } from '@src/systems/ActionHandlers';
+import type { ActionDefinition } from '@src/types/Action';
+
+// Core action definitions for tests
+const CORE_ACTIONS: ActionDefinition[] = [
+  { id: 'move', name: 'Move', cost: 1, handlerId: 'movement', range: 2 },
+  { id: 'run', name: 'Run', cost: 2, handlerId: 'movement', range: 6 },
+  { id: 'attack', name: 'Attack', cost: 2, handlerId: 'melee_attack', range: 1, damage: 1 },
+  { id: 'rest', name: 'Rest', cost: 2, handlerId: 'rest' },
+];
 
 interface CharacterWorld extends QuickPickleWorld {
   grid?: BattleGrid;
   character?: Character;
   characterMap?: Map<string, Character>;
   entityMap?: Map<string, Entity>;
+  actionRegistry?: ActionRegistry;
+  actionHandlerRegistry?: ActionHandlerRegistry;
   actionResult?: ActionResult;
   thrownError?: Error;
   wheelCost?: number;
+}
+
+function setupActionSystem(world: CharacterWorld): void {
+  if (!world.actionRegistry) {
+    world.actionRegistry = new ActionRegistry();
+    world.actionRegistry.registerAll(CORE_ACTIONS);
+  }
+  if (!world.actionHandlerRegistry) {
+    world.actionHandlerRegistry = new ActionHandlerRegistry();
+    createDefaultHandlers(world.actionHandlerRegistry);
+  }
+}
+
+function setActionContext(world: CharacterWorld): void {
+  world.actionHandlerRegistry!.setContext({
+    grid: world.grid!,
+    entityRegistry: world.entityMap!,
+    getBeadHand: (entityId: string) => {
+      const character = world.characterMap?.get(entityId);
+      return character?.getBeadHand();
+    },
+  });
 }
 
 // Background setup
@@ -30,11 +65,23 @@ Given(
       world.entityMap = new Map();
     }
 
-    const character = new Character(id, health, world.grid, world.entityMap);
+    setupActionSystem(world);
+
+    const character = new Character(
+      id,
+      health,
+      world.grid,
+      world.entityMap,
+      world.actionRegistry,
+      world.actionHandlerRegistry
+    );
     world.grid.register(id, x, y);
     world.characterMap.set(id, character);
     world.entityMap.set(id, character);
     world.character = character;
+
+    // Set context after character is added to entityMap
+    setActionContext(world);
   }
 );
 
@@ -48,9 +95,14 @@ Given(
       world.entityMap = new Map();
     }
 
+    setupActionSystem(world);
+
     const monster = new Entity(id, health, world.grid);
     world.grid.register(id, x, y);
     world.entityMap.set(id, monster);
+
+    // Update context with new entity
+    setActionContext(world);
   }
 );
 
