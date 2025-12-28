@@ -1,11 +1,10 @@
 import Phaser from 'phaser';
 import { loadGameData, GameData } from '@src/systems/DataLoader';
+import { BattleBuilder } from '@src/builders/BattleBuilder';
 
 export class MenuScene extends Phaser.Scene {
   private gameData!: GameData;
-  private selectedMonster = 0;
-  private selectedArena = 0;
-  private partySize = 4;
+  private builder!: BattleBuilder;
 
   constructor() {
     super({ key: 'MenuScene' });
@@ -13,6 +12,14 @@ export class MenuScene extends Phaser.Scene {
 
   async create(): Promise<void> {
     this.gameData = await loadGameData();
+
+    // Initialize builder with defaults
+    this.builder = new BattleBuilder()
+      .withMonster(this.gameData.monsters[0])
+      .withArena(this.gameData.arenas[0])
+      .withPartySize(4)
+      .withClasses(this.gameData.classes)
+      .withActions(this.gameData.actions);
 
     const centerX = this.cameras.main.width / 2;
 
@@ -42,7 +49,7 @@ export class MenuScene extends Phaser.Scene {
 
     const monsterNames = this.gameData.monsters.map((m) => m.name);
     this.createSelector(centerX, 220, monsterNames, (index) => {
-      this.selectedMonster = index;
+      this.builder.withMonster(this.gameData.monsters[index]);
     });
 
     // Arena Selection
@@ -55,7 +62,7 @@ export class MenuScene extends Phaser.Scene {
 
     const arenaNames = this.gameData.arenas.map((a) => a.name);
     this.createSelector(centerX, 340, arenaNames, (index) => {
-      this.selectedArena = index;
+      this.builder.withArena(this.gameData.arenas[index]);
     });
 
     // Party Size
@@ -71,7 +78,7 @@ export class MenuScene extends Phaser.Scene {
       460,
       ['2 Players', '3 Players', '4 Players'],
       (index) => {
-        this.partySize = index + 2;
+        this.builder.withPartySize(index + 2);
       },
       2
     );
@@ -148,12 +155,7 @@ export class MenuScene extends Phaser.Scene {
   }
 
   private startBattle(): void {
-    this.scene.start('BattleScene', {
-      monster: this.gameData.monsters[this.selectedMonster],
-      arena: this.gameData.arenas[this.selectedArena],
-      partySize: this.partySize,
-      classes: this.gameData.classes,
-      actions: this.gameData.actions,
-    });
+    const state = this.builder.build();
+    this.scene.start('BattleScene', { state });
   }
 }

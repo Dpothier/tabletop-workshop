@@ -1,16 +1,12 @@
 import Phaser from 'phaser';
-import { Arena, Monster, CharacterClass } from '@src/systems/DataLoader';
+import type { Monster, CharacterClass } from '@src/systems/DataLoader';
 import { GridSystem } from '@src/systems/GridSystem';
-import { ActionWheel } from '@src/systems/ActionWheel';
-import { ActionRegistry } from '@src/systems/ActionRegistry';
-import { ActionHandlerRegistry, createDefaultHandlers } from '@src/systems/ActionHandlers';
-import type { ActionDefinition } from '@src/types/Action';
+import type { ActionWheel } from '@src/systems/ActionWheel';
 
-// New architecture imports
-import { BattleGrid } from '@src/state/BattleGrid';
-import { Character } from '@src/entities/Character';
-import { MonsterEntity, StateConfig } from '@src/entities/MonsterEntity';
-import { Entity } from '@src/entities/Entity';
+import type { BattleGrid } from '@src/state/BattleGrid';
+import type { BattleState } from '@src/state/BattleState';
+import type { Character } from '@src/entities/Character';
+import type { MonsterEntity } from '@src/entities/MonsterEntity';
 import { CharacterVisual, MonsterVisual } from '@src/visuals';
 import { BattleUI } from '@src/ui/BattleUI';
 import { AnimationExecutor } from '@src/ui/AnimationExecutor';
@@ -18,11 +14,7 @@ import { HeroSelectionBar, HeroCardData } from '@src/ui/HeroSelectionBar';
 import { SelectedHeroPanel } from '@src/ui/SelectedHeroPanel';
 
 interface BattleData {
-  monster: Monster;
-  arena: Arena;
-  partySize: number;
-  classes: CharacterClass[];
-  actions?: ActionDefinition[];
+  state: BattleState;
 }
 
 // Movement ranges for actions
@@ -32,28 +24,16 @@ const MOVEMENT_RANGES = {
 } as const;
 
 export class BattleScene extends Phaser.Scene {
-  private arena!: Arena;
-  private monster!: Monster;
-  private partySize!: number;
-  private classes!: CharacterClass[];
-  private actions: ActionDefinition[] = [];
+  // === BATTLE STATE (received from BattleBuilder) ===
+  private state!: BattleState;
 
-  // === STATE (Game Logic) ===
-  private battleGrid!: BattleGrid;
-  private characters: Character[] = [];
-  private monsterEntity!: MonsterEntity;
-  private entityMap: Map<string, Entity> = new Map();
-
-  // === VISUALS (Rendering) ===
+  // === VISUALS (Rendering - created in create()) ===
   private characterVisuals: Map<string, CharacterVisual> = new Map();
   private monsterVisual!: MonsterVisual;
   private grid!: Phaser.GameObjects.Graphics;
 
-  // Systems
-  private actionWheel!: ActionWheel;
+  // Systems (Phaser-dependent)
   private gridSystem!: GridSystem;
-  private actionRegistry!: ActionRegistry;
-  private actionHandlerRegistry!: ActionHandlerRegistry;
 
   // Turn state
   private currentActorId: string | null = null;
@@ -78,26 +58,53 @@ export class BattleScene extends Phaser.Scene {
   public heroSelectionBar!: HeroSelectionBar;
   public selectedHeroPanel!: SelectedHeroPanel;
 
+  // Convenience getters for state access
+  private get arena() {
+    return this.state.arena;
+  }
+  private get monster(): Monster {
+    return this.state.monster;
+  }
+  private get classes(): CharacterClass[] {
+    return this.state.classes;
+  }
+  private get battleGrid(): BattleGrid {
+    return this.state.grid;
+  }
+  private get characters(): Character[] {
+    return this.state.characters;
+  }
+  private get monsterEntity(): MonsterEntity {
+    return this.state.monsterEntity;
+  }
+  private get actionWheel(): ActionWheel {
+    return this.state.wheel;
+  }
+
   constructor() {
     super({ key: 'BattleScene' });
   }
 
   init(data: BattleData): void {
-    this.monster = data.monster;
-    this.arena = data.arena;
-    this.partySize = data.partySize;
-    this.classes = data.classes;
-    this.actions = data.actions ?? [];
+    this.state = data.state;
   }
 
   create(): void {
-    this.initializeSystems();
-    this.initializeState();
+    // GridSystem is Phaser-dependent, created here
+    this.gridSystem = new GridSystem(
+      this.GRID_SIZE,
+      this.GRID_OFFSET_X,
+      this.GRID_OFFSET_Y,
+      this.arena.width,
+      this.arena.height
+    );
+
+    // Clear visual maps for fresh scene
+    this.characterVisuals = new Map();
+
     this.drawGrid();
-    this.createEntitiesAndVisuals();
+    this.createVisuals();
     this.createBattleUI();
-    this.initializeActionWheel();
-    this.initializeBeadHands();
     this.processTurn();
   }
 
@@ -157,56 +164,6 @@ export class BattleScene extends Phaser.Scene {
       Attack: () => this.executeAttack(),
       Rest: () => this.executeRest(),
     });
-  }
-
-  private initializeSystems(): void {
-    this.gridSystem = new GridSystem(
-      this.GRID_SIZE,
-      this.GRID_OFFSET_X,
-      this.GRID_OFFSET_Y,
-      this.arena.width,
-      this.arena.height
-    );
-
-    this.actionWheel = new ActionWheel();
-
-    // Initialize action system
-    this.actionRegistry = new ActionRegistry();
-    this.actionRegistry.registerAll(this.actions);
-
-    this.actionHandlerRegistry = new ActionHandlerRegistry();
-    createDefaultHandlers(this.actionHandlerRegistry);
-  }
-
-  private initializeState(): void {
-    // Create the single source of truth for positions
-    this.battleGrid = new BattleGrid(this.arena.width, this.arena.height);
-    this.characters = [];
-    this.entityMap = new Map();
-    this.characterVisuals = new Map();
-  }
-
-  private initializeActionWheel(): void {
-    // Add all characters to wheel at position 0
-    for (const character of this.characters) {
-      this.actionWheel.addEntity(character.id, 0);
-    }
-    // Add monster at position 0
-    this.actionWheel.addEntity('monster', 0);
-
-    this.updateUI();
-  }
-
-  private initializeBeadHands(): void {
-    // Initialize bead hands for all characters
-    for (const character of this.characters) {
-      character.initializeBeadHand();
-      // Draw starting beads (3)
-      if (character.hasBeadHand()) {
-        character.drawBeadsToHand(3);
-      }
-    }
-    this.updateUI();
   }
 
   /**
@@ -321,87 +278,34 @@ export class BattleScene extends Phaser.Scene {
     return colors[type] || colors.normal;
   }
 
-  private createEntitiesAndVisuals(): void {
-    const spawnPoints = this.arena.playerSpawns || [
-      { x: 1, y: 1 },
-      { x: 2, y: 1 },
-      { x: 1, y: 2 },
-      { x: 2, y: 2 },
-    ];
-
+  /**
+   * Create visual representations for state entities.
+   * State objects already exist from BattleBuilder.
+   */
+  private createVisuals(): void {
     const classColors = [0x4488ff, 0xff4444, 0x44ff44, 0xffff44];
 
-    // Create characters (state) and their visuals
-    for (let i = 0; i < this.partySize; i++) {
+    // Create character visuals from state entities
+    for (let i = 0; i < this.characters.length; i++) {
+      const character = this.characters[i];
       const charClass = this.classes[i % this.classes.length];
-      const spawn = spawnPoints[i];
-      const characterId = `hero-${i}`;
+      const pos = character.getPosition();
 
-      // Register position in grid (single source of truth)
-      this.battleGrid.register(characterId, spawn.x, spawn.y);
-
-      // Create Character entity (game logic)
-      const character = new Character(
-        characterId,
-        charClass.stats.health,
-        this.battleGrid,
-        this.entityMap,
-        this.actionRegistry,
-        this.actionHandlerRegistry
-      );
-      this.characters.push(character);
-      this.entityMap.set(characterId, character);
-
-      // Create CharacterVisual (rendering)
-      const worldX = this.gridSystem.gridToWorld(spawn.x);
-      const worldY = this.gridSystem.gridToWorld(spawn.y);
-      const visual = new CharacterVisual(this, worldX, worldY, charClass, classColors[i], i);
-      this.characterVisuals.set(characterId, visual);
+      if (pos) {
+        const worldX = this.gridSystem.gridToWorld(pos.x);
+        const worldY = this.gridSystem.gridToWorld(pos.y);
+        const visual = new CharacterVisual(this, worldX, worldY, charClass, classColors[i], i);
+        this.characterVisuals.set(character.id, visual);
+      }
     }
 
-    // Create monster entity and visual
-    const monsterSpawn = this.arena.monsterSpawn || { x: 5, y: 4 };
-
-    // Register monster position
-    this.battleGrid.register('monster', monsterSpawn.x, monsterSpawn.y);
-
-    // Create MonsterEntity (game logic)
-    this.monsterEntity = new MonsterEntity('monster', this.monster.stats.health, this.battleGrid);
-    this.entityMap.set('monster', this.monsterEntity);
-
-    // Initialize monster bead system if configured
-    if (this.monster.beads && this.monster.states && this.monster.start_state) {
-      this.monsterEntity.initializeBeadBag(this.monster.beads);
-
-      // Convert states record to array of StateConfig
-      const stateConfigs: StateConfig[] = Object.entries(this.monster.states).map(
-        ([name, state]) => ({
-          name,
-          damage: state.damage,
-          wheel_cost: state.wheel_cost,
-          range: state.range,
-          area: state.area,
-          transitions: state.transitions,
-        })
-      );
-
-      this.monsterEntity.initializeStateMachine(stateConfigs, this.monster.start_state);
+    // Create monster visual from state entity
+    const monsterPos = this.monsterEntity.getPosition();
+    if (monsterPos) {
+      const monsterWorldX = this.gridSystem.gridToWorld(monsterPos.x);
+      const monsterWorldY = this.gridSystem.gridToWorld(monsterPos.y);
+      this.monsterVisual = new MonsterVisual(this, monsterWorldX, monsterWorldY, this.monster);
     }
-
-    // Create MonsterVisual (rendering)
-    const monsterWorldX = this.gridSystem.gridToWorld(monsterSpawn.x);
-    const monsterWorldY = this.gridSystem.gridToWorld(monsterSpawn.y);
-    this.monsterVisual = new MonsterVisual(this, monsterWorldX, monsterWorldY, this.monster);
-
-    // Set action handler context now that all entities exist
-    this.actionHandlerRegistry.setContext({
-      grid: this.battleGrid,
-      entityRegistry: this.entityMap,
-      getBeadHand: (entityId: string) => {
-        const character = this.characters.find((c) => c.id === entityId);
-        return character?.getBeadHand();
-      },
-    });
   }
 
   /**
