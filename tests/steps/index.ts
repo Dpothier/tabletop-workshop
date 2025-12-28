@@ -18,3 +18,4 @@ import './action-resolution.steps';
 import './affordability.steps';
 import './panel-affordability.steps';
 import './option-selection-ui.steps';
+import './grid-visual.steps';

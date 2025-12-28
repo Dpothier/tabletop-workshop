@@ -10,6 +10,7 @@ import type { Character } from '@src/entities/Character';
 import type { MonsterEntity } from '@src/entities/MonsterEntity';
 import type { ActionDefinition } from '@src/types/ActionDefinition';
 import { CharacterVisual, MonsterVisual } from '@src/visuals';
+import { GridVisual } from '@src/visuals/GridVisual';
 import { BattleUI } from '@src/ui/BattleUI';
 import { AnimationExecutor } from '@src/ui/AnimationExecutor';
 import { HeroSelectionBar, HeroCardData } from '@src/ui/HeroSelectionBar';
@@ -35,7 +36,7 @@ export class BattleScene extends Phaser.Scene {
   // === VISUALS (Rendering - created in create()) ===
   private characterVisuals: Map<string, CharacterVisual> = new Map();
   private monsterVisual!: MonsterVisual;
-  private grid!: Phaser.GameObjects.Graphics;
+  private gridVisual!: GridVisual;
 
   // Systems (Phaser-dependent)
   private gridSystem!: GridSystem;
@@ -114,7 +115,11 @@ export class BattleScene extends Phaser.Scene {
     // Clear visual maps for fresh scene
     this.characterVisuals = new Map();
 
-    this.drawGrid();
+    this.gridVisual = new GridVisual(this, {
+      arena: this.arena,
+      gridSystem: this.gridSystem,
+    });
+    this.gridVisual.draw();
     this.createVisuals();
     this.createBattleUI();
     this.processTurn();
@@ -243,58 +248,6 @@ export class BattleScene extends Phaser.Scene {
     if (this.currentActorId === 'monster') {
       this.selectedHeroPanel.hidePanel();
     }
-  }
-
-  private drawGrid(): void {
-    this.grid = this.add.graphics();
-    this.grid.lineStyle(1, 0x444466, 0.5);
-
-    const cols = this.arena.width;
-    const rows = this.arena.height;
-
-    // Draw terrain
-    for (let y = 0; y < rows; y++) {
-      for (let x = 0; x < cols; x++) {
-        const terrainType = this.arena.terrain?.[y]?.[x] || 'normal';
-        const color = this.getTerrainColor(terrainType);
-
-        this.grid.fillStyle(color, 0.3);
-        this.grid.fillRect(
-          this.GRID_OFFSET_X + x * this.GRID_SIZE,
-          this.GRID_OFFSET_Y + y * this.GRID_SIZE,
-          this.GRID_SIZE,
-          this.GRID_SIZE
-        );
-      }
-    }
-
-    // Draw grid lines
-    for (let x = 0; x <= cols; x++) {
-      this.grid.moveTo(this.GRID_OFFSET_X + x * this.GRID_SIZE, this.GRID_OFFSET_Y);
-      this.grid.lineTo(
-        this.GRID_OFFSET_X + x * this.GRID_SIZE,
-        this.GRID_OFFSET_Y + rows * this.GRID_SIZE
-      );
-    }
-    for (let y = 0; y <= rows; y++) {
-      this.grid.moveTo(this.GRID_OFFSET_X, this.GRID_OFFSET_Y + y * this.GRID_SIZE);
-      this.grid.lineTo(
-        this.GRID_OFFSET_X + cols * this.GRID_SIZE,
-        this.GRID_OFFSET_Y + y * this.GRID_SIZE
-      );
-    }
-    this.grid.strokePath();
-  }
-
-  private getTerrainColor(type: string): number {
-    const colors: Record<string, number> = {
-      normal: 0x3d3d5c,
-      hazard: 0x8b0000,
-      difficult: 0x4a4a2a,
-      elevated: 0x2a4a4a,
-      pit: 0x1a1a1a,
-    };
-    return colors[type] || colors.normal;
   }
 
   /**
@@ -510,26 +463,16 @@ export class BattleScene extends Phaser.Scene {
     const range = getActionRange(action);
     this.battleUI.log(`Click a tile to ${action.name.toLowerCase()}`);
 
-    const graphics = this.add.graphics();
-    graphics.fillStyle(0x00ff00, 0.2);
-
     // Use BattleGrid to get valid moves
     const validMoves = this.battleGrid.getValidMoves(this.selectedCharacterId, range);
     this.currentValidMoves = validMoves; // Store for E2E testing
 
-    for (const move of validMoves) {
-      graphics.fillRect(
-        this.GRID_OFFSET_X + move.x * this.GRID_SIZE + 2,
-        this.GRID_OFFSET_Y + move.y * this.GRID_SIZE + 2,
-        this.GRID_SIZE - 4,
-        this.GRID_SIZE - 4
-      );
-    }
+    const highlight = this.gridVisual.highlightTiles(validMoves, 0x00ff00);
 
     // Delay handler setup to avoid capturing the button click that triggered this
     this.time.delayedCall(50, () => {
       this.input.once('pointerdown', (pointer: Phaser.Input.Pointer) => {
-        graphics.destroy();
+        this.gridVisual.removeHighlight(highlight);
         this.currentValidMoves = []; // Clear after click
 
         const gridX = this.gridSystem.worldToGrid(pointer.x);
@@ -741,5 +684,6 @@ export class BattleScene extends Phaser.Scene {
 
   shutdown(): void {
     this.optionSelectionPanel?.destroy();
+    this.gridVisual?.destroy();
   }
 }

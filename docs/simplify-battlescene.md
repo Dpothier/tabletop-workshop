@@ -42,7 +42,7 @@ class TurnController {
 
 ---
 
-### 2. Extract GridVisual (Medium Impact)
+### 2. Extract GridVisual (Medium Impact) ✅ DONE
 
 **What:** Grid rendering - terrain colors, grid lines.
 
@@ -167,8 +167,8 @@ private async resolveAndAdvance(
 
 ## Recommended Order
 
-1. **Consolidate Action Resolution** - Quick win, no new files
-2. **Extract GridVisual** - Follows existing pattern
+1. **Consolidate Action Resolution** ✅ DONE - Quick win, no new files
+2. **Extract GridVisual** ✅ DONE - Follows existing pattern
 3. **Extract TurnController** - Enables unit testing
 4. **Extract SelectionManager** - Simplifies turn handling
 5. **Extract TargetingSystem** - Cleaner input handling
