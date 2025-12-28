@@ -13,3 +13,4 @@ import './battle-grid.steps';
 import './entity.steps';
 import './character.steps';
 import './monster-entity.steps';
+import './effects.steps';
