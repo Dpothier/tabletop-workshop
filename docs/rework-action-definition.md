@@ -4,7 +4,7 @@
 
 Replace hard-coded action handlers with a fully data-driven system where actions are defined in YAML with parameters, effects, and options.
 
-## Status: Phase 5 Complete (Integration Done)
+## Status: Phase 6 Complete (UI Affordability Done)
 
 ---
 
@@ -174,13 +174,26 @@ All 4 core actions migrated to new effect-based schema:
 
 ---
 
-## Phase 6: UI Affordability
+## Phase 6: UI Affordability ✅ COMPLETE
 
 ### Tasks
 
-- [ ] Update `SelectedHeroPanel` - gray out unaffordable actions
-- [ ] Create `OptionSelectionUI` component
-- [ ] Dynamic option affordability updates
+- [x] Update `SelectedHeroPanel` - gray out unaffordable actions
+- [x] Create `OptionSelectionUI` component
+- [x] Dynamic option affordability updates
+
+### New Files
+
+- `src/ui/OptionSelectionUI.ts` - Logic-only option selection class
+- `src/ui/OptionSelectionPanel.ts` - Phaser visual wrapper
+
+### Notes
+
+- Added `beadCountsToActionCost()` utility to `src/utils/affordability.ts`
+- SelectedHeroPanel now uses `canAfford()` for per-bead-color checking
+- OptionSelectionUI supports multi-select and dynamic affordability
+- Added `power_attack` action to core.yaml as example with options
+- BattleScene integration shows OptionSelectionPanel when action has option parameters
 
 ---
 

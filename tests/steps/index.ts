@@ -16,3 +16,5 @@ import './monster-entity.steps';
 import './effects.steps';
 import './action-resolution.steps';
 import './affordability.steps';
+import './panel-affordability.steps';
+import './option-selection-ui.steps';

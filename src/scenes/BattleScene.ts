@@ -14,6 +14,7 @@ import { BattleUI } from '@src/ui/BattleUI';
 import { AnimationExecutor } from '@src/ui/AnimationExecutor';
 import { HeroSelectionBar, HeroCardData } from '@src/ui/HeroSelectionBar';
 import { SelectedHeroPanel } from '@src/ui/SelectedHeroPanel';
+import { OptionSelectionPanel } from '@src/ui/OptionSelectionPanel';
 import { ActionResolution } from '@src/systems/ActionResolution';
 import { EffectRegistry } from '@src/systems/EffectRegistry';
 import { MoveEffect } from '@src/effects/MoveEffect';
@@ -21,6 +22,7 @@ import { AttackEffect } from '@src/effects/AttackEffect';
 import { DrawBeadsEffect } from '@src/effects/DrawBeadsEffect';
 import { getTargetType, getWheelCost, getActionRange } from '@src/utils/actionCompat';
 import type { GameContext } from '@src/types/Effect';
+import type { OptionPrompt } from '@src/types/ParameterPrompt';
 
 interface BattleData {
   state: BattleState;
@@ -63,6 +65,7 @@ export class BattleScene extends Phaser.Scene {
   private animationExecutor!: AnimationExecutor;
   public heroSelectionBar!: HeroSelectionBar;
   public selectedHeroPanel!: SelectedHeroPanel;
+  private optionSelectionPanel?: OptionSelectionPanel;
 
   // Convenience getters for state access
   private get arena() {
@@ -140,6 +143,9 @@ export class BattleScene extends Phaser.Scene {
     this.effectRegistry.register('move', new MoveEffect());
     this.effectRegistry.register('attack', new AttackEffect());
     this.effectRegistry.register('drawBeads', new DrawBeadsEffect());
+
+    // Create option selection panel
+    this.optionSelectionPanel = new OptionSelectionPanel(this);
   }
 
   private createHeroSelectionBar(): void {
@@ -226,7 +232,9 @@ export class BattleScene extends Phaser.Scene {
       if (selectedChar) {
         const beadCounts = selectedChar.getHandCounts();
         if (beadCounts) {
-          this.selectedHeroPanel.updateAffordability(beadCounts);
+          const position = this.actionWheel.getPosition(this.selectedCharacterId);
+          const availableTime = position !== undefined ? 8 - position : 0;
+          this.selectedHeroPanel.updateAffordability(beadCounts, availableTime);
         }
       }
     }
@@ -468,6 +476,10 @@ export class BattleScene extends Phaser.Scene {
   /**
    * Start tile targeting for movement-type actions.
    */
+  private hasOptionParameters(action: ActionDefinition): OptionPrompt | undefined {
+    return action.parameters.find((p) => p.type === 'option') as OptionPrompt | undefined;
+  }
+
   private startTileTargeting(action: ActionDefinition): void {
     if (!this.selectedCharacterId) return;
 
@@ -588,7 +600,43 @@ export class BattleScene extends Phaser.Scene {
     // Provide the target parameter (monster)
     resolution.provideValue('target', 'monster');
 
-    // Resolve the action
+    // Check for option parameters
+    const optionParam = this.hasOptionParameters(action);
+    if (optionParam && this.optionSelectionPanel) {
+      // Show option selection UI
+      const beadCounts = character.getHandCounts() || { red: 0, blue: 0, green: 0, white: 0 };
+
+      this.optionSelectionPanel.show({
+        prompt: optionParam.prompt,
+        options: optionParam.options,
+        multiSelect: optionParam.multiSelect ?? false,
+        availableBeads: beadCounts,
+        availableTime: 0, // Options don't typically have time cost
+        onConfirm: async (selectedIds: string[]): Promise<void> => {
+          // Provide options to resolution
+          if (selectedIds.length > 0) {
+            resolution.provideValue(optionParam.key, selectedIds);
+          }
+
+          // Continue with resolution
+          const result = resolution.resolve();
+          if (!result.success) {
+            this.battleUI.log(result.reason || `${action.name} failed`);
+            return;
+          }
+
+          await this.animationExecutor.execute(result.events);
+          this.updateUI();
+          this.advanceAndProcessTurn(this.currentActorId!, getWheelCost(action));
+        },
+        onCancel: (): void => {
+          this.battleUI.log('Action cancelled');
+        },
+      });
+      return; // Exit - continuation handled by callbacks
+    }
+
+    // No options - resolve immediately (existing flow)
     const result = resolution.resolve();
 
     if (!result.success) {
@@ -704,5 +752,9 @@ export class BattleScene extends Phaser.Scene {
       monster: this.monster.name,
       turns: 0,
     });
+  }
+
+  shutdown(): void {
+    this.optionSelectionPanel?.destroy();
   }
 }

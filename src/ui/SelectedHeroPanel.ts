@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
 import type { BeadCounts } from '@src/types/Beads';
 import type { ActionDefinition } from '@src/types/ActionDefinition';
+import type { ActionCost } from '@src/types/ActionCost';
+import { canAfford, beadCountsToActionCost } from '@src/utils/affordability';
 
 /**
  * Action button state for E2E testing
@@ -144,14 +146,7 @@ export class SelectedHeroPanel {
       const y = ACTION_BUTTON_Y_OFFSET + index * (ACTION_BUTTON_HEIGHT + ACTION_BUTTON_GAP);
       const callback = () => this.onActionCallback?.(action.id);
 
-      const button = new ActionButton(
-        this.scene,
-        startX,
-        y,
-        action.name,
-        action.cost.time,
-        callback
-      );
+      const button = new ActionButton(this.scene, startX, y, action.name, action.cost, callback);
       this.actionButtons.push(button);
       this.container.add(button.container);
     });
@@ -183,13 +178,13 @@ export class SelectedHeroPanel {
   }
 
   /**
-   * Update affordability based on beads in hand
+   * Update affordability based on beads in hand and available time
    */
-  updateAffordability(beadCounts: BeadCounts): void {
-    const totalBeads = Object.values(beadCounts).reduce((sum, count) => sum + count, 0);
+  updateAffordability(beadCounts: BeadCounts, availableTime: number): void {
+    const available = beadCountsToActionCost(beadCounts, availableTime);
 
     for (const button of this.actionButtons) {
-      button.setAffordable(totalBeads >= button.getCost());
+      button.setAffordable(canAfford(available, button.getActionCost()));
     }
   }
 
@@ -225,7 +220,7 @@ export class SelectedHeroPanel {
 class ActionButton {
   public readonly container: Phaser.GameObjects.Container;
   private name: string;
-  private cost: number;
+  private actionCost: ActionCost;
   private callback: () => void;
   private background: Phaser.GameObjects.Rectangle;
   private label: Phaser.GameObjects.Text;
@@ -237,11 +232,11 @@ class ActionButton {
     x: number,
     y: number,
     name: string,
-    cost: number,
+    cost: ActionCost,
     callback: () => void
   ) {
     this.name = name;
-    this.cost = cost;
+    this.actionCost = cost;
     this.callback = callback;
     this.container = scene.add.container(x, y);
 
@@ -266,7 +261,7 @@ class ActionButton {
     this.label.setOrigin(0, 0.5);
 
     // Cost label
-    this.costLabel = scene.add.text(70, 0, `${cost}`, {
+    this.costLabel = scene.add.text(70, 0, `${cost.time}`, {
       fontSize: '14px',
       color: COST_COLOR,
       fontStyle: 'bold',
@@ -320,8 +315,12 @@ class ActionButton {
     return this.name;
   }
 
+  getActionCost(): ActionCost {
+    return this.actionCost;
+  }
+
   getCost(): number {
-    return this.cost;
+    return this.actionCost.time;
   }
 
   isAffordable(): boolean {

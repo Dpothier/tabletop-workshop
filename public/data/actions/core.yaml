@@ -63,3 +63,49 @@ actions:
         params:
           entityId: hero-0
           count: 2
+
+  - id: power_attack
+    name: Power Attack
+    description: A powerful attack with enhancement options
+    cost:
+      time: 2
+      red: 1
+    parameters:
+      - key: target
+        type: entity
+        prompt: Select target
+        filter: enemy
+        range: 1
+      - key: enhancements
+        type: option
+        prompt: Enhance your attack?
+        optional: true
+        multiSelect: true
+        options:
+          - id: extra_damage
+            label: "+1 Damage"
+            cost:
+              red: 1
+          - id: knockback
+            label: "Knockback"
+            cost:
+              green: 1
+    effects:
+      - id: baseAttack
+        type: attack
+        params:
+          targetEntity: $target
+          damage: 1
+    options:
+      extra_damage:
+        modifies: baseAttack
+        modifier:
+          damage: +1
+      knockback:
+        adds:
+          - id: knockbackEffect
+            type: push
+            params:
+              targetEntity: $target
+              distance: 1
+              condition: $baseAttack.hit
