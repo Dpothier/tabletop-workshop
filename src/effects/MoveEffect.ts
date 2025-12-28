@@ -1,5 +1,6 @@
 import type { Effect, EffectResult, GameContext, ResolvedParams } from '@src/types/Effect';
-import type { MoveEvent, Position } from '@src/types/AnimationEvent';
+import type { MoveEvent } from '@src/types/AnimationEvent';
+import type { Position } from '@src/state/BattleGrid';
 
 /**
  * MoveEffect moves an entity to a destination position.
@@ -9,11 +10,10 @@ export class MoveEffect implements Effect {
   execute(
     context: GameContext,
     params: ResolvedParams,
-    modifiers: Record<string, unknown>,
-    chainResults: Map<string, EffectResult>
+    _modifiers: Record<string, unknown>,
+    _chainResults: Map<string, EffectResult>
   ): EffectResult {
     const destination = params.destination as Position;
-    const range = (modifiers.range as number) || 0;
 
     // Capture original position BEFORE the move
     const from = context.grid.getPosition('hero-0');

@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import type { BeadCounts } from '@src/types/Beads';
-import type { ActionDefinition } from '@src/types/Action';
+import type { ActionDefinition } from '@src/types/ActionDefinition';
 
 /**
  * Action button state for E2E testing
@@ -144,7 +144,14 @@ export class SelectedHeroPanel {
       const y = ACTION_BUTTON_Y_OFFSET + index * (ACTION_BUTTON_HEIGHT + ACTION_BUTTON_GAP);
       const callback = () => this.onActionCallback?.(action.id);
 
-      const button = new ActionButton(this.scene, startX, y, action.name, action.cost, callback);
+      const button = new ActionButton(
+        this.scene,
+        startX,
+        y,
+        action.name,
+        action.cost.time,
+        callback
+      );
       this.actionButtons.push(button);
       this.container.add(button.container);
     });

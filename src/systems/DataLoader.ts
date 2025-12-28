@@ -1,6 +1,6 @@
 import yaml from 'js-yaml';
 import type { BeadCounts } from '@src/types/Beads';
-import type { ActionDefinition } from '@src/types/Action';
+import type { ActionDefinition } from '@src/types/ActionDefinition';
 import type { EquipmentDefinition } from '@src/types/Equipment';
 
 export interface CharacterClass {

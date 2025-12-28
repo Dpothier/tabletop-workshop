@@ -1,4 +1,4 @@
-import type { BattleGrid, Position } from '@src/state/BattleGrid';
+import type { BattleGrid } from '@src/state/BattleGrid';
 import type { Entity } from '@src/entities/Entity';
 import type { AnimationEvent } from '@src/types/AnimationEvent';
 import type { PlayerBeadSystem } from '@src/systems/PlayerBeadSystem';

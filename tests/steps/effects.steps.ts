@@ -1,14 +1,13 @@
 import { Given, When, Then } from 'quickpickle';
 import { expect } from 'vitest';
 import type { QuickPickleWorld } from 'quickpickle';
-import { BattleGrid, Position } from '@src/state/BattleGrid';
+import { BattleGrid } from '@src/state/BattleGrid';
 import { Entity } from '@src/entities/Entity';
-import type { AnimationEvent, MoveEvent, AttackEvent, DamageEvent, RestEvent } from '@src/types/AnimationEvent';
+import type { MoveEvent, AttackEvent, DamageEvent, RestEvent } from '@src/types/AnimationEvent';
 import { PlayerBeadSystem } from '@src/systems/PlayerBeadSystem';
-import type { BeadColor } from '@src/types/Beads';
 
 // Import production Effect types and classes
-import type { Effect, EffectResult, GameContext, ResolvedParams } from '@src/types/Effect';
+import type { EffectResult, GameContext } from '@src/types/Effect';
 import { EffectRegistry } from '@src/systems/EffectRegistry';
 import { MoveEffect } from '@src/effects/MoveEffect';
 import { AttackEffect } from '@src/effects/AttackEffect';
@@ -17,7 +16,7 @@ import { DrawBeadsEffect } from '@src/effects/DrawBeadsEffect';
 interface EffectsWorld extends QuickPickleWorld {
   grid?: BattleGrid;
   entities?: Map<string, Entity>;
-  context?: GameContext;
+  gameContext?: GameContext;
   registry?: EffectRegistry;
   effectResult?: EffectResult;
   moveEvent?: MoveEvent;
@@ -42,12 +41,12 @@ Given('a game context with the grid', function (world: EffectsWorld) {
     world.grid = new BattleGrid(9, 9);
   }
 
-  world.context = {
+  world.gameContext = {
     grid: world.grid,
     getEntity(id: string): Entity | undefined {
       return world.entities?.get(id);
     },
-    getBeadHand(entityId: string): PlayerBeadSystem | undefined {
+    getBeadHand(_entityId: string): PlayerBeadSystem | undefined {
       return world.playerBeadSystem;
     },
   };
@@ -67,30 +66,26 @@ Given('a player bead system', function (world: EffectsWorld) {
 
 // EffectRegistry Tests
 
-When(
-  'I register effect {string} with a MoveEffect',
-  function (world: EffectsWorld, type: string) {
-    const moveEffect = new MoveEffect();
-    world.registry!.register(type, moveEffect);
-  }
-);
+When('I register effect {string} with a MoveEffect', function (world: EffectsWorld, type: string) {
+  const moveEffect = new MoveEffect();
+  world.registry!.register(type, moveEffect);
+});
 
 Given('effect {string} is registered', function (world: EffectsWorld, type: string) {
   const moveEffect = new MoveEffect();
   world.registry!.register(type, moveEffect);
 });
 
-When(
-  'I retrieve effect {string} from registry',
-  function (world: EffectsWorld, type: string) {
-    const effect = world.registry!.get(type);
-    world.effectResult = effect ? {
-      success: true,
-      data: { effect },
-      events: [],
-    } : undefined as any;
-  }
-);
+When('I retrieve effect {string} from registry', function (world: EffectsWorld, type: string) {
+  const effect = world.registry!.get(type);
+  world.effectResult = effect
+    ? {
+        success: true,
+        data: { effect },
+        events: [],
+      }
+    : (undefined as any);
+});
 
 Then('the registry should contain {string}', function (world: EffectsWorld, type: string) {
   const effect = world.registry!.get(type);
@@ -114,7 +109,7 @@ When(
   function (world: EffectsWorld, x: number, y: number) {
     const effect = new MoveEffect();
     world.effectResult = effect.execute(
-      world.context!,
+      world.gameContext!,
       { destination: { x, y } },
       {},
       new Map()
@@ -127,7 +122,7 @@ When(
   function (world: EffectsWorld, x: number, y: number, range: number) {
     const effect = new MoveEffect();
     world.effectResult = effect.execute(
-      world.context!,
+      world.gameContext!,
       { destination: { x, y } },
       { range },
       new Map()
@@ -157,7 +152,9 @@ Then(
 
 Then('the effect result should contain a move animation event', function (world: EffectsWorld) {
   expect(world.effectResult!.events).toBeDefined();
-  const moveEvent = world.effectResult!.events.find((e) => e.type === 'move') as MoveEvent | undefined;
+  const moveEvent = world.effectResult!.events.find((e) => e.type === 'move') as
+    | MoveEvent
+    | undefined;
   expect(moveEvent).toBeDefined();
   world.moveEvent = moveEvent;
 });
@@ -187,7 +184,7 @@ When(
   function (world: EffectsWorld, targetId: string, damage: number) {
     const effect = new AttackEffect();
     world.effectResult = effect.execute(
-      world.context!,
+      world.gameContext!,
       { targetEntity: targetId, damage },
       {},
       new Map()
@@ -200,7 +197,7 @@ When(
   function (world: EffectsWorld, targetId: string, damage: number, modifier: number) {
     const effect = new AttackEffect();
     world.effectResult = effect.execute(
-      world.context!,
+      world.gameContext!,
       { targetEntity: targetId, damage },
       { damage: modifier },
       new Map()
@@ -213,7 +210,7 @@ When(
   function (world: EffectsWorld, targetId: string, damage: number, resultKey: string) {
     const effect = new AttackEffect();
     world.effectResult = effect.execute(
-      world.context!,
+      world.gameContext!,
       { targetEntity: targetId, damage },
       {},
       new Map()
@@ -231,7 +228,7 @@ When(
   function (world: EffectsWorld, targetId: string, damage: number) {
     const effect = new AttackEffect();
     world.effectResult = effect.execute(
-      world.context!,
+      world.gameContext!,
       { targetEntity: targetId, damage },
       {},
       new Map()
@@ -250,14 +247,18 @@ Then(
 
 Then('the effect result should contain attack animation event', function (world: EffectsWorld) {
   expect(world.effectResult!.events).toBeDefined();
-  const attackEvent = world.effectResult!.events.find((e) => e.type === 'attack') as AttackEvent | undefined;
+  const attackEvent = world.effectResult!.events.find((e) => e.type === 'attack') as
+    | AttackEvent
+    | undefined;
   expect(attackEvent).toBeDefined();
   world.attackEvent = attackEvent;
 });
 
 Then('the effect result should contain damage animation event', function (world: EffectsWorld) {
   expect(world.effectResult!.events).toBeDefined();
-  const damageEvent = world.effectResult!.events.find((e) => e.type === 'damage') as DamageEvent | undefined;
+  const damageEvent = world.effectResult!.events.find((e) => e.type === 'damage') as
+    | DamageEvent
+    | undefined;
   expect(damageEvent).toBeDefined();
   world.damageEvent = damageEvent;
 });
@@ -302,34 +303,42 @@ Then(
 
 When(
   'I execute DrawBeadsEffect to draw {int} beads for {string}',
-  function (world: EffectsWorld, count: number, entityId: string) {
+  function (world: EffectsWorld, count: number, _entityId: string) {
     const effect = new DrawBeadsEffect();
     world.effectResult = effect.execute(
-      world.context!,
-      { count, entityId },
+      world.gameContext!,
+      { count, entityId: _entityId },
       {},
       new Map()
     );
   }
 );
 
-Then('the player should have {int} beads in hand', function (world: EffectsWorld, expectedCount: number) {
-  expect(world.playerBeadSystem).toBeDefined();
-  const handTotal = world.playerBeadSystem!.getHandTotal();
-  expect(handTotal).toBe(expectedCount);
-});
+Then(
+  'the player should have {int} beads in hand',
+  function (world: EffectsWorld, expectedCount: number) {
+    expect(world.playerBeadSystem).toBeDefined();
+    const handTotal = world.playerBeadSystem!.getHandTotal();
+    expect(handTotal).toBe(expectedCount);
+  }
+);
 
 Then('the effect result should contain rest animation event', function (world: EffectsWorld) {
   expect(world.effectResult!.events).toBeDefined();
-  const restEvent = world.effectResult!.events.find((e) => e.type === 'rest') as RestEvent | undefined;
+  const restEvent = world.effectResult!.events.find((e) => e.type === 'rest') as
+    | RestEvent
+    | undefined;
   expect(restEvent).toBeDefined();
   world.restEvent = restEvent;
 });
 
-Then('the rest event should have {int} beads drawn', function (world: EffectsWorld, expectedCount: number) {
-  expect(world.restEvent).toBeDefined();
-  expect(world.restEvent!.beadsDrawn.length).toBe(expectedCount);
-});
+Then(
+  'the rest event should have {int} beads drawn',
+  function (world: EffectsWorld, expectedCount: number) {
+    expect(world.restEvent).toBeDefined();
+    expect(world.restEvent!.beadsDrawn.length).toBe(expectedCount);
+  }
+);
 
 // Effect Chaining Tests
 
@@ -357,7 +366,7 @@ When(
   function (world: EffectsWorld, targetId: string, damage: number) {
     const effect = new AttackEffect();
     world.effectResult = effect.execute(
-      world.context!,
+      world.gameContext!,
       { targetEntity: targetId, damage },
       {},
       new Map()
@@ -365,12 +374,15 @@ When(
   }
 );
 
-Then('the hero should have moved to {int},{int}', function (world: EffectsWorld, x: number, y: number) {
-  const pos = world.grid!.getPosition('hero-0');
-  expect(pos).not.toBeNull();
-  expect(pos!.x).toBe(x);
-  expect(pos!.y).toBe(y);
-});
+Then(
+  'the hero should have moved to {int},{int}',
+  function (world: EffectsWorld, x: number, y: number) {
+    const pos = world.grid!.getPosition('hero-0');
+    expect(pos).not.toBeNull();
+    expect(pos!.x).toBe(x);
+    expect(pos!.y).toBe(y);
+  }
+);
 
 Then('the goblin should have {int} health', function (world: EffectsWorld, expectedHealth: number) {
   const goblin = world.entities!.get('goblin');

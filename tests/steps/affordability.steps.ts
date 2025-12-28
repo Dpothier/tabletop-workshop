@@ -7,7 +7,7 @@ import { canAfford } from '@src/utils/affordability';
 interface AffordabilityWorld extends QuickPickleWorld {
   available?: ActionCost;
   required?: ActionCost;
-  result?: boolean;
+  affordResult?: boolean;
 }
 
 /**
@@ -25,10 +25,10 @@ function parseCostString(costStr: string): ActionCost {
   }
 
   // Split by comma and parse each key:value pair
-  const pairs = normalized.split(',').map(p => p.trim());
+  const pairs = normalized.split(',').map((p) => p.trim());
 
   for (const pair of pairs) {
-    const [key, value] = pair.split(':').map(s => s.trim());
+    const [key, value] = pair.split(':').map((s) => s.trim());
     if (!key || !value) continue;
 
     const numValue = parseInt(value, 10);
@@ -36,7 +36,7 @@ function parseCostString(costStr: string): ActionCost {
 
     // Use type assertion since we know the keys are valid bead colors
     const typedKey = key as keyof ActionCost;
-    (cost as Record<string, number>)[typedKey] = numValue;
+    (cost as unknown as Record<string, number>)[typedKey] = numValue;
   }
 
   return cost;
@@ -54,16 +54,16 @@ Then('canAfford should return true', function (world: AffordabilityWorld) {
   expect(world.available).toBeDefined();
   expect(world.required).toBeDefined();
 
-  world.result = canAfford(world.available!, world.required!);
+  world.affordResult = canAfford(world.available!, world.required!);
 
-  expect(world.result).toBe(true);
+  expect(world.affordResult).toBe(true);
 });
 
 Then('canAfford should return false', function (world: AffordabilityWorld) {
   expect(world.available).toBeDefined();
   expect(world.required).toBeDefined();
 
-  world.result = canAfford(world.available!, world.required!);
+  world.affordResult = canAfford(world.available!, world.required!);
 
-  expect(world.result).toBe(false);
+  expect(world.affordResult).toBe(false);
 });

@@ -1,7 +1,7 @@
 import type { ActionDefinition, ActionResult } from '@src/types/ActionDefinition';
 import type { ParameterPrompt } from '@src/types/ParameterPrompt';
 import type { ActionCost } from '@src/types/ActionCost';
-import type { Effect, EffectResult, GameContext } from '@src/types/Effect';
+import type { EffectResult, GameContext } from '@src/types/Effect';
 import { EffectRegistry } from '@src/systems/EffectRegistry';
 
 /**
@@ -22,6 +22,13 @@ export class ActionResolution {
     private context: GameContext,
     private effectRegistry: EffectRegistry
   ) {}
+
+  /**
+   * Get the entity ID for which this action is being resolved.
+   */
+  getEntityId(): string {
+    return this.entityId;
+  }
 
   /**
    * Generator that yields parameter prompts in order from the action definition.
@@ -158,7 +165,7 @@ export class ActionResolution {
     modifiers: Record<string, unknown>;
   }> {
     const selectedOptions = this.collectedValues.get('options') as string[] | undefined;
-    const selectedOptionsSet = selectedOptions ? new Set(selectedOptions) : new Set();
+    const selectedOptionsSet: Set<string> = selectedOptions ? new Set(selectedOptions) : new Set();
 
     return this.definition.effects.map((effect) => {
       // Resolve parameters (replace $references)
@@ -218,7 +225,7 @@ export class ActionResolution {
         const [effectId, field] = refPath.split('.');
         const effectResult = this.chainResults.get(effectId);
         if (effectResult) {
-          return effectResult.data[field];
+          return (effectResult.data as Record<string, unknown>)[field];
         }
         return value;
       }

@@ -2,7 +2,8 @@ import { BattleGrid } from '@src/state/BattleGrid';
 import { Entity } from '@src/entities/Entity';
 import { PlayerBeadSystem } from '@src/systems/PlayerBeadSystem';
 import type { IEntityRegistry } from '@src/types/EntityRegistry';
-import type { ActionDefinition, ActionParams, ActionResult } from '@src/types/Action';
+import type { ActionDefinition } from '@src/types/ActionDefinition';
+import type { ActionParams, ActionResult } from '@src/types/Action';
 import type { EquipmentDefinition, EquipmentSlot } from '@src/types/Equipment';
 import type { ActionRegistry } from '@src/systems/ActionRegistry';
 import type { ActionHandlerRegistry } from '@src/systems/ActionHandlers';
@@ -130,7 +131,9 @@ export class Character extends Entity {
       throw new Error(`No definition for action: ${actionId}`);
     }
 
-    return this.actionHandlerRegistry.execute(this.id, params, definition);
+    // TODO: Phase 7 - Remove this deprecated method and actionHandlerRegistry
+    // This cast is needed because we're using new ActionDefinition with old handler system
+    return this.actionHandlerRegistry.execute(this.id, params, definition as any);
   }
 
   /**
@@ -141,7 +144,7 @@ export class Character extends Entity {
     if (!action) {
       throw new Error(`Unknown action: ${actionId}`);
     }
-    return action.cost;
+    return action.cost.time;
   }
 
   /**

@@ -8,12 +8,19 @@ import type { BattleGrid } from '@src/state/BattleGrid';
 import type { BattleState } from '@src/state/BattleState';
 import type { Character } from '@src/entities/Character';
 import type { MonsterEntity } from '@src/entities/MonsterEntity';
-import type { ActionDefinition } from '@src/types/Action';
+import type { ActionDefinition } from '@src/types/ActionDefinition';
 import { CharacterVisual, MonsterVisual } from '@src/visuals';
 import { BattleUI } from '@src/ui/BattleUI';
 import { AnimationExecutor } from '@src/ui/AnimationExecutor';
 import { HeroSelectionBar, HeroCardData } from '@src/ui/HeroSelectionBar';
 import { SelectedHeroPanel } from '@src/ui/SelectedHeroPanel';
+import { ActionResolution } from '@src/systems/ActionResolution';
+import { EffectRegistry } from '@src/systems/EffectRegistry';
+import { MoveEffect } from '@src/effects/MoveEffect';
+import { AttackEffect } from '@src/effects/AttackEffect';
+import { DrawBeadsEffect } from '@src/effects/DrawBeadsEffect';
+import { getTargetType, getWheelCost, getActionRange } from '@src/utils/actionCompat';
+import type { GameContext } from '@src/types/Effect';
 
 interface BattleData {
   state: BattleState;
@@ -37,6 +44,9 @@ export class BattleScene extends Phaser.Scene {
 
   // Valid movement tiles for E2E testing
   public currentValidMoves: { x: number; y: number }[] = [];
+
+  // Effect registry for action resolution
+  private effectRegistry!: EffectRegistry;
 
   // Expose log messages for E2E testing
   public get logMessages(): string[] {
@@ -124,6 +134,12 @@ export class BattleScene extends Phaser.Scene {
       this.monsterVisual,
       this.battleUI
     );
+
+    // Initialize effect registry
+    this.effectRegistry = new EffectRegistry();
+    this.effectRegistry.register('move', new MoveEffect());
+    this.effectRegistry.register('attack', new AttackEffect());
+    this.effectRegistry.register('drawBeads', new DrawBeadsEffect());
   }
 
   private createHeroSelectionBar(): void {
@@ -436,7 +452,7 @@ export class BattleScene extends Phaser.Scene {
       return;
     }
 
-    switch (action.targetType) {
+    switch (getTargetType(action)) {
       case 'tile':
         this.startTileTargeting(action);
         break;
@@ -461,7 +477,7 @@ export class BattleScene extends Phaser.Scene {
     const currentPos = character.getPosition();
     if (!currentPos) return;
 
-    const range = action.range ?? 1;
+    const range = getActionRange(action);
     this.battleUI.log(`Click a tile to ${action.name.toLowerCase()}`);
 
     const graphics = this.add.graphics();
@@ -510,7 +526,27 @@ export class BattleScene extends Phaser.Scene {
     gridX: number,
     gridY: number
   ): Promise<void> {
-    const result = character.resolveAction(action.id, { target: { x: gridX, y: gridY } });
+    // Create game context
+    const context: GameContext = {
+      grid: this.battleGrid,
+      getEntity: (id: string) => {
+        if (id === 'monster') return this.monsterEntity;
+        return this.characters.find((c) => c.id === id);
+      },
+      getBeadHand: (entityId: string) => {
+        const char = this.characters.find((c) => c.id === entityId);
+        return char?.getBeadHand();
+      },
+    };
+
+    // Create and execute action resolution
+    const resolution = new ActionResolution(character.id, action, context, this.effectRegistry);
+
+    // Provide the target parameter
+    resolution.provideValue('target', { x: gridX, y: gridY });
+
+    // Resolve the action
+    const result = resolution.resolve();
 
     if (!result.success) {
       this.battleUI.log(result.reason || `${action.name} failed`);
@@ -521,7 +557,7 @@ export class BattleScene extends Phaser.Scene {
 
     const visual = this.characterVisuals.get(character.id);
     this.battleUI.log(`${visual?.getClassName() || character.id} ${action.name.toLowerCase()}d`);
-    this.advanceAndProcessTurn(this.currentActorId!, result.wheelCost);
+    this.advanceAndProcessTurn(this.currentActorId!, getWheelCost(action));
   }
 
   /**
@@ -533,8 +569,27 @@ export class BattleScene extends Phaser.Scene {
     const character = this.characters.find((c) => c.id === this.selectedCharacterId);
     if (!character) return;
 
-    // For now, auto-target the monster
-    const result = character.resolveAction(action.id, { targetEntityId: 'monster' });
+    // Create game context
+    const context: GameContext = {
+      grid: this.battleGrid,
+      getEntity: (id: string) => {
+        if (id === 'monster') return this.monsterEntity;
+        return this.characters.find((c) => c.id === id);
+      },
+      getBeadHand: (entityId: string) => {
+        const char = this.characters.find((c) => c.id === entityId);
+        return char?.getBeadHand();
+      },
+    };
+
+    // Create and execute action resolution
+    const resolution = new ActionResolution(character.id, action, context, this.effectRegistry);
+
+    // Provide the target parameter (monster)
+    resolution.provideValue('target', 'monster');
+
+    // Resolve the action
+    const result = resolution.resolve();
 
     if (!result.success) {
       this.battleUI.log(result.reason || `${action.name} failed`);
@@ -544,7 +599,7 @@ export class BattleScene extends Phaser.Scene {
     await this.animationExecutor.execute(result.events);
 
     this.updateUI();
-    this.advanceAndProcessTurn(this.currentActorId!, result.wheelCost);
+    this.advanceAndProcessTurn(this.currentActorId!, getWheelCost(action));
   }
 
   /**
@@ -556,7 +611,24 @@ export class BattleScene extends Phaser.Scene {
     const character = this.characters.find((c) => c.id === this.selectedCharacterId);
     if (!character) return;
 
-    const result = character.resolveAction(action.id, {});
+    // Create game context
+    const context: GameContext = {
+      grid: this.battleGrid,
+      getEntity: (id: string) => {
+        if (id === 'monster') return this.monsterEntity;
+        return this.characters.find((c) => c.id === id);
+      },
+      getBeadHand: (entityId: string) => {
+        const char = this.characters.find((c) => c.id === entityId);
+        return char?.getBeadHand();
+      },
+    };
+
+    // Create and execute action resolution
+    const resolution = new ActionResolution(character.id, action, context, this.effectRegistry);
+
+    // No parameters to provide - resolve immediately
+    const result = resolution.resolve();
 
     if (!result.success) {
       this.battleUI.log(result.reason || `${action.name} failed`);
@@ -566,7 +638,7 @@ export class BattleScene extends Phaser.Scene {
     await this.animationExecutor.execute(result.events);
 
     this.updateUI();
-    this.advanceAndProcessTurn(this.currentActorId!, result.wheelCost);
+    this.advanceAndProcessTurn(this.currentActorId!, getWheelCost(action));
   }
 
   private advanceAndProcessTurn(entityId: string, wheelCost: number): void {

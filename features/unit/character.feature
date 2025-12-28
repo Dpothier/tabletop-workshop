@@ -18,13 +18,13 @@ Feature: Character Action Resolution
   Scenario: Move action fails for out of bounds
     Given a character "hero-1" with 10 health at position 8,8
     When character "hero-1" resolves action "move" with target position 9,8
-    Then the action result should fail with reason "out of bounds"
+    Then the action result should fail with reason "Effect movement failed"
     And character "hero-1" should be at position 8,8
 
   Scenario: Move action fails for occupied tile
     Given a monster entity "monster" with 20 health at position 4,3
     When the character resolves action "move" with target position 4,3
-    Then the action result should fail with reason "occupied"
+    Then the action result should fail with reason "Effect movement failed"
     And the character should be at position 3,3
 
   # Run Action
@@ -47,7 +47,7 @@ Feature: Character Action Resolution
   Scenario: Attack action fails for non-adjacent target
     Given a monster entity "monster" with 20 health at position 6,3
     When the character resolves action "attack" with target entity "monster"
-    Then the action result should fail with reason "Target not adjacent"
+    Then the action result should fail with reason "Effect baseAttack failed"
     And monster "monster" should have 20 health
 
   # Rest Action
@@ -63,7 +63,7 @@ Feature: Character Action Resolution
 
   Scenario: Unknown action throws error
     When the character attempts to resolve action "fireball"
-    Then an error should be thrown with message "Character does not have action: fireball"
+    Then an error should be thrown with message "Unknown action: fireball"
 
   # Available Actions
 

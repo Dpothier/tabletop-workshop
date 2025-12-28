@@ -1,4 +1,4 @@
-import type { ActionDefinition } from '@src/types/Action';
+import type { ActionDefinition } from '@src/types/ActionDefinition';
 
 /**
  * Registry for action definitions loaded from YAML.

@@ -1,5 +1,5 @@
 import type { Arena, Monster, CharacterClass } from '@src/systems/DataLoader';
-import type { ActionDefinition } from '@src/types/Action';
+import type { ActionDefinition } from '@src/types/ActionDefinition';
 import type { BattleGrid } from '@src/state/BattleGrid';
 import type { ActionWheel } from '@src/systems/ActionWheel';
 import type { Character } from '@src/entities/Character';

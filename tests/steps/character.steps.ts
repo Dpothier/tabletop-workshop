@@ -6,22 +6,50 @@ import { Character, ActionResult } from '@src/entities/Character';
 import { Entity } from '@src/entities/Entity';
 import { ActionRegistry } from '@src/systems/ActionRegistry';
 import { ActionHandlerRegistry, createDefaultHandlers } from '@src/systems/ActionHandlers';
-import type { ActionDefinition } from '@src/types/Action';
+import type { ActionDefinition } from '@src/types/ActionDefinition';
+import { ActionResolution } from '@src/systems/ActionResolution';
+import { EffectRegistry } from '@src/systems/EffectRegistry';
+import { MoveEffect } from '@src/effects/MoveEffect';
+import { AttackEffect } from '@src/effects/AttackEffect';
+import { DrawBeadsEffect } from '@src/effects/DrawBeadsEffect';
+import type { GameContext } from '@src/types/Effect';
 
 // Core action definitions for tests
 const CORE_ACTIONS: ActionDefinition[] = [
-  { id: 'move', name: 'Move', cost: 1, handlerId: 'movement', targetType: 'tile', range: 2 },
-  { id: 'run', name: 'Run', cost: 2, handlerId: 'movement', targetType: 'tile', range: 6 },
+  {
+    id: 'move',
+    name: 'Move',
+    cost: { time: 1 },
+    parameters: [
+      { key: 'target', type: 'tile', prompt: 'Select destination', range: 2, filter: 'empty' },
+    ],
+    effects: [{ id: 'movement', type: 'move', params: { destination: '$target' } }],
+  },
+  {
+    id: 'run',
+    name: 'Run',
+    cost: { time: 2 },
+    parameters: [
+      { key: 'target', type: 'tile', prompt: 'Select destination', range: 6, filter: 'empty' },
+    ],
+    effects: [{ id: 'movement', type: 'move', params: { destination: '$target' } }],
+  },
   {
     id: 'attack',
     name: 'Attack',
-    cost: 2,
-    handlerId: 'melee_attack',
-    targetType: 'entity',
-    range: 1,
-    damage: 1,
+    cost: { time: 2 },
+    parameters: [
+      { key: 'target', type: 'entity', prompt: 'Select target', filter: 'enemy', range: 1 },
+    ],
+    effects: [{ id: 'baseAttack', type: 'attack', params: { targetEntity: '$target', damage: 1 } }],
   },
-  { id: 'rest', name: 'Rest', cost: 2, handlerId: 'rest', targetType: 'none' },
+  {
+    id: 'rest',
+    name: 'Rest',
+    cost: { time: 2 },
+    parameters: [],
+    effects: [{ id: 'drawBeads', type: 'drawBeads', params: { entityId: 'hero-0', count: 2 } }],
+  },
 ];
 
 interface CharacterWorld extends QuickPickleWorld {
@@ -31,6 +59,7 @@ interface CharacterWorld extends QuickPickleWorld {
   entityMap?: Map<string, Entity>;
   actionRegistry?: ActionRegistry;
   actionHandlerRegistry?: ActionHandlerRegistry;
+  effectRegistry?: EffectRegistry;
   actionResult?: ActionResult;
   thrownError?: Error;
   wheelCost?: number;
@@ -56,6 +85,26 @@ function setActionContext(world: CharacterWorld): void {
       return character?.getBeadHand();
     },
   });
+}
+
+function setupEffectRegistry(world: CharacterWorld): void {
+  if (!world.effectRegistry) {
+    world.effectRegistry = new EffectRegistry();
+    world.effectRegistry.register('move', new MoveEffect());
+    world.effectRegistry.register('attack', new AttackEffect());
+    world.effectRegistry.register('drawBeads', new DrawBeadsEffect());
+  }
+}
+
+function createGameContext(world: CharacterWorld): GameContext {
+  return {
+    grid: world.grid!,
+    getEntity: (id: string) => world.entityMap?.get(id) as any,
+    getBeadHand: (entityId: string) => {
+      const char = world.characterMap?.get(entityId);
+      return char?.getBeadHand();
+    },
+  };
 }
 
 // Background setup
@@ -123,34 +172,182 @@ Given('the character has a bead hand', function (world: CharacterWorld) {
 When(
   'the character resolves action {string} with target position {int},{int}',
   function (world: CharacterWorld, actionId: string, x: number, y: number) {
-    world.actionResult = world.character!.resolveAction(actionId, { target: { x, y } });
+    setupActionSystem(world);
+    setupEffectRegistry(world);
+
+    const action = world.actionRegistry!.get(actionId);
+    if (!action) {
+      world.actionResult = {
+        success: false,
+        reason: `Unknown action: ${actionId}`,
+        wheelCost: 0,
+        events: [],
+      };
+      return;
+    }
+
+    const context = createGameContext(world);
+    const resolution = new ActionResolution(
+      world.character!.id,
+      action,
+      context,
+      world.effectRegistry!
+    );
+
+    resolution.provideValue('target', { x, y });
+    const result = resolution.resolve();
+
+    world.actionResult = {
+      success: result.success,
+      reason: result.reason,
+      wheelCost: result.cost.time,
+      events: result.events,
+    };
   }
 );
 
 When(
   'character {string} resolves action {string} with target position {int},{int}',
-  function (world: CharacterWorld, charId: string, actionId: string, x: number, y: number) {
-    const character = world.characterMap!.get(charId)!;
-    world.actionResult = character.resolveAction(actionId, { target: { x, y } });
+  function (world: CharacterWorld, characterId: string, actionId: string, x: number, y: number) {
+    setupActionSystem(world);
+    setupEffectRegistry(world);
+
+    const character = world.characterMap?.get(characterId);
+    if (!character) {
+      world.actionResult = {
+        success: false,
+        reason: `Character not found: ${characterId}`,
+        wheelCost: 0,
+        events: [],
+      };
+      return;
+    }
+
+    const action = world.actionRegistry!.get(actionId);
+    if (!action) {
+      world.actionResult = {
+        success: false,
+        reason: `Unknown action: ${actionId}`,
+        wheelCost: 0,
+        events: [],
+      };
+      return;
+    }
+
+    const context = createGameContext(world);
+    const resolution = new ActionResolution(character.id, action, context, world.effectRegistry!);
+
+    resolution.provideValue('target', { x, y });
+    const result = resolution.resolve();
+
+    world.actionResult = {
+      success: result.success,
+      reason: result.reason,
+      wheelCost: result.cost.time,
+      events: result.events,
+    };
   }
 );
 
 When(
   'the character resolves action {string} with target entity {string}',
   function (world: CharacterWorld, actionId: string, targetId: string) {
-    world.actionResult = world.character!.resolveAction(actionId, { targetEntityId: targetId });
+    setupActionSystem(world);
+    setupEffectRegistry(world);
+
+    const action = world.actionRegistry!.get(actionId);
+    if (!action) {
+      world.actionResult = {
+        success: false,
+        reason: `Unknown action: ${actionId}`,
+        wheelCost: 0,
+        events: [],
+      };
+      return;
+    }
+
+    const context = createGameContext(world);
+    const resolution = new ActionResolution(
+      world.character!.id,
+      action,
+      context,
+      world.effectRegistry!
+    );
+
+    resolution.provideValue('target', targetId);
+    const result = resolution.resolve();
+
+    world.actionResult = {
+      success: result.success,
+      reason: result.reason,
+      wheelCost: result.cost.time,
+      events: result.events,
+    };
   }
 );
 
 When('the character resolves action {string}', function (world: CharacterWorld, actionId: string) {
-  world.actionResult = world.character!.resolveAction(actionId, {});
+  setupActionSystem(world);
+  setupEffectRegistry(world);
+
+  const action = world.actionRegistry!.get(actionId);
+  if (!action) {
+    world.actionResult = {
+      success: false,
+      reason: `Unknown action: ${actionId}`,
+      wheelCost: 0,
+      events: [],
+    };
+    return;
+  }
+
+  const context = createGameContext(world);
+  const resolution = new ActionResolution(
+    world.character!.id,
+    action,
+    context,
+    world.effectRegistry!
+  );
+
+  // No parameters for rest action
+  const result = resolution.resolve();
+
+  world.actionResult = {
+    success: result.success,
+    reason: result.reason,
+    wheelCost: result.cost.time,
+    events: result.events,
+  };
 });
 
 When(
   'the character attempts to resolve action {string}',
   function (world: CharacterWorld, actionId: string) {
+    setupActionSystem(world);
+    setupEffectRegistry(world);
+
     try {
-      world.character!.resolveAction(actionId, {});
+      const action = world.actionRegistry!.get(actionId);
+      if (!action) {
+        world.thrownError = new Error(`Unknown action: ${actionId}`);
+        return;
+      }
+
+      const context = createGameContext(world);
+      const resolution = new ActionResolution(
+        world.character!.id,
+        action,
+        context,
+        world.effectRegistry!
+      );
+
+      const result = resolution.resolve();
+      world.actionResult = {
+        success: result.success,
+        reason: result.reason,
+        wheelCost: result.cost.time,
+        events: result.events,
+      };
     } catch (e) {
       world.thrownError = e as Error;
     }

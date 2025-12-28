@@ -4,7 +4,7 @@
 
 Replace hard-coded action handlers with a fully data-driven system where actions are defined in YAML with parameters, effects, and options.
 
-## Status: Planning Complete
+## Status: Phase 5 Complete (Integration Done)
 
 ---
 
@@ -130,52 +130,47 @@ class ActionResolution {
 
 ---
 
-## Phase 4: YAML Migration
+## Phase 4: YAML Migration ✅ COMPLETE
 
 ### Tasks
 
-- [ ] Update `public/data/actions/core.yaml` to new schema
-- [ ] Update `src/systems/DataLoader.ts` if needed
+- [x] Update `public/data/actions/core.yaml` to new schema
+- [x] Update `src/systems/DataLoader.ts` to use new ActionDefinition type
 
-### New Schema Example
+### Migrated Actions
 
-```yaml
-- id: move
-  name: Move
-  cost: { time: 1 }
-  parameters:
-    - key: target
-      type: tile
-      prompt: "Select tile"
-      range: 2
-      filter: empty
-  effects:
-    - id: movement
-      type: move
-      params:
-        destination: $target
-```
+All 4 core actions migrated to new effect-based schema:
+- `move` - MoveEffect with tile targeting
+- `run` - MoveEffect with extended range
+- `attack` - AttackEffect with entity targeting
+- `rest` - DrawBeadsEffect
 
 ---
 
-## Phase 5: BattleScene Integration
+## Phase 5: BattleScene Integration ✅ COMPLETE
 
 ### Tasks
 
-- [ ] Refactor `BattleScene.executeAction()` to use `ActionResolution`
-- [ ] Create prompt UI handlers for each parameter type
-  - [ ] Tile selection
-  - [ ] Entity selection
-  - [ ] Option selection
-- [ ] Wire up `resolve()` → animation → turn advance
-- [ ] Add cancel action support
+- [x] Refactor `BattleScene.executeAction()` to use `ActionResolution`
+- [x] Create prompt UI handlers for each parameter type
+  - [x] Tile selection (via existing tile targeting)
+  - [x] Entity selection (via existing entity targeting)
+  - [ ] Option selection (deferred - no options in core actions yet)
+- [x] Wire up `resolve()` → animation → turn advance
+- [ ] Add cancel action support (deferred)
 
-### Code to Remove
+### New Files
 
-- `startTileTargeting()`
-- `executeEntityAction()`
-- `executeImmediateAction()`
-- `resolveTileAction()`
+- `src/utils/actionCompat.ts` - Helper functions for bridging old UI with new system
+  - `getTargetType()` - Infer target type from parameters
+  - `getWheelCost()` - Extract time cost
+  - `getActionRange()` - Get range from first parameter
+
+### Notes
+
+- Old handler methods kept but now route through ActionResolution
+- Character.resolveAction() still uses old interface (cleanup in Phase 7)
+- DrawBeadsEffect registered in EffectRegistry
 
 ---
 

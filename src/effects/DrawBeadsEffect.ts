@@ -9,8 +9,8 @@ export class DrawBeadsEffect implements Effect {
   execute(
     context: GameContext,
     params: ResolvedParams,
-    modifiers: Record<string, unknown>,
-    chainResults: Map<string, EffectResult>
+    _modifiers: Record<string, unknown>,
+    _chainResults: Map<string, EffectResult>
   ): EffectResult {
     const count = (params.count as number) || 0;
     const entityId = params.entityId as string;

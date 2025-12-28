@@ -10,14 +10,14 @@ export class AttackEffect implements Effect {
     context: GameContext,
     params: ResolvedParams,
     modifiers: Record<string, unknown>,
-    chainResults: Map<string, EffectResult>
+    _chainResults: Map<string, EffectResult>
   ): EffectResult {
     const targetId = params.targetEntity as string;
     let damage = (params.damage as number) || 1;
 
     // Apply damage modifier
     if (modifiers.damage) {
-      damage += (modifiers.damage as number);
+      damage += modifiers.damage as number;
     }
 
     // Check adjacency - assume attacker is 'hero-0'
