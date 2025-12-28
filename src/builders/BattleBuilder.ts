@@ -7,7 +7,6 @@ import { ActionWheel } from '@src/systems/ActionWheel';
 import { Character } from '@src/entities/Character';
 import { MonsterEntity, StateConfig } from '@src/entities/MonsterEntity';
 import { ActionRegistry } from '@src/systems/ActionRegistry';
-import { ActionHandlerRegistry, createDefaultHandlers } from '@src/systems/ActionHandlers';
 
 /**
  * Builder for constructing battle state.
@@ -75,37 +74,19 @@ export class BattleBuilder {
     const actionRegistry = new ActionRegistry();
     actionRegistry.registerAll(this.actions);
 
-    const actionHandlerRegistry = new ActionHandlerRegistry();
-    createDefaultHandlers(actionHandlerRegistry);
-
     // 3. Build entity map (needed for character construction)
     const entityMap: Map<string, Entity> = new Map();
 
     // 4. Create characters at spawn points
-    const characters = this.createCharacters(
-      grid,
-      entityMap,
-      actionRegistry,
-      actionHandlerRegistry
-    );
+    const characters = this.createCharacters(grid, entityMap, actionRegistry);
 
     // 5. Create monster
     const monsterEntity = this.createMonster(grid, entityMap);
 
-    // 6. Set action handler context (needs all entities)
-    actionHandlerRegistry.setContext({
-      grid,
-      entityRegistry: entityMap,
-      getBeadHand: (entityId: string) => {
-        const character = characters.find((c) => c.id === entityId);
-        return character?.getBeadHand();
-      },
-    });
-
-    // 7. Create action wheel (all at position 0)
+    // 6. Create action wheel (all at position 0)
     const wheel = this.createActionWheel(characters);
 
-    // 8. Initialize bead hands
+    // 7. Initialize bead hands
     this.initializeBeadHands(characters);
 
     return {
@@ -119,15 +100,13 @@ export class BattleBuilder {
       monsterEntity,
       entityMap,
       actionRegistry,
-      actionHandlerRegistry,
     };
   }
 
   private createCharacters(
     grid: BattleGrid,
     entityMap: Map<string, Entity>,
-    actionRegistry: ActionRegistry,
-    actionHandlerRegistry: ActionHandlerRegistry
+    actionRegistry: ActionRegistry
   ): Character[] {
     const spawnPoints = this.arena!.playerSpawns || [
       { x: 1, y: 1 },
@@ -152,8 +131,7 @@ export class BattleBuilder {
         charClass.stats.health,
         grid,
         entityMap,
-        actionRegistry,
-        actionHandlerRegistry
+        actionRegistry
       );
 
       characters.push(character);

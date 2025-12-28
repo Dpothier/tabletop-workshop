@@ -474,6 +474,24 @@ export class BattleScene extends Phaser.Scene {
   }
 
   /**
+   * Create a GameContext for action resolution.
+   */
+  private createGameContext(actorId: string): GameContext {
+    return {
+      grid: this.battleGrid,
+      actorId,
+      getEntity: (id: string) => {
+        if (id === 'monster') return this.monsterEntity;
+        return this.characters.find((c) => c.id === id);
+      },
+      getBeadHand: (entityId: string) => {
+        const char = this.characters.find((c) => c.id === entityId);
+        return char?.getBeadHand();
+      },
+    };
+  }
+
+  /**
    * Start tile targeting for movement-type actions.
    */
   private hasOptionParameters(action: ActionDefinition): OptionPrompt | undefined {
@@ -538,18 +556,7 @@ export class BattleScene extends Phaser.Scene {
     gridX: number,
     gridY: number
   ): Promise<void> {
-    // Create game context
-    const context: GameContext = {
-      grid: this.battleGrid,
-      getEntity: (id: string) => {
-        if (id === 'monster') return this.monsterEntity;
-        return this.characters.find((c) => c.id === id);
-      },
-      getBeadHand: (entityId: string) => {
-        const char = this.characters.find((c) => c.id === entityId);
-        return char?.getBeadHand();
-      },
-    };
+    const context = this.createGameContext(character.id);
 
     // Create and execute action resolution
     const resolution = new ActionResolution(character.id, action, context, this.effectRegistry);
@@ -581,18 +588,7 @@ export class BattleScene extends Phaser.Scene {
     const character = this.characters.find((c) => c.id === this.selectedCharacterId);
     if (!character) return;
 
-    // Create game context
-    const context: GameContext = {
-      grid: this.battleGrid,
-      getEntity: (id: string) => {
-        if (id === 'monster') return this.monsterEntity;
-        return this.characters.find((c) => c.id === id);
-      },
-      getBeadHand: (entityId: string) => {
-        const char = this.characters.find((c) => c.id === entityId);
-        return char?.getBeadHand();
-      },
-    };
+    const context = this.createGameContext(character.id);
 
     // Create and execute action resolution
     const resolution = new ActionResolution(character.id, action, context, this.effectRegistry);
@@ -659,18 +655,7 @@ export class BattleScene extends Phaser.Scene {
     const character = this.characters.find((c) => c.id === this.selectedCharacterId);
     if (!character) return;
 
-    // Create game context
-    const context: GameContext = {
-      grid: this.battleGrid,
-      getEntity: (id: string) => {
-        if (id === 'monster') return this.monsterEntity;
-        return this.characters.find((c) => c.id === id);
-      },
-      getBeadHand: (entityId: string) => {
-        const char = this.characters.find((c) => c.id === entityId);
-        return char?.getBeadHand();
-      },
-    };
+    const context = this.createGameContext(character.id);
 
     // Create and execute action resolution
     const resolution = new ActionResolution(character.id, action, context, this.effectRegistry);

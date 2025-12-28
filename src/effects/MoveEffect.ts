@@ -16,7 +16,7 @@ export class MoveEffect implements Effect {
     const destination = params.destination as Position;
 
     // Capture original position BEFORE the move
-    const from = context.grid.getPosition('hero-0');
+    const from = context.grid.getPosition(context.actorId!);
     if (!from) {
       return {
         success: false,
@@ -25,8 +25,8 @@ export class MoveEffect implements Effect {
       };
     }
 
-    // Move entity (assume 'hero-0' is the actor)
-    const moveResult = context.grid.moveEntity('hero-0', destination);
+    // Move entity (assume context.actorId is the actor)
+    const moveResult = context.grid.moveEntity(context.actorId!, destination);
 
     if (!moveResult.success) {
       return {
@@ -38,7 +38,7 @@ export class MoveEffect implements Effect {
 
     const moveEvent: MoveEvent = {
       type: 'move',
-      entityId: 'hero-0',
+      entityId: context.actorId!,
       from,
       to: destination,
     };

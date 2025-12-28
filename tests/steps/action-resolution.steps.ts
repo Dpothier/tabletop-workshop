@@ -352,6 +352,7 @@ Given('an ActionResolution for the action', function (world: ActionResolutionWor
   if (!world.gameContext) {
     world.gameContext = {
       grid: world.grid || new BattleGrid(9, 9),
+      actorId: 'hero-0',
       getEntity: (id: string) => world.entities?.get(id),
       getBeadHand: () => world.playerBeadSystem,
     };
@@ -383,6 +384,7 @@ When('I create an ActionResolution for the action', function (world: ActionResol
   if (!world.gameContext) {
     world.gameContext = {
       grid: world.grid || new BattleGrid(9, 9),
+      actorId: 'hero-0',
       getEntity: (id: string) => world.entities?.get(id),
       getBeadHand: () => world.playerBeadSystem,
     };

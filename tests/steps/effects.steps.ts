@@ -43,6 +43,7 @@ Given('a game context with the grid', function (world: EffectsWorld) {
 
   world.gameContext = {
     grid: world.grid,
+    actorId: 'hero-0',
     getEntity(id: string): Entity | undefined {
       return world.entities?.get(id);
     },

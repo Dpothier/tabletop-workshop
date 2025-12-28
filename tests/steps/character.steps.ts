@@ -2,10 +2,9 @@ import { Given, When, Then } from 'quickpickle';
 import { expect } from 'vitest';
 import type { QuickPickleWorld } from 'quickpickle';
 import { BattleGrid } from '@src/state/BattleGrid';
-import { Character, ActionResult } from '@src/entities/Character';
+import { Character } from '@src/entities/Character';
 import { Entity } from '@src/entities/Entity';
 import { ActionRegistry } from '@src/systems/ActionRegistry';
-import { ActionHandlerRegistry, createDefaultHandlers } from '@src/systems/ActionHandlers';
 import type { ActionDefinition } from '@src/types/ActionDefinition';
 import { ActionResolution } from '@src/systems/ActionResolution';
 import { EffectRegistry } from '@src/systems/EffectRegistry';
@@ -13,6 +12,14 @@ import { MoveEffect } from '@src/effects/MoveEffect';
 import { AttackEffect } from '@src/effects/AttackEffect';
 import { DrawBeadsEffect } from '@src/effects/DrawBeadsEffect';
 import type { GameContext } from '@src/types/Effect';
+
+// Local type for action results in tests
+interface ActionResult {
+  success: boolean;
+  reason?: string;
+  wheelCost: number;
+  events: Array<{ type: string }>;
+}
 
 // Core action definitions for tests
 const CORE_ACTIONS: ActionDefinition[] = [
@@ -58,7 +65,6 @@ interface CharacterWorld extends QuickPickleWorld {
   characterMap?: Map<string, Character>;
   entityMap?: Map<string, Entity>;
   actionRegistry?: ActionRegistry;
-  actionHandlerRegistry?: ActionHandlerRegistry;
   effectRegistry?: EffectRegistry;
   actionResult?: ActionResult;
   thrownError?: Error;
@@ -70,21 +76,6 @@ function setupActionSystem(world: CharacterWorld): void {
     world.actionRegistry = new ActionRegistry();
     world.actionRegistry.registerAll(CORE_ACTIONS);
   }
-  if (!world.actionHandlerRegistry) {
-    world.actionHandlerRegistry = new ActionHandlerRegistry();
-    createDefaultHandlers(world.actionHandlerRegistry);
-  }
-}
-
-function setActionContext(world: CharacterWorld): void {
-  world.actionHandlerRegistry!.setContext({
-    grid: world.grid!,
-    entityRegistry: world.entityMap!,
-    getBeadHand: (entityId: string) => {
-      const character = world.characterMap?.get(entityId);
-      return character?.getBeadHand();
-    },
-  });
 }
 
 function setupEffectRegistry(world: CharacterWorld): void {
@@ -99,6 +90,7 @@ function setupEffectRegistry(world: CharacterWorld): void {
 function createGameContext(world: CharacterWorld): GameContext {
   return {
     grid: world.grid!,
+    actorId: 'hero-0',
     getEntity: (id: string) => world.entityMap?.get(id) as any,
     getBeadHand: (entityId: string) => {
       const char = world.characterMap?.get(entityId);
@@ -124,21 +116,11 @@ Given(
 
     setupActionSystem(world);
 
-    const character = new Character(
-      id,
-      health,
-      world.grid,
-      world.entityMap,
-      world.actionRegistry,
-      world.actionHandlerRegistry
-    );
+    const character = new Character(id, health, world.grid, world.entityMap, world.actionRegistry);
     world.grid.register(id, x, y);
     world.characterMap.set(id, character);
     world.entityMap.set(id, character);
     world.character = character;
-
-    // Set context after character is added to entityMap
-    setActionContext(world);
   }
 );
 
@@ -157,9 +139,6 @@ Given(
     const monster = new Entity(id, health, world.grid);
     world.grid.register(id, x, y);
     world.entityMap.set(id, monster);
-
-    // Update context with new entity
-    setActionContext(world);
   }
 );
 
@@ -456,7 +435,9 @@ Then(
 When(
   'I check the wheel cost of action {string}',
   function (world: CharacterWorld, actionId: string) {
-    world.wheelCost = world.character!.getActionWheelCost(actionId);
+    setupActionSystem(world);
+    const action = world.actionRegistry!.get(actionId);
+    world.wheelCost = action ? action.cost.time : 0;
   }
 );
 

@@ -42,4 +42,5 @@ export interface GameContext {
   grid: BattleGrid;
   getEntity(id: string): Entity | undefined;
   getBeadHand(entityId: string): PlayerBeadSystem | undefined;
+  actorId?: string;
 }

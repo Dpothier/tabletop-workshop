@@ -3,13 +3,8 @@ import { Entity } from '@src/entities/Entity';
 import { PlayerBeadSystem } from '@src/systems/PlayerBeadSystem';
 import type { IEntityRegistry } from '@src/types/EntityRegistry';
 import type { ActionDefinition } from '@src/types/ActionDefinition';
-import type { ActionParams, ActionResult } from '@src/types/Action';
 import type { EquipmentDefinition, EquipmentSlot } from '@src/types/Equipment';
 import type { ActionRegistry } from '@src/systems/ActionRegistry';
-import type { ActionHandlerRegistry } from '@src/systems/ActionHandlers';
-
-// Re-export for backwards compatibility
-export type { ActionParams, ActionResult } from '@src/types/Action';
 
 /**
  * Character represents a player-controlled entity.
@@ -19,7 +14,6 @@ export type { ActionParams, ActionResult } from '@src/types/Action';
 export class Character extends Entity {
   private beadHand?: PlayerBeadSystem;
   private readonly actionRegistry?: ActionRegistry;
-  private readonly actionHandlerRegistry?: ActionHandlerRegistry;
 
   /** Equipment currently worn by this character */
   private equipment: Map<EquipmentSlot, EquipmentDefinition> = new Map();
@@ -32,12 +26,10 @@ export class Character extends Entity {
     maxHealth: number,
     grid: BattleGrid,
     _entityRegistry: IEntityRegistry,
-    actionRegistry?: ActionRegistry,
-    actionHandlerRegistry?: ActionHandlerRegistry
+    actionRegistry?: ActionRegistry
   ) {
     super(id, maxHealth, grid);
     this.actionRegistry = actionRegistry;
-    this.actionHandlerRegistry = actionHandlerRegistry;
   }
 
   /**
@@ -109,42 +101,6 @@ export class Character extends Entity {
     }
 
     return this.actionRegistry.get(actionId);
-  }
-
-  /**
-   * Resolve an action by its ID.
-   * Validates the character has access to the action, then executes it.
-   * @throws Error if action is not available or registries not configured
-   */
-  resolveAction(actionId: string, params: ActionParams): ActionResult {
-    const availableIds = this.getAvailableActionIds();
-    if (!availableIds.includes(actionId)) {
-      throw new Error(`Character does not have action: ${actionId}`);
-    }
-
-    if (!this.actionHandlerRegistry) {
-      throw new Error('ActionHandlerRegistry not configured');
-    }
-
-    const definition = this.getAction(actionId);
-    if (!definition) {
-      throw new Error(`No definition for action: ${actionId}`);
-    }
-
-    // TODO: Phase 7 - Remove this deprecated method and actionHandlerRegistry
-    // This cast is needed because we're using new ActionDefinition with old handler system
-    return this.actionHandlerRegistry.execute(this.id, params, definition as any);
-  }
-
-  /**
-   * Get the wheel cost for a specific action.
-   */
-  getActionWheelCost(actionId: string): number {
-    const action = this.getAction(actionId);
-    if (!action) {
-      throw new Error(`Unknown action: ${actionId}`);
-    }
-    return action.cost.time;
   }
 
   /**

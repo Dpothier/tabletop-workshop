@@ -4,7 +4,7 @@
 
 Replace hard-coded action handlers with a fully data-driven system where actions are defined in YAML with parameters, effects, and options.
 
-## Status: Phase 6 Complete (UI Affordability Done)
+## Status: Phase 7 Complete (All Phases Done)
 
 ---
 
@@ -197,16 +197,24 @@ All 4 core actions migrated to new effect-based schema:
 
 ---
 
-## Phase 7: Cleanup
+## Phase 7: Cleanup ✅ COMPLETE
 
 ### Tasks
 
-- [ ] Delete `src/systems/ActionHandlers.ts`
-- [ ] Remove `ActionHandlerRegistry` usage
-- [ ] Remove `targetType` field from types
-- [ ] Remove `handlerId` field from types
-- [ ] Update tests
-- [ ] Run full test suite
+- [x] Delete `src/systems/ActionHandlers.ts`
+- [x] Remove `ActionHandlerRegistry` usage
+- [x] Remove `targetType` field from types
+- [x] Remove `handlerId` field from types
+- [x] Update tests
+- [x] Run full test suite
+
+### Additional Cleanup Done
+
+- Added `actorId` to GameContext interface
+- Fixed hardcoded entity IDs in MoveEffect and AttackEffect
+- Extracted `createGameContext()` factory in BattleScene
+- Removed old action system from Character, BattleState, BattleBuilder
+- Updated character.steps.ts to use new patterns
 
 ---
 
@@ -239,9 +247,10 @@ All 4 core actions migrated to new effect-based schema:
 
 ### Delete
 
-| File | Reason |
+| File | Status |
 |------|--------|
-| `src/systems/ActionHandlers.ts` | Replaced by Effect classes |
+| `src/systems/ActionHandlers.ts` | ✅ Deleted |
+| `src/types/Action.ts` | ✅ Deleted |
 
 ---
 

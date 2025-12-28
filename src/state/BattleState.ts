@@ -6,7 +6,6 @@ import type { Character } from '@src/entities/Character';
 import type { MonsterEntity } from '@src/entities/MonsterEntity';
 import type { Entity } from '@src/entities/Entity';
 import type { ActionRegistry } from '@src/systems/ActionRegistry';
-import type { ActionHandlerRegistry } from '@src/systems/ActionHandlers';
 
 /**
  * Complete battle state constructed by BattleBuilder.
@@ -28,5 +27,4 @@ export interface BattleState {
 
   // Systems
   readonly actionRegistry: ActionRegistry;
-  readonly actionHandlerRegistry: ActionHandlerRegistry;
 }

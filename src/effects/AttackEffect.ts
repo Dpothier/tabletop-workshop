@@ -20,8 +20,8 @@ export class AttackEffect implements Effect {
       damage += modifiers.damage as number;
     }
 
-    // Check adjacency - assume attacker is 'hero-0'
-    const attackerId = 'hero-0';
+    // Check adjacency - use context.actorId as the attacker
+    const attackerId = context.actorId!;
     const isAdjacent = context.grid.isAdjacent(attackerId, targetId);
 
     if (!isAdjacent) {
