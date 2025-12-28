@@ -4,11 +4,20 @@ This document indexes all architecture documentation for the tabletop workshop p
 
 ## Architecture Overview
 
-The codebase follows a **State/Visual separation** pattern:
+The codebase follows a **State/Visual separation** pattern with **Builder-based construction**:
 
 ```
+MenuScene
+    │
+    └── BattleBuilder (constructs state)
+            │
+            ├── withMonster(), withArena(), withPartySize()
+            │
+            └── build() → BattleState
+                              │
+                              ▼
 BattleScene (Thin Orchestrator)
-├── State Layer (Pure Logic)
+├── State Layer (received from BattleBuilder)
 │   ├── BattleGrid      → Single source of truth for positions
 │   ├── ActionWheel     → Single source of truth for turn order
 │   ├── Character[]     → Own health, beads, actions
@@ -16,7 +25,8 @@ BattleScene (Thin Orchestrator)
 │
 ├── Action System
 │   ├── ActionRegistry        → Action definitions from YAML
-│   └── ActionHandlerRegistry → Handler functions for execution
+│   ├── ActionHandlerRegistry → Handler functions for execution
+│   └── executeAction()       → Data-driven dispatch by targetType
 │
 └── Visual Layer (Pure Rendering)
     ├── CharacterVisual → Character sprites, health bars, selection
@@ -24,6 +34,15 @@ BattleScene (Thin Orchestrator)
 ```
 
 **Data flow**: State changes → `syncVisuals()` → Visual updates
+
+## Battle Construction
+
+| Component | Responsibility | Documentation |
+|-----------|----------------|---------------|
+| `BattleState` | Interface defining all battle state objects | - |
+| `BattleBuilder` | Fluent builder for constructing BattleState | - |
+
+**Builder pattern**: MenuScene configures the builder via `withMonster()`, `withArena()`, `withPartySize()`, then calls `build()` to create the complete state. BattleScene receives ready-to-use state and only creates visuals.
 
 ## State Layer
 
@@ -41,9 +60,14 @@ BattleScene (Thin Orchestrator)
 |-----------|----------------|---------------|
 | `ActionRegistry` | Stores action definitions loaded from YAML | - |
 | `ActionHandlerRegistry` | Maps handler IDs to execution functions | - |
-| `ActionDefinition` | Data structure: id, name, cost, handlerId, damage, range | - |
+| `ActionDefinition` | Data structure: id, name, cost, handlerId, targetType, range, damage | - |
 
-**Flow**: Character.resolveAction → ActionHandlerRegistry.execute → ActionResult
+**Action targeting**: Each action has a `targetType` that determines dispatch:
+- `tile` → Show movement range, wait for tile click (move, run)
+- `entity` → Auto-target enemy (attack)
+- `none` → Execute immediately (rest)
+
+**Flow**: `executeAction(actionId)` → dispatch by `targetType` → `Character.resolveAction()` → `ActionHandlerRegistry.execute()` → `ActionResult`
 
 ## Visual Layer
 
@@ -94,6 +118,8 @@ BattleScene (Thin Orchestrator)
 | ActionHandlerRegistry uses context | Handlers access grid/entities without tight coupling |
 | YAML-defined actions | Data-driven design allows easy action customization |
 | BeadPool.draw() doesn't auto-discard | Consumer controls when/where beads go after use |
+| BattleBuilder constructs state | MenuScene configures, BattleScene receives ready state |
+| targetType drives dispatch | Adding actions requires only YAML changes, no code |
 
 ---
 
