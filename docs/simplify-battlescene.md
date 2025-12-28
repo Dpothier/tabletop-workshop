@@ -187,6 +187,86 @@ private async resolveAndAdvance(
 
 ---
 
+## Additional Improvements
+
+### 7. Fix Character.resolveAction Error Handling (Quick Win)
+
+**Problem:** Method throws errors instead of returning failures:
+
+```typescript
+if (!availableIds.includes(actionId)) {
+  throw new Error(`Character does not have action: ${actionId}`); // Throws!
+}
+```
+
+**Solution:** Return `ActionResult` with `success: false`:
+
+```typescript
+if (!availableIds.includes(actionId)) {
+  return { success: false, reason: `Character does not have action: ${actionId}`, wheelCost: 0, events: [] };
+}
+```
+
+**Benefit:** Consistent with existing `ActionResult` pattern, no try-catch needed in BattleScene.
+
+---
+
+### 8. Centralize Log Messages (Quick Win)
+
+**Problem:** Magic strings scattered throughout:
+- `'--- Monster Turn ---'`
+- `'--- Player Turn ---'`
+- `'Not this character's turn'`
+
+**Solution:** Extract to constants:
+
+```typescript
+private static readonly LOG = {
+  MONSTER_TURN: '--- Monster Turn ---',
+  PLAYER_TURN: '--- Player Turn ---',
+  WRONG_TURN: 'Not this character\'s turn',
+} as const;
+```
+
+**Benefit:** Easier to maintain, self-documenting.
+
+---
+
+### 9. Simplify ActionHandler Context Pattern (Lower Impact)
+
+**Problem:** Each handler in `ActionHandlers.ts` duplicates context null-check:
+
+```typescript
+registry.register('movement', (entityId, params, definition) => {
+  const context = registry.getContext();  // Every handler does this
+  if (!context) { return { success: false, ... }; }
+  // ... handler logic ...
+});
+```
+
+**Solution:** Create wrapper that provides context:
+
+```typescript
+function withContext(
+  handler: (context: ActionContext, entityId: string, params: ActionParams, def: ActionDefinition) => ActionResult
+): ActionHandler {
+  return (entityId, params, definition) => {
+    const context = registry.getContext();
+    if (!context) return { success: false, reason: 'No context', wheelCost: definition.cost, events: [] };
+    return handler(context, entityId, params, definition);
+  };
+}
+
+// Usage
+registry.register('movement', withContext((context, entityId, params, def) => {
+  // No null check needed, context guaranteed
+}));
+```
+
+**Benefit:** DRY, cleaner handler definitions.
+
+---
+
 ## What Stays in BattleScene
 
 After refactoring, BattleScene becomes a thin orchestrator:

@@ -1,30 +1,60 @@
-# Commands guidelines
-Use `npm run` to execute project scripts.
-ALWAYS run `npm run check` (typecheck + lint + format check) before committing.
-Never edit files that are not related to the task at hand.
-Never edit files using the command line, always use the proper tools.
+# Project Guidelines
 
-# Commiting guidelines
-Git commits will require the approval of the user. To limit the number of back and forths, make sure you:
-- Mark progress in your PLAN.md file
-- Run `npm run check` and fix any issues
-- Make sure the tests pass using `npm run test`
+## Workflow: Coordination Only
 
-# Further guidelines
-Information about your workflow is available in the rules/ folder.
-- Before planning, read rules/planification-guidelines.mdc
-- Before writing tests, read rules/test-guidelines.mdc
-- Before writing code, read rules/coding-guidelines.mdc
-- Before writing documentation, read rules/documentation-guidelines.mdc
-- Before reorganising the codebase, read rules/reorganising-guidelines.mdc
+You are a coordinator. Delegate ALL file changes to specialized agents.
 
-Before doing any task for which guideline exists, READ THE GUIDELINES.
+### Available Agents
 
-If linting fails, use `npm run lint:fix` and `npm run format` to auto-fix issues.
+| Agent | Purpose | Scope |
+|-------|---------|-------|
+| code-writer | Write production code | `src/` |
+| unit-test-writer | Write unit tests + steps | `features/unit/`, `features/integration/`, `tests/steps/` |
+| e2e-test-writer | Write E2E tests + steps | `features/e2e/`, `tests/e2e/steps/` |
+| unit-test-verifier | Run + validate unit tests | - |
+| e2e-test-verifier | Run + validate E2E tests | - |
+| architecture-reviewer | Review code quality | - |
+| documentation-checker | Validate documentation | - |
 
-# Code quality
-- Use TypeScript strict mode
-- Use type annotations on all function signatures
+## TDD Cycle (Mandatory)
 
-# Available tools and MCPs
-Context7: This MCP contains documentation for the most popular libraries and frameworks. When using a library or framework, use Context7 before trying to do a web search.
+All development follows strict Test-Driven Development:
+
+1. **Red**: Delegate to test-writer → run tests → verify FAILS
+2. **Green**: Delegate to code-writer → run tests → verify PASSES
+3. **Refactor**: Delegate to architecture-reviewer → apply approved changes via code-writer
+4. **Final Verify**: Delegate to test-verifier → confirm ready to commit
+
+## Planning
+
+- Use TodoWrite for task tracking within sessions
+- Use PLAN.md for complex multi-session work:
+  1. Current state analysis
+  2. Desired state (with diagrams)
+  3. Task breakdown
+  4. File change list
+
+## Commit Workflow
+
+Git commits require user approval. Before committing:
+- Run `/pre-commit` for full validation
+- Or manually: `npm run check && npm run test`
+- Update PLAN.md progress if applicable
+
+## Commands
+
+| Command | Purpose |
+|---------|---------|
+| `npm run check` | typecheck + lint + format check |
+| `npm run test` | all tests |
+| `npm run test:unit` | unit/integration tests |
+| `npm run test:e2e` | E2E tests |
+| `npm run lint:fix` | auto-fix lint issues |
+| `npm run format` | auto-fix formatting |
+| `/pre-commit` | full validation before commit |
+
+## Tools
+
+- Context7 MCP: Library documentation lookup
+- Never edit files directly - always delegate to agents
+- Never edit files via CLI - use proper tools
