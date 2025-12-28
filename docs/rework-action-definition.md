@@ -119,14 +119,14 @@ class ActionResolution {
 
 ---
 
-## Phase 3: Cost Utilities
+## Phase 3: Cost Utilities ✅ COMPLETE
 
 ### Tasks
 
-- [ ] Create `src/utils/affordability.ts`
-  - [ ] `canAfford(available, required)`
-  - [ ] `calculateTotalCost(base, options)`
-- [ ] Write unit tests
+- [x] Create `src/utils/affordability.ts`
+  - [x] `canAfford(available, required)`
+  - [x] ~~`calculateTotalCost(base, options)`~~ (not needed - covered by `ActionResolution.getTotalCost()`)
+- [x] Write unit tests (6 scenarios in features/unit/affordability.feature)
 
 ---
 

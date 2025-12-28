@@ -15,3 +15,4 @@ import './character.steps';
 import './monster-entity.steps';
 import './effects.steps';
 import './action-resolution.steps';
+import './affordability.steps';
