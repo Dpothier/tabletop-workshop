@@ -3,6 +3,7 @@ actions:
     name: Move
     cost: 1
     handlerId: movement
+    targetType: tile
     description: Move up to 2 tiles
     range: 2
 
@@ -10,6 +11,7 @@ actions:
     name: Run
     cost: 2
     handlerId: movement
+    targetType: tile
     description: Move up to 6 tiles
     range: 6
 
@@ -17,6 +19,7 @@ actions:
     name: Attack
     cost: 2
     handlerId: melee_attack
+    targetType: entity
     description: Attack an adjacent enemy
     range: 1
     damage: 1
@@ -25,4 +28,5 @@ actions:
     name: Rest
     cost: 2
     handlerId: rest
+    targetType: none
     description: Draw 2 beads to hand

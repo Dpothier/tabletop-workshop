@@ -2,6 +2,14 @@ import type { Position } from '@src/state/BattleGrid';
 import type { AnimationEvent } from '@src/types/AnimationEvent';
 
 /**
+ * Target type for action execution.
+ * - 'tile': Requires selecting a tile (movement)
+ * - 'entity': Requires selecting an entity (attacks)
+ * - 'none': Immediate execution (rest, buffs)
+ */
+export type ActionTargetType = 'tile' | 'entity' | 'none';
+
+/**
  * Definition of an action loaded from YAML.
  * Contains all data needed for both UI display and execution.
  */
@@ -14,6 +22,8 @@ export interface ActionDefinition {
   cost: number;
   /** ID of the handler function to execute */
   handlerId: string;
+  /** What kind of targeting this action requires */
+  targetType: ActionTargetType;
   /** Optional description for tooltips */
   description?: string;
   /** Range in tiles (for movement/attacks) */

@@ -2,11 +2,13 @@ import Phaser from 'phaser';
 import type { Monster, CharacterClass } from '@src/systems/DataLoader';
 import { GridSystem } from '@src/systems/GridSystem';
 import type { ActionWheel } from '@src/systems/ActionWheel';
+import type { ActionRegistry } from '@src/systems/ActionRegistry';
 
 import type { BattleGrid } from '@src/state/BattleGrid';
 import type { BattleState } from '@src/state/BattleState';
 import type { Character } from '@src/entities/Character';
 import type { MonsterEntity } from '@src/entities/MonsterEntity';
+import type { ActionDefinition } from '@src/types/Action';
 import { CharacterVisual, MonsterVisual } from '@src/visuals';
 import { BattleUI } from '@src/ui/BattleUI';
 import { AnimationExecutor } from '@src/ui/AnimationExecutor';
@@ -16,12 +18,6 @@ import { SelectedHeroPanel } from '@src/ui/SelectedHeroPanel';
 interface BattleData {
   state: BattleState;
 }
-
-// Movement ranges for actions
-const MOVEMENT_RANGES = {
-  move: 2,
-  run: 6,
-} as const;
 
 export class BattleScene extends Phaser.Scene {
   // === BATTLE STATE (received from BattleBuilder) ===
@@ -79,6 +75,9 @@ export class BattleScene extends Phaser.Scene {
   }
   private get actionWheel(): ActionWheel {
     return this.state.wheel;
+  }
+  private get actionRegistry(): ActionRegistry {
+    return this.state.actionRegistry;
   }
 
   constructor() {
@@ -158,12 +157,8 @@ export class BattleScene extends Phaser.Scene {
 
   private createSelectedHeroPanel(): void {
     this.selectedHeroPanel = new SelectedHeroPanel(this);
-    this.selectedHeroPanel.create({
-      Move: () => this.startMove(),
-      Run: () => this.startRun(),
-      Attack: () => this.executeAttack(),
-      Rest: () => this.executeRest(),
-    });
+    const actions = this.actionRegistry.getAll();
+    this.selectedHeroPanel.create(actions, (actionId) => this.executeAction(actionId));
   }
 
   /**
@@ -429,19 +424,35 @@ export class BattleScene extends Phaser.Scene {
     this.battleUI.log(`Selected: ${visual?.getClassName() || characterId}`);
   }
 
-  private startMove(): void {
+  /**
+   * Unified action execution - handles all action types based on their definition.
+   */
+  private executeAction(actionId: string): void {
     if (!this.selectedCharacterId) return;
-    this.battleUI.log('Click a tile to move');
-    this.highlightMovementRange(MOVEMENT_RANGES.move, 'move');
+
+    const action = this.actionRegistry.get(actionId);
+    if (!action) {
+      this.battleUI.log(`Unknown action: ${actionId}`);
+      return;
+    }
+
+    switch (action.targetType) {
+      case 'tile':
+        this.startTileTargeting(action);
+        break;
+      case 'entity':
+        this.executeEntityAction(action);
+        break;
+      case 'none':
+        this.executeImmediateAction(action);
+        break;
+    }
   }
 
-  private startRun(): void {
-    if (!this.selectedCharacterId) return;
-    this.battleUI.log('Click a tile to run');
-    this.highlightMovementRange(MOVEMENT_RANGES.run, 'run');
-  }
-
-  private highlightMovementRange(range: number, actionType: 'move' | 'run'): void {
+  /**
+   * Start tile targeting for movement-type actions.
+   */
+  private startTileTargeting(action: ActionDefinition): void {
     if (!this.selectedCharacterId) return;
 
     const character = this.characters.find((c) => c.id === this.selectedCharacterId);
@@ -449,6 +460,9 @@ export class BattleScene extends Phaser.Scene {
 
     const currentPos = character.getPosition();
     if (!currentPos) return;
+
+    const range = action.range ?? 1;
+    this.battleUI.log(`Click a tile to ${action.name.toLowerCase()}`);
 
     const graphics = this.add.graphics();
     graphics.fillStyle(0x00ff00, 0.2);
@@ -479,7 +493,7 @@ export class BattleScene extends Phaser.Scene {
         const isValid = validMoves.some((m) => m.x === gridX && m.y === gridY);
 
         if (isValid) {
-          this.moveCharacter(character, gridX, gridY, actionType);
+          this.resolveTileAction(character, action, gridX, gridY);
         } else {
           this.battleUI.log('Invalid move');
         }
@@ -487,64 +501,68 @@ export class BattleScene extends Phaser.Scene {
     });
   }
 
-  private async moveCharacter(
+  /**
+   * Resolve a tile-targeted action (movement).
+   */
+  private async resolveTileAction(
     character: Character,
+    action: ActionDefinition,
     gridX: number,
-    gridY: number,
-    actionType: 'move' | 'run'
+    gridY: number
   ): Promise<void> {
-    // Phase 1: State - resolve the action
-    const result = character.resolveAction(actionType, { target: { x: gridX, y: gridY } });
+    const result = character.resolveAction(action.id, { target: { x: gridX, y: gridY } });
 
     if (!result.success) {
-      this.battleUI.log(result.reason || 'Move failed');
+      this.battleUI.log(result.reason || `${action.name} failed`);
       return;
     }
 
-    // Phase 2: Animate - play all events
     await this.animationExecutor.execute(result.events);
 
     const visual = this.characterVisuals.get(character.id);
-    this.battleUI.log(`${visual?.getClassName() || character.id} moved`);
+    this.battleUI.log(`${visual?.getClassName() || character.id} ${action.name.toLowerCase()}d`);
     this.advanceAndProcessTurn(this.currentActorId!, result.wheelCost);
   }
 
-  private async executeAttack(): Promise<void> {
+  /**
+   * Execute an entity-targeted action (attack).
+   */
+  private async executeEntityAction(action: ActionDefinition): Promise<void> {
     if (!this.selectedCharacterId) return;
 
     const character = this.characters.find((c) => c.id === this.selectedCharacterId);
     if (!character) return;
 
-    // Phase 1: State - resolve the action
-    const result = character.resolveAction('attack', { targetEntityId: 'monster' });
+    // For now, auto-target the monster
+    const result = character.resolveAction(action.id, { targetEntityId: 'monster' });
 
     if (!result.success) {
-      this.battleUI.log(result.reason || 'Attack failed');
+      this.battleUI.log(result.reason || `${action.name} failed`);
       return;
     }
 
-    // Phase 2: Animate - play all events
     await this.animationExecutor.execute(result.events);
 
     this.updateUI();
     this.advanceAndProcessTurn(this.currentActorId!, result.wheelCost);
   }
 
-  private async executeRest(): Promise<void> {
+  /**
+   * Execute an immediate action (rest, buffs).
+   */
+  private async executeImmediateAction(action: ActionDefinition): Promise<void> {
     if (!this.selectedCharacterId) return;
 
     const character = this.characters.find((c) => c.id === this.selectedCharacterId);
     if (!character) return;
 
-    // Phase 1: State - resolve the action
-    const result = character.resolveAction('rest', {});
+    const result = character.resolveAction(action.id, {});
 
     if (!result.success) {
-      this.battleUI.log(result.reason || 'Rest failed');
+      this.battleUI.log(result.reason || `${action.name} failed`);
       return;
     }
 
-    // Phase 2: Animate - play all events
     await this.animationExecutor.execute(result.events);
 
     this.updateUI();

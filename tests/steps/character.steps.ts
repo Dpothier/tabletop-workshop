@@ -10,10 +10,18 @@ import type { ActionDefinition } from '@src/types/Action';
 
 // Core action definitions for tests
 const CORE_ACTIONS: ActionDefinition[] = [
-  { id: 'move', name: 'Move', cost: 1, handlerId: 'movement', range: 2 },
-  { id: 'run', name: 'Run', cost: 2, handlerId: 'movement', range: 6 },
-  { id: 'attack', name: 'Attack', cost: 2, handlerId: 'melee_attack', range: 1, damage: 1 },
-  { id: 'rest', name: 'Rest', cost: 2, handlerId: 'rest' },
+  { id: 'move', name: 'Move', cost: 1, handlerId: 'movement', targetType: 'tile', range: 2 },
+  { id: 'run', name: 'Run', cost: 2, handlerId: 'movement', targetType: 'tile', range: 6 },
+  {
+    id: 'attack',
+    name: 'Attack',
+    cost: 2,
+    handlerId: 'melee_attack',
+    targetType: 'entity',
+    range: 1,
+    damage: 1,
+  },
+  { id: 'rest', name: 'Rest', cost: 2, handlerId: 'rest', targetType: 'none' },
 ];
 
 interface CharacterWorld extends QuickPickleWorld {
