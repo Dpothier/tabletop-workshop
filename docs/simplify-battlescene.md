@@ -126,9 +126,13 @@ class TargetingSystem {
 
 ---
 
-### 6. Consolidate Action Resolution (Lower Impact)
+### 6. Consolidate Action Resolution ✅ DONE
 
-**Problem:** `resolveTileAction`, `executeEntityAction`, `executeImmediateAction` share pattern:
+**Status:** Addressed by effect-based action system (see `rework-action-definition.md`).
+- `createGameContext()` factory extracts common context creation
+- `ActionResolution` class handles all action types uniformly
+
+**Original Problem:** `resolveTileAction`, `executeEntityAction`, `executeImmediateAction` share pattern:
 
 ```typescript
 const result = character.resolveAction(actionId, params);
