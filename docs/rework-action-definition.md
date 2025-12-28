@@ -55,7 +55,7 @@ Replace hard-coded action handlers with a fully data-driven system where actions
 ### Tasks
 
 - [x] Create `src/types/Effect.ts` - effect interfaces
-- [ ] Create `src/types/ActionCost.ts` - cost types (moved to Phase 3)
+- [x] Create `src/types/ActionCost.ts` - cost types (completed in Phase 2)
 - [x] Create `src/systems/EffectRegistry.ts` - registry class
 - [x] Create `src/effects/MoveEffect.ts`
 - [x] Create `src/effects/AttackEffect.ts`
@@ -89,20 +89,21 @@ interface Effect {
 
 ---
 
-## Phase 2: ActionResolution Class
+## Phase 2: ActionResolution Class ✅ COMPLETE
 
 ### Tasks
 
-- [ ] Create `src/types/ActionDefinition.ts` - revised schema
-- [ ] Create `src/types/ParameterPrompt.ts` - prompt types
-- [ ] Create `src/systems/ActionResolution.ts`
-  - [ ] `parametrize()` generator
-  - [ ] `provideValue()` / `skip()`
-  - [ ] `resolve()` method
-  - [ ] `$reference` resolution
-  - [ ] Modifier application
-  - [ ] Effect chaining
-- [ ] Write unit tests
+- [x] Create `src/types/ActionDefinition.ts` - revised schema
+- [x] Create `src/types/ParameterPrompt.ts` - prompt types
+- [x] Create `src/types/ActionCost.ts` - cost types
+- [x] Create `src/systems/ActionResolution.ts`
+  - [x] `parametrize()` generator
+  - [x] `provideValue()` / `skip()`
+  - [x] `resolve()` method
+  - [x] `$reference` resolution
+  - [x] Modifier application
+  - [x] Effect chaining
+- [x] Write unit tests (24 scenarios in features/unit/action-resolution.feature)
 
 ### Key Interface
 
