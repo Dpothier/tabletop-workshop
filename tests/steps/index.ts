@@ -14,6 +14,7 @@ import './entity.steps';
 import './character.steps';
 import './monster-entity.steps';
 import './effects.steps';
+import './action.steps';
 import './action-resolution.steps';
 import './affordability.steps';
 import './panel-affordability.steps';
