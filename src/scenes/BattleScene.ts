@@ -3,6 +3,9 @@ import type { Monster, CharacterClass } from '@src/systems/DataLoader';
 import { GridSystem } from '@src/systems/GridSystem';
 import type { ActionWheel } from '@src/systems/ActionWheel';
 import type { ActionRegistry } from '@src/systems/ActionRegistry';
+import { TurnController } from '@src/systems/TurnController';
+import { SelectionManager } from '@src/systems/SelectionManager';
+import { TargetingSystem, TargetingDeps } from '@src/systems/TargetingSystem';
 
 import type { BattleGrid } from '@src/state/BattleGrid';
 import type { BattleState } from '@src/state/BattleState';
@@ -41,9 +44,17 @@ export class BattleScene extends Phaser.Scene {
   // Systems (Phaser-dependent)
   private gridSystem!: GridSystem;
 
+  // Turn controller for pure turn logic
+  private turnController!: TurnController;
+
+  // Selection manager for character selection state
+  private selectionManager!: SelectionManager;
+
+  // Targeting system for tile selection
+  private targetingSystem!: TargetingSystem;
+
   // Turn state
   private currentActorId: string | null = null;
-  private selectedCharacterId: string | null = null;
 
   // Valid movement tiles for E2E testing
   public currentValidMoves: { x: number; y: number }[] = [];
@@ -54,6 +65,11 @@ export class BattleScene extends Phaser.Scene {
   // Expose log messages for E2E testing
   public get logMessages(): string[] {
     return this.battleUI?.getLogMessages() ?? [];
+  }
+
+  // Expose selected character ID for E2E testing
+  public get selectedCharacterId(): string | null {
+    return this.selectionManager?.getSelected() ?? null;
   }
 
   // Constants
@@ -102,6 +118,34 @@ export class BattleScene extends Phaser.Scene {
     this.state = data.state;
   }
 
+  /**
+   * Create TargetingDeps that provides access to scene subsystems.
+   */
+  private createTargetingDeps(): TargetingDeps {
+    return {
+      getValidMoves: (entityId, range) => {
+        const moves = this.battleGrid.getValidMoves(entityId, range);
+        this.currentValidMoves = moves; // Store for E2E testing
+        return moves;
+      },
+      highlightTiles: (tiles, color) => this.gridVisual.highlightTiles(tiles, color),
+      removeHighlight: (highlight) => {
+        this.gridVisual.removeHighlight(highlight as Phaser.GameObjects.Graphics);
+        this.currentValidMoves = []; // Clear after highlight removed
+      },
+      worldToGrid: (world) => this.gridSystem.worldToGrid(world),
+      onPointerDown: (callback) => {
+        // Delay to avoid capturing the button click that triggered targeting
+        this.time.delayedCall(50, () => {
+          this.input.once('pointerdown', (pointer: Phaser.Input.Pointer) => {
+            callback(pointer.x, pointer.y);
+          });
+        });
+      },
+      log: (message) => this.battleUI.log(message),
+    };
+  }
+
   create(): void {
     // GridSystem is Phaser-dependent, created here
     this.gridSystem = new GridSystem(
@@ -121,7 +165,16 @@ export class BattleScene extends Phaser.Scene {
     });
     this.gridVisual.draw();
     this.createVisuals();
+
+    // Initialize SelectionManager
+    this.selectionManager = new SelectionManager(this.characterVisuals);
+
+    // Initialize TargetingSystem
+    this.targetingSystem = new TargetingSystem(this.createTargetingDeps());
+
     this.createBattleUI();
+    // Initialize TurnController with pure logic dependencies
+    this.turnController = new TurnController(this.actionWheel, this.monsterEntity, this.characters);
     this.processTurn();
   }
 
@@ -209,8 +262,9 @@ export class BattleScene extends Phaser.Scene {
     );
 
     // Update bead displays
-    const selectedChar = this.selectedCharacterId
-      ? this.characters.find((c) => c.id === this.selectedCharacterId)
+    const selectedCharId = this.selectionManager.getSelected();
+    const selectedChar = selectedCharId
+      ? this.characters.find((c) => c.id === selectedCharId)
       : null;
     this.battleUI.updateBeadHandDisplay(selectedChar?.getHandCounts() ?? null);
     this.battleUI.updateMonsterBeadDisplay(
@@ -232,12 +286,13 @@ export class BattleScene extends Phaser.Scene {
     }
 
     // Update selected hero panel affordability
-    if (this.selectedCharacterId) {
-      const selectedChar = this.characters.find((c) => c.id === this.selectedCharacterId);
+    const selectedId = this.selectionManager.getSelected();
+    if (selectedId) {
+      const selectedChar = this.characters.find((c) => c.id === selectedId);
       if (selectedChar) {
         const beadCounts = selectedChar.getHandCounts();
         if (beadCounts) {
-          const position = this.actionWheel.getPosition(this.selectedCharacterId);
+          const position = this.actionWheel.getPosition(selectedId);
           const availableTime = position !== undefined ? 8 - position : 0;
           this.selectedHeroPanel.updateAffordability(beadCounts, availableTime);
         }
@@ -314,20 +369,19 @@ export class BattleScene extends Phaser.Scene {
    * Main turn processing loop - called after each action
    */
   private processTurn(): void {
-    // Check for victory/defeat
-    if (!this.monsterEntity.isAlive()) {
+    // Check battle status via TurnController
+    const status = this.turnController.getBattleStatus();
+    if (status === 'victory') {
       this.victory();
       return;
     }
-
-    const aliveCharacters = this.characters.filter((c) => c.isAlive());
-    if (aliveCharacters.length === 0) {
+    if (status === 'defeat') {
       this.defeat();
       return;
     }
 
     // Get next actor from wheel
-    this.currentActorId = this.actionWheel.getNextActor();
+    this.currentActorId = this.turnController.getNextActor();
 
     if (!this.currentActorId) {
       this.battleUI.log('No actors on wheel!');
@@ -346,18 +400,10 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private showPlayerActions(): void {
-    // Clear any existing selection
-    if (this.selectedCharacterId) {
-      const prevVisual = this.characterVisuals.get(this.selectedCharacterId);
-      prevVisual?.setSelected(false);
-    }
-
-    // Find and select the current actor
+    // Select the current actor
     const currentCharacter = this.characters.find((c) => c.id === this.currentActorId);
     if (currentCharacter && currentCharacter.isAlive()) {
-      this.selectedCharacterId = currentCharacter.id;
-      const visual = this.characterVisuals.get(currentCharacter.id);
-      visual?.setSelected(true);
+      this.selectionManager.select(currentCharacter.id);
     }
 
     // Make characters clickable (validation happens in selectCharacter)
@@ -384,15 +430,9 @@ export class BattleScene extends Phaser.Scene {
       return;
     }
 
-    // Update selection visual
-    if (this.selectedCharacterId) {
-      const prevVisual = this.characterVisuals.get(this.selectedCharacterId);
-      prevVisual?.setSelected(false);
-    }
-
-    this.selectedCharacterId = characterId;
+    // Update selection
+    this.selectionManager.select(characterId);
     const visual = this.characterVisuals.get(characterId);
-    visual?.setSelected(true);
 
     // Show selected hero panel
     this.selectedHeroPanel.showPanel(characterId);
@@ -405,7 +445,8 @@ export class BattleScene extends Phaser.Scene {
    * Unified action execution - handles all action types based on their definition.
    */
   private executeAction(actionId: string): void {
-    if (!this.selectedCharacterId) return;
+    const selectedCharId = this.selectionManager.getSelected();
+    if (!selectedCharId) return;
 
     const action = this.actionRegistry.get(actionId);
     if (!action) {
@@ -451,43 +492,30 @@ export class BattleScene extends Phaser.Scene {
     return action.parameters.find((p) => p.type === 'option') as OptionPrompt | undefined;
   }
 
-  private startTileTargeting(action: ActionDefinition): void {
-    if (!this.selectedCharacterId) return;
+  private async startTileTargeting(action: ActionDefinition): Promise<void> {
+    const selectedCharId = this.selectionManager.getSelected();
+    if (!selectedCharId) return;
 
-    const character = this.characters.find((c) => c.id === this.selectedCharacterId);
+    const character = this.characters.find((c) => c.id === selectedCharId);
     if (!character) return;
 
     const currentPos = character.getPosition();
     if (!currentPos) return;
 
     const range = getActionRange(action);
-    this.battleUI.log(`Click a tile to ${action.name.toLowerCase()}`);
 
-    // Use BattleGrid to get valid moves
-    const validMoves = this.battleGrid.getValidMoves(this.selectedCharacterId, range);
-    this.currentValidMoves = validMoves; // Store for E2E testing
+    // Use TargetingSystem for tile selection
+    const position = await this.targetingSystem.showTileTargeting(
+      selectedCharId,
+      range,
+      action.name
+    );
 
-    const highlight = this.gridVisual.highlightTiles(validMoves, 0x00ff00);
-
-    // Delay handler setup to avoid capturing the button click that triggered this
-    this.time.delayedCall(50, () => {
-      this.input.once('pointerdown', (pointer: Phaser.Input.Pointer) => {
-        this.gridVisual.removeHighlight(highlight);
-        this.currentValidMoves = []; // Clear after click
-
-        const gridX = this.gridSystem.worldToGrid(pointer.x);
-        const gridY = this.gridSystem.worldToGrid(pointer.y);
-
-        // Check if this is a valid move using BattleGrid
-        const isValid = validMoves.some((m) => m.x === gridX && m.y === gridY);
-
-        if (isValid) {
-          this.resolveTileAction(character, action, gridX, gridY);
-        } else {
-          this.battleUI.log('Invalid move');
-        }
-      });
-    });
+    if (position) {
+      await this.resolveTileAction(character, action, position.x, position.y);
+    } else {
+      this.battleUI.log('Invalid move');
+    }
   }
 
   /**
@@ -526,9 +554,10 @@ export class BattleScene extends Phaser.Scene {
    * Execute an entity-targeted action (attack).
    */
   private async executeEntityAction(action: ActionDefinition): Promise<void> {
-    if (!this.selectedCharacterId) return;
+    const selectedCharId = this.selectionManager.getSelected();
+    if (!selectedCharId) return;
 
-    const character = this.characters.find((c) => c.id === this.selectedCharacterId);
+    const character = this.characters.find((c) => c.id === selectedCharId);
     if (!character) return;
 
     const context = this.createGameContext(character.id);
@@ -593,9 +622,10 @@ export class BattleScene extends Phaser.Scene {
    * Execute an immediate action (rest, buffs).
    */
   private async executeImmediateAction(action: ActionDefinition): Promise<void> {
-    if (!this.selectedCharacterId) return;
+    const selectedCharId = this.selectionManager.getSelected();
+    if (!selectedCharId) return;
 
-    const character = this.characters.find((c) => c.id === this.selectedCharacterId);
+    const character = this.characters.find((c) => c.id === selectedCharId);
     if (!character) return;
 
     const context = this.createGameContext(character.id);
@@ -618,14 +648,10 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private advanceAndProcessTurn(entityId: string, wheelCost: number): void {
-    this.actionWheel.advanceEntity(entityId, wheelCost);
+    this.turnController.advanceTurn(entityId, wheelCost);
 
     // Clear selection
-    if (this.selectedCharacterId) {
-      const visual = this.characterVisuals.get(this.selectedCharacterId);
-      visual?.setSelected(false);
-      this.selectedCharacterId = null;
-    }
+    this.selectionManager.deselect();
 
     // Sync all visuals with state
     this.syncVisuals();

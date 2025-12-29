@@ -20,19 +20,20 @@ Current: **636 lines** | Target: **~300 lines**
 
 ## Refactoring Opportunities
 
-### 1. Extract TurnController (High Impact)
+### 1. Extract TurnController (High Impact) ✅ DONE
 
 **What:** Turn flow logic - who acts next, victory/defeat checks, turn advancement.
 
 **Extract:**
 ```typescript
 class TurnController {
-  constructor(wheel: ActionWheel, characters: Character[], monster: MonsterEntity) {}
+  constructor(wheel: ActionWheel, monster: AliveQueryable, characters: AliveQueryable[]) {}
 
   getNextActor(): string | null
   checkVictory(): boolean
   checkDefeat(): boolean
   advanceTurn(entityId: string, cost: number): void
+  getBattleStatus(): BattleStatus
 }
 ```
 
@@ -62,19 +63,23 @@ class GridVisual {
 
 ---
 
-### 3. Extract SelectionManager (Medium Impact)
+### 3. Extract SelectionManager (Medium Impact) ✅ DONE
 
 **What:** Character selection state and visual updates.
 
 **Extract:**
 ```typescript
+interface SelectableVisual {
+  setSelected(selected: boolean): void;
+}
+
 class SelectionManager {
-  constructor(characterVisuals: Map<string, CharacterVisual>) {}
+  constructor(visuals: Map<string, SelectableVisual>) {}
 
   select(characterId: string): void
   deselect(): void
   getSelected(): string | null
-  isCurrentActor(characterId: string, currentActorId: string): boolean
+  isCurrentActor(characterId: string, currentActorId: string | null): boolean
 }
 ```
 
@@ -105,22 +110,31 @@ heroSelectionBar.subscribeTo(characters);
 
 ---
 
-### 5. Extract TargetingSystem (Lower Impact)
+### 5. Extract TargetingSystem (Lower Impact) ✅ DONE
 
 **What:** Tile highlighting, click handling for movement.
 
 **Extract:**
 ```typescript
-class TargetingSystem {
-  constructor(scene: Phaser.Scene, gridSystem: GridSystem, battleGrid: BattleGrid) {}
+interface TargetingDeps {
+  getValidMoves: (entityId: string, range: number) => Position[];
+  highlightTiles: (tiles: Position[], color: number) => unknown;
+  removeHighlight: (highlight: unknown) => void;
+  worldToGrid: (world: number) => number;
+  onPointerDown: (callback: (x: number, y: number) => void) => void;
+  log: (message: string) => void;
+}
 
-  showTileTargeting(entityId: string, range: number): Promise<Position | null>
-  showEntityTargeting(validTargets: string[]): Promise<string | null>
+class TargetingSystem {
+  constructor(deps: TargetingDeps) {}
+
+  showTileTargeting(entityId: string, range: number, actionName: string): Promise<Position | null>
   cancel(): void
+  isActive(): boolean
 }
 ```
 
-**Benefit:** Reusable targeting for any action type.
+**Benefit:** Reusable targeting for any action type. Dependency injection for testability.
 
 **Lines saved:** ~40
 
@@ -169,23 +183,23 @@ private async resolveAndAdvance(
 
 1. **Consolidate Action Resolution** ✅ DONE - Quick win, no new files
 2. **Extract GridVisual** ✅ DONE - Follows existing pattern
-3. **Extract TurnController** - Enables unit testing
-4. **Extract SelectionManager** - Simplifies turn handling
-5. **Extract TargetingSystem** - Cleaner input handling
+3. **Extract TurnController** ✅ DONE - Enables unit testing
+4. **Extract SelectionManager** ✅ DONE - Simplifies turn handling
+5. **Extract TargetingSystem** ✅ DONE - Cleaner input handling
 6. **Make updateUI() Reactive** - Largest change, do last
 
 ---
 
 ## Expected Outcome
 
-| Refactor | Lines Moved | New File |
-|----------|-------------|----------|
-| Consolidate actions | -30 | - |
-| GridVisual | -50 | `src/visuals/GridVisual.ts` |
-| TurnController | -50 | `src/systems/TurnController.ts` |
-| SelectionManager | -30 | `src/systems/SelectionManager.ts` |
-| TargetingSystem | -40 | `src/systems/TargetingSystem.ts` |
-| Reactive UI | -60 | - |
+| Refactor | Lines Moved | New File | Status |
+|----------|-------------|----------|--------|
+| Consolidate actions | -30 | - | ✅ |
+| GridVisual | -50 | `src/visuals/GridVisual.ts` | ✅ |
+| TurnController | -50 | `src/systems/TurnController.ts` | ✅ |
+| SelectionManager | -30 | `src/systems/SelectionManager.ts` | ✅ |
+| TargetingSystem | -40 | `src/systems/TargetingSystem.ts` | ✅ |
+| Reactive UI | -60 | - | - |
 
 **Total reduction:** ~260 lines → BattleScene at ~375 lines
 

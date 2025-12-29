@@ -19,3 +19,6 @@ import './affordability.steps';
 import './panel-affordability.steps';
 import './option-selection-ui.steps';
 import './grid-visual.steps';
+import './turn-controller.steps';
+import './selection-manager.steps';
+import './targeting-system.steps';
