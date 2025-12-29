@@ -11,6 +11,7 @@ import type { PlayerBeadSystem } from '@src/systems/PlayerBeadSystem';
  */
 export interface EffectResult {
   success: boolean;
+  reason?: string;
   data: Record<string, unknown>;
   events: AnimationEvent[];
 }

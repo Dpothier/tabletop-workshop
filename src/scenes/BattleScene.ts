@@ -3,16 +3,14 @@ import type { Monster, CharacterClass } from '@src/systems/DataLoader';
 import { GridSystem } from '@src/systems/GridSystem';
 import type { ActionRegistry } from '@src/systems/ActionRegistry';
 import type { TurnController } from '@src/systems/TurnController';
-import type { EffectRegistry } from '@src/systems/EffectRegistry';
 import type { BattleStateObserver } from '@src/systems/BattleStateObserver';
 import { SelectionManager } from '@src/systems/SelectionManager';
 import { TargetingSystem, TargetingDeps } from '@src/systems/TargetingSystem';
 
-import type { BattleGrid } from '@src/state/BattleGrid';
+import type { BattleGrid, Position } from '@src/state/BattleGrid';
 import type { BattleState } from '@src/state/BattleState';
 import type { Character } from '@src/entities/Character';
 import type { MonsterEntity } from '@src/entities/MonsterEntity';
-import type { ActionDefinition } from '@src/types/ActionDefinition';
 import { CharacterVisual, MonsterVisual } from '@src/visuals';
 import { GridVisual } from '@src/visuals/GridVisual';
 import { BattleUI } from '@src/ui/BattleUI';
@@ -20,15 +18,15 @@ import { AnimationExecutor } from '@src/ui/AnimationExecutor';
 import { HeroSelectionBar } from '@src/ui/HeroSelectionBar';
 import { SelectedHeroPanel } from '@src/ui/SelectedHeroPanel';
 import { OptionSelectionPanel } from '@src/ui/OptionSelectionPanel';
-import { ActionResolution } from '@src/systems/ActionResolution';
-import { getTargetType, getWheelCost, getActionRange } from '@src/utils/actionCompat';
+import type { BattleAdapter } from '@src/types/BattleAdapter';
 import type { OptionPrompt } from '@src/types/ParameterPrompt';
+import type { AnimationEvent } from '@src/types/AnimationEvent';
 
 interface BattleData {
   state: BattleState;
 }
 
-export class BattleScene extends Phaser.Scene {
+export class BattleScene extends Phaser.Scene implements BattleAdapter {
   // === BATTLE STATE (received from BattleBuilder) ===
   private state!: BattleState;
 
@@ -57,9 +55,6 @@ export class BattleScene extends Phaser.Scene {
 
   // Valid movement tiles for E2E testing
   public currentValidMoves: { x: number; y: number }[] = [];
-
-  // Effect registry for action resolution
-  private effectRegistry!: EffectRegistry;
 
   // Expose log messages for E2E testing
   public get logMessages(): string[] {
@@ -212,9 +207,6 @@ export class BattleScene extends Phaser.Scene {
       }
     );
 
-    // Get effect registry from state
-    this.effectRegistry = this.state.effectRegistry;
-
     // Create option selection panel
     this.optionSelectionPanel = new OptionSelectionPanel(this);
 
@@ -362,188 +354,73 @@ export class BattleScene extends Phaser.Scene {
   }
 
   /**
-   * Unified action execution - handles all action types based on their definition.
+   * Execute action via new async ActionResolution pattern.
+   * Uses BattleAdapter (this) for parameter collection and animation.
    */
-  private executeAction(actionId: string): void {
+  private async executeAction(actionId: string): Promise<void> {
     const selectedCharId = this.selectionManager.getSelected();
     if (!selectedCharId) return;
 
-    const action = this.actionRegistry.get(actionId);
+    const action = this.actionRegistry.getAction(actionId);
     if (!action) {
       this.battleUI.log(`Unknown action: ${actionId}`);
       return;
     }
 
-    switch (getTargetType(action)) {
-      case 'tile':
-        this.startTileTargeting(action);
-        break;
-      case 'entity':
-        this.executeEntityAction(action);
-        break;
-      case 'none':
-        this.executeImmediateAction(action);
-        break;
-    }
-  }
+    // Create resolution and execute via adapter pattern
+    const resolution = await action.resolve(selectedCharId, this);
+    const result = await resolution.execute();
 
-  /**
-   * Start tile targeting for movement-type actions.
-   */
-  private hasOptionParameters(action: ActionDefinition): OptionPrompt | undefined {
-    return action.parameters.find((p) => p.type === 'option') as OptionPrompt | undefined;
-  }
-
-  private async startTileTargeting(action: ActionDefinition): Promise<void> {
-    const selectedCharId = this.selectionManager.getSelected();
-    if (!selectedCharId) return;
-
-    const character = this.characters.find((c) => c.id === selectedCharId);
-    if (!character) return;
-
-    const currentPos = character.getPosition();
-    if (!currentPos) return;
-
-    const range = getActionRange(action);
-
-    // Use TargetingSystem for tile selection
-    const position = await this.targetingSystem.showTileTargeting(
-      selectedCharId,
-      range,
-      action.name
-    );
-
-    if (position) {
-      await this.resolveTileAction(character, action, position.x, position.y);
-    } else {
-      this.battleUI.log('Invalid move');
-    }
-  }
-
-  /**
-   * Resolve a tile-targeted action (movement).
-   */
-  private async resolveTileAction(
-    character: Character,
-    action: ActionDefinition,
-    gridX: number,
-    gridY: number
-  ): Promise<void> {
-    const context = this.state.createGameContext(character.id);
-
-    // Create and execute action resolution
-    const resolution = new ActionResolution(character.id, action, context, this.effectRegistry);
-
-    // Provide the target parameter
-    resolution.provideValue('target', { x: gridX, y: gridY });
-
-    // Resolve the action
-    const result = resolution.resolve();
-
-    if (!result.success) {
-      this.battleUI.log(result.reason || `${action.name} failed`);
+    // Handle cancellation
+    if (result.cancelled) {
+      this.battleUI.log('Action cancelled');
       return;
     }
 
-    await this.animationExecutor.execute(result.events);
+    // Handle failure
+    if (!result.success) {
+      this.battleUI.log(result.reason ?? 'Action failed');
+      return;
+    }
 
-    const visual = this.characterVisuals.get(character.id);
-    this.battleUI.log(`${visual?.getClassName() || character.id} ${action.name.toLowerCase()}d`);
-    this.advanceAndProcessTurn(this.currentActorId!, getWheelCost(action));
+    // Advance turn with action's time cost
+    this.advanceAndProcessTurn(selectedCharId, result.cost.time);
   }
 
-  /**
-   * Execute an entity-targeted action (attack).
-   */
-  private async executeEntityAction(action: ActionDefinition): Promise<void> {
-    const selectedCharId = this.selectionManager.getSelected();
-    if (!selectedCharId) return;
+  // === BattleAdapter Implementation ===
 
-    const character = this.characters.find((c) => c.id === selectedCharId);
-    if (!character) return;
+  async promptTile(params: { range: number }): Promise<Position | null> {
+    const actorId = this.selectionManager.getSelected();
+    if (!actorId) return null;
 
-    const context = this.state.createGameContext(character.id);
+    return this.targetingSystem.showTileTargeting(actorId, params.range, 'action');
+  }
 
-    // Create and execute action resolution
-    const resolution = new ActionResolution(character.id, action, context, this.effectRegistry);
+  async promptOptions(prompt: OptionPrompt): Promise<string[] | null> {
+    const character = this.characters.find((c) => c.id === this.selectionManager.getSelected());
+    if (!character || !this.optionSelectionPanel) return null;
 
-    // Provide the target parameter (monster)
-    resolution.provideValue('target', 'monster');
+    const beadCounts = character.getHandCounts() || { red: 0, blue: 0, green: 0, white: 0 };
 
-    // Check for option parameters
-    const optionParam = this.hasOptionParameters(action);
-    if (optionParam && this.optionSelectionPanel) {
-      // Show option selection UI
-      const beadCounts = character.getHandCounts() || { red: 0, blue: 0, green: 0, white: 0 };
-
-      this.optionSelectionPanel.show({
-        prompt: optionParam.prompt,
-        options: optionParam.options,
-        multiSelect: optionParam.multiSelect ?? false,
+    return new Promise<string[] | null>((resolve) => {
+      this.optionSelectionPanel!.show({
+        prompt: prompt.prompt,
+        options: prompt.options,
+        multiSelect: prompt.multiSelect ?? false,
         availableBeads: beadCounts,
-        availableTime: 0, // Options don't typically have time cost
-        onConfirm: async (selectedIds: string[]): Promise<void> => {
-          // Provide options to resolution
-          if (selectedIds.length > 0) {
-            resolution.provideValue(optionParam.key, selectedIds);
-          }
-
-          // Continue with resolution
-          const result = resolution.resolve();
-          if (!result.success) {
-            this.battleUI.log(result.reason || `${action.name} failed`);
-            return;
-          }
-
-          await this.animationExecutor.execute(result.events);
-          this.advanceAndProcessTurn(this.currentActorId!, getWheelCost(action));
-        },
-        onCancel: (): void => {
-          this.battleUI.log('Action cancelled');
-        },
+        availableTime: 0,
+        onConfirm: (selectedIds: string[]) => resolve(selectedIds),
+        onCancel: () => resolve(null),
       });
-      return; // Exit - continuation handled by callbacks
-    }
-
-    // No options - resolve immediately (existing flow)
-    const result = resolution.resolve();
-
-    if (!result.success) {
-      this.battleUI.log(result.reason || `${action.name} failed`);
-      return;
-    }
-
-    await this.animationExecutor.execute(result.events);
-
-    this.advanceAndProcessTurn(this.currentActorId!, getWheelCost(action));
+    });
   }
 
-  /**
-   * Execute an immediate action (rest, buffs).
-   */
-  private async executeImmediateAction(action: ActionDefinition): Promise<void> {
-    const selectedCharId = this.selectionManager.getSelected();
-    if (!selectedCharId) return;
+  async animate(events: AnimationEvent[]): Promise<void> {
+    await this.animationExecutor.execute(events);
+  }
 
-    const character = this.characters.find((c) => c.id === selectedCharId);
-    if (!character) return;
-
-    const context = this.state.createGameContext(character.id);
-
-    // Create and execute action resolution
-    const resolution = new ActionResolution(character.id, action, context, this.effectRegistry);
-
-    // No parameters to provide - resolve immediately
-    const result = resolution.resolve();
-
-    if (!result.success) {
-      this.battleUI.log(result.reason || `${action.name} failed`);
-      return;
-    }
-
-    await this.animationExecutor.execute(result.events);
-
-    this.advanceAndProcessTurn(this.currentActorId!, getWheelCost(action));
+  log(message: string): void {
+    this.battleUI.log(message);
   }
 
   private advanceAndProcessTurn(entityId: string, wheelCost: number): void {

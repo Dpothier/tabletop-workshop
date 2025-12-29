@@ -3,6 +3,7 @@ import type { ParameterPrompt } from '@src/types/ParameterPrompt';
 import type { GameContext, Effect, EffectResult } from '@src/types/Effect';
 import type { ActionCost } from '@src/types/ActionCost';
 import type { AnimationEvent } from '@src/types/AnimationEvent';
+import type { BattleAdapter } from '@src/types/BattleAdapter';
 
 /**
  * HydratedEffect combines an EffectDefinition with its Effect implementation.
@@ -33,6 +34,20 @@ export class Action {
    */
   createContext(actorId: string): GameContext {
     return this.contextFactory(actorId);
+  }
+
+  /**
+   * Create an ActionResolution to execute this action with the given adapter.
+   * Note: Returns ActionResolution but typed as Promise since we use dynamic import
+   * to avoid circular dependencies (ActionResolution imports Action).
+   */
+  async resolve(
+    actorId: string,
+    adapter: BattleAdapter
+  ): Promise<{ execute: () => Promise<import('@src/types/ActionDefinition').ActionResult> }> {
+    // Dynamic import to avoid circular dependencies
+    const { ActionResolution } = await import('@src/systems/ActionResolution');
+    return new ActionResolution(this, actorId, this.createContext(actorId), adapter);
   }
 
   get id(): string {
@@ -87,6 +102,7 @@ export class Action {
       if (!result.success) {
         return {
           success: false,
+          reason: result.reason,
           data: {},
           events: allEvents,
         };

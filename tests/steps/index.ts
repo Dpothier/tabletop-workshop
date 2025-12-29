@@ -16,6 +16,8 @@ import './monster-entity.steps';
 import './effects.steps';
 import './action.steps';
 import './action-resolution.steps';
+import './action-resolution-execute.steps';
+import './action-registry-hydration.steps';
 import './affordability.steps';
 import './panel-affordability.steps';
 import './option-selection-ui.steps';

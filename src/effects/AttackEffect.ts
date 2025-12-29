@@ -27,6 +27,7 @@ export class AttackEffect implements Effect {
     if (!isAdjacent) {
       return {
         success: false,
+        reason: 'Target not adjacent',
         data: {},
         events: [],
       };
@@ -36,6 +37,7 @@ export class AttackEffect implements Effect {
     if (!target) {
       return {
         success: false,
+        reason: 'Target not found',
         data: {},
         events: [],
       };

@@ -4,7 +4,7 @@ import type { QuickPickleWorld } from 'quickpickle';
 import { BattleGrid } from '@src/state/BattleGrid';
 import { Entity } from '@src/entities/Entity';
 import { PlayerBeadSystem } from '@src/systems/PlayerBeadSystem';
-import { ActionResolution } from '@src/systems/ActionResolution';
+import { ActionResolutionLegacy } from '@src/systems/ActionResolutionLegacy';
 import { EffectRegistry } from '@src/systems/EffectRegistry';
 import { MoveEffect } from '@src/effects/MoveEffect';
 import { AttackEffect } from '@src/effects/AttackEffect';
@@ -22,7 +22,7 @@ interface ActionResolutionWorld extends QuickPickleWorld {
 
   // ActionResolution-specific
   actionDefinition?: ActionDefinition;
-  actionResolution?: ActionResolution;
+  actionResolution?: ActionResolutionLegacy;
   parametrizeIterator?: Generator<ParameterPrompt>;
   collectedPrompts?: ParameterPrompt[];
   parameterValues?: Map<string, any>;
@@ -367,7 +367,7 @@ Given('an ActionResolution for the action', function (world: ActionResolutionWor
   }
 
   // Create real ActionResolution instance
-  world.actionResolution = new ActionResolution(
+  world.actionResolution = new ActionResolutionLegacy(
     'hero-0',
     world.actionDefinition,
     world.gameContext,
@@ -399,7 +399,7 @@ When('I create an ActionResolution for the action', function (world: ActionResol
   }
 
   // Create real ActionResolution instance
-  world.actionResolution = new ActionResolution(
+  world.actionResolution = new ActionResolutionLegacy(
     'hero-0',
     world.actionDefinition,
     world.gameContext,
@@ -429,7 +429,7 @@ When('I iterate through parametrize', function (world: ActionResolutionWorld) {
       world.effectRegistry.register('attack', new AttackEffect());
       world.effectRegistry.register('drawBeads', new DrawBeadsEffect());
     }
-    world.actionResolution = new ActionResolution(
+    world.actionResolution = new ActionResolutionLegacy(
       'hero-0',
       world.actionDefinition,
       world.gameContext,
@@ -528,7 +528,7 @@ When(
         world.effectRegistry.register('attack', new AttackEffect());
         world.effectRegistry.register('drawBeads', new DrawBeadsEffect());
       }
-      world.actionResolution = new ActionResolution(
+      world.actionResolution = new ActionResolutionLegacy(
         'hero-0',
         world.actionDefinition,
         world.gameContext,
@@ -574,7 +574,7 @@ When(
         world.effectRegistry.register('attack', new AttackEffect());
         world.effectRegistry.register('drawBeads', new DrawBeadsEffect());
       }
-      world.actionResolution = new ActionResolution(
+      world.actionResolution = new ActionResolutionLegacy(
         'hero-0',
         world.actionDefinition,
         world.gameContext,
@@ -619,7 +619,7 @@ When(
         world.effectRegistry.register('attack', new AttackEffect());
         world.effectRegistry.register('drawBeads', new DrawBeadsEffect());
       }
-      world.actionResolution = new ActionResolution(
+      world.actionResolution = new ActionResolutionLegacy(
         'hero-0',
         world.actionDefinition,
         world.gameContext,
@@ -731,7 +731,7 @@ When('I skip parameter {string}', function (world: ActionResolutionWorld, key: s
       world.effectRegistry.register('attack', new AttackEffect());
       world.effectRegistry.register('drawBeads', new DrawBeadsEffect());
     }
-    world.actionResolution = new ActionResolution(
+    world.actionResolution = new ActionResolutionLegacy(
       'hero-0',
       world.actionDefinition,
       world.gameContext,
@@ -772,7 +772,7 @@ When('I get the total cost', function (world: ActionResolutionWorld) {
       world.effectRegistry.register('attack', new AttackEffect());
       world.effectRegistry.register('drawBeads', new DrawBeadsEffect());
     }
-    world.actionResolution = new ActionResolution(
+    world.actionResolution = new ActionResolutionLegacy(
       'hero-0',
       world.actionDefinition,
       world.gameContext,
@@ -827,7 +827,7 @@ When('I resolve the action', function (world: ActionResolutionWorld) {
       world.effectRegistry.register('attack', new AttackEffect());
       world.effectRegistry.register('drawBeads', new DrawBeadsEffect());
     }
-    world.actionResolution = new ActionResolution(
+    world.actionResolution = new ActionResolutionLegacy(
       'hero-0',
       world.actionDefinition,
       world.gameContext,

@@ -77,15 +77,17 @@ export class BattleBuilder {
     // 1. Create grid (single source of truth for positions)
     const grid = new BattleGrid(this.arena.width, this.arena.height);
 
-    // 2. Create action systems
-    const actionRegistry = new ActionRegistry();
-    actionRegistry.registerAll(this.actions);
+    // 2. Create EffectRegistry with effects
+    const effectRegistry = new EffectRegistry();
+    effectRegistry.register('move', new MoveEffect());
+    effectRegistry.register('attack', new AttackEffect());
+    effectRegistry.register('drawBeads', new DrawBeadsEffect());
 
     // 3. Build entity map (needed for character construction)
     const entityMap: Map<string, Entity> = new Map();
 
-    // 4. Create characters at spawn points
-    const characters = this.createCharacters(grid, entityMap, actionRegistry);
+    // 4. Create characters at spawn points (without actionRegistry - will add later)
+    const characters = this.createCharacters(grid, entityMap);
 
     // 5. Create monster
     const monsterEntity = this.createMonster(grid, entityMap);
@@ -99,16 +101,7 @@ export class BattleBuilder {
     // 8. Create TurnController
     const turnController = new TurnController(wheel, monsterEntity, characters);
 
-    // 9. Create EffectRegistry with effects
-    const effectRegistry = new EffectRegistry();
-    effectRegistry.register('move', new MoveEffect());
-    effectRegistry.register('attack', new AttackEffect());
-    effectRegistry.register('drawBeads', new DrawBeadsEffect());
-
-    // 10. Create BattleStateObserver
-    const stateObserver = new BattleStateObserver();
-
-    // 11. Create GameContext factory function
+    // 9. Create GameContext factory function (now has access to grid, characters, monsterEntity)
     const createGameContext = (actorId: string): GameContext => ({
       grid,
       actorId,
@@ -121,6 +114,13 @@ export class BattleBuilder {
         return char?.getBeadHand();
       },
     });
+
+    // 10. Create action systems with hydration dependencies
+    const actionRegistry = new ActionRegistry(effectRegistry, createGameContext);
+    actionRegistry.registerAll(this.actions);
+
+    // 11. Create BattleStateObserver
+    const stateObserver = new BattleStateObserver();
 
     return {
       arena: this.arena,
@@ -140,11 +140,7 @@ export class BattleBuilder {
     };
   }
 
-  private createCharacters(
-    grid: BattleGrid,
-    entityMap: Map<string, Entity>,
-    actionRegistry: ActionRegistry
-  ): Character[] {
+  private createCharacters(grid: BattleGrid, entityMap: Map<string, Entity>): Character[] {
     const spawnPoints = this.arena!.playerSpawns || [
       { x: 1, y: 1 },
       { x: 2, y: 1 },
@@ -163,13 +159,7 @@ export class BattleBuilder {
       grid.register(characterId, spawn.x, spawn.y);
 
       // Create Character entity
-      const character = new Character(
-        characterId,
-        charClass.stats.health,
-        grid,
-        entityMap,
-        actionRegistry
-      );
+      const character = new Character(characterId, charClass.stats.health, grid, entityMap);
 
       characters.push(character);
       entityMap.set(characterId, character);

@@ -11,7 +11,7 @@ export interface BattleAdapter {
    * Prompt user to select a tile within range.
    * @returns Selected position or null if cancelled
    */
-  promptTile(range: number): Promise<Position | null>;
+  promptTile(params: { range: number }): Promise<Position | null>;
 
   /**
    * Prompt user to select from a list of options.

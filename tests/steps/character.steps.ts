@@ -6,7 +6,7 @@ import { Character } from '@src/entities/Character';
 import { Entity } from '@src/entities/Entity';
 import { ActionRegistry } from '@src/systems/ActionRegistry';
 import type { ActionDefinition } from '@src/types/ActionDefinition';
-import { ActionResolution } from '@src/systems/ActionResolution';
+import { ActionResolutionLegacy } from '@src/systems/ActionResolutionLegacy';
 import { EffectRegistry } from '@src/systems/EffectRegistry';
 import { MoveEffect } from '@src/effects/MoveEffect';
 import { AttackEffect } from '@src/effects/AttackEffect';
@@ -166,7 +166,7 @@ When(
     }
 
     const context = createGameContext(world);
-    const resolution = new ActionResolution(
+    const resolution = new ActionResolutionLegacy(
       world.character!.id,
       action,
       context,
@@ -214,7 +214,12 @@ When(
     }
 
     const context = createGameContext(world);
-    const resolution = new ActionResolution(character.id, action, context, world.effectRegistry!);
+    const resolution = new ActionResolutionLegacy(
+      character.id,
+      action,
+      context,
+      world.effectRegistry!
+    );
 
     resolution.provideValue('target', { x, y });
     const result = resolution.resolve();
@@ -246,7 +251,7 @@ When(
     }
 
     const context = createGameContext(world);
-    const resolution = new ActionResolution(
+    const resolution = new ActionResolutionLegacy(
       world.character!.id,
       action,
       context,
@@ -281,7 +286,7 @@ When('the character resolves action {string}', function (world: CharacterWorld, 
   }
 
   const context = createGameContext(world);
-  const resolution = new ActionResolution(
+  const resolution = new ActionResolutionLegacy(
     world.character!.id,
     action,
     context,
@@ -313,7 +318,7 @@ When(
       }
 
       const context = createGameContext(world);
-      const resolution = new ActionResolution(
+      const resolution = new ActionResolutionLegacy(
         world.character!.id,
         action,
         context,

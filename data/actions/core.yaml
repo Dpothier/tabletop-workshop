@@ -1,28 +1,55 @@
 actions:
   - id: move
     name: Move
-    cost: 1
-    handlerId: movement
     description: "Move up to 2 tiles"
-    range: 2
+    cost:
+      time: 1
+    parameters:
+      - key: target
+        type: tile
+        range: 2
+    effects:
+      - id: move-1
+        type: move
+        params:
+          target: $target
 
   - id: run
     name: Run
-    cost: 2
-    handlerId: movement
     description: "Run up to 6 tiles"
-    range: 6
+    cost:
+      time: 2
+    parameters:
+      - key: target
+        type: tile
+        range: 6
+    effects:
+      - id: run-1
+        type: move
+        params:
+          target: $target
 
   - id: attack
     name: Attack
-    cost: 2
-    handlerId: melee_attack
     description: "Attack an adjacent enemy"
-    range: 1
-    damage: 1
+    cost:
+      time: 2
+    parameters: []
+    effects:
+      - id: attack-1
+        type: attack
+        params:
+          targetEntity: monster
+          damage: 1
 
   - id: rest
     name: Rest
-    cost: 2
-    handlerId: rest
     description: "Draw 2 beads to your hand"
+    cost:
+      time: 2
+    parameters: []
+    effects:
+      - id: rest-1
+        type: drawBeads
+        params:
+          count: 2

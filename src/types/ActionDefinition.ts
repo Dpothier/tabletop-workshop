@@ -45,6 +45,8 @@ export interface ActionDefinition {
  * ActionResult is the outcome of executing an action.
  */
 export interface ActionResult {
+  /** Whether user cancelled during parameter collection */
+  cancelled: boolean;
   /** Whether the action succeeded */
   success: boolean;
   /** Reason for failure if not successful */

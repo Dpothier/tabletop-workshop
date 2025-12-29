@@ -38,17 +38,12 @@ actions:
     description: Attack an adjacent enemy
     cost:
       time: 2
-    parameters:
-      - key: target
-        type: entity
-        prompt: Select target
-        filter: enemy
-        range: 1
+    parameters: []
     effects:
       - id: baseAttack
         type: attack
         params:
-          targetEntity: $target
+          targetEntity: monster
           damage: 1
 
   - id: rest
