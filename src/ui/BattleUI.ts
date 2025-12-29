@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
 import type { BeadCounts } from '@src/types/Beads';
 import type { WheelEntry } from '@src/systems/ActionWheel';
+import type { BattleStateObserver } from '@src/systems/BattleStateObserver';
+import type { BattleState } from '@src/state/BattleState';
 
 /**
  * BattleUI handles all Phaser-based UI rendering for the battle scene.
@@ -215,5 +217,52 @@ export class BattleUI {
 
   destroy(): void {
     // Phaser scene will clean up other elements
+  }
+
+  /**
+   * Subscribe to state observer for reactive updates.
+   */
+  subscribeToState(
+    observer: BattleStateObserver,
+    state: BattleState,
+    getSelectedId: () => string | null
+  ): void {
+    observer.subscribe({
+      actorChanged: (actorId) => {
+        this.updateStatusText(
+          state.monster.name,
+          state.monsterEntity.currentHealth,
+          state.monster.stats.health,
+          actorId
+        );
+      },
+      wheelAdvanced: () => {
+        const nextId = state.wheel.getNextActor();
+        const nextPosition = nextId ? state.wheel.getPosition(nextId) : undefined;
+        this.updateWheelDisplay(
+          (pos: number) => state.wheel.getEntitiesAtPosition(pos),
+          nextId,
+          nextPosition
+        );
+      },
+      selectionChanged: (characterId) => {
+        const counts = characterId
+          ? (state.characters.find((c) => c.id === characterId)?.getHandCounts() ?? null)
+          : null;
+        this.updateBeadHandDisplay(counts);
+      },
+      heroBeadsChanged: (heroId, counts) => {
+        if (heroId === getSelectedId()) {
+          this.updateBeadHandDisplay(counts);
+        }
+      },
+      monsterHealthChanged: (current, max) => {
+        const nextId = state.wheel.getNextActor();
+        this.updateStatusText(state.monster.name, current, max, nextId);
+      },
+      monsterBeadsChanged: (counts) => {
+        this.updateMonsterBeadDisplay(counts);
+      },
+    });
   }
 }

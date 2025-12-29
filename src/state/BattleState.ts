@@ -6,6 +6,10 @@ import type { Character } from '@src/entities/Character';
 import type { MonsterEntity } from '@src/entities/MonsterEntity';
 import type { Entity } from '@src/entities/Entity';
 import type { ActionRegistry } from '@src/systems/ActionRegistry';
+import type { TurnController } from '@src/systems/TurnController';
+import type { EffectRegistry } from '@src/systems/EffectRegistry';
+import type { BattleStateObserver } from '@src/systems/BattleStateObserver';
+import type { GameContext } from '@src/types/Effect';
 
 /**
  * Complete battle state constructed by BattleBuilder.
@@ -27,4 +31,10 @@ export interface BattleState {
 
   // Systems
   readonly actionRegistry: ActionRegistry;
+  readonly turnController: TurnController;
+  readonly effectRegistry: EffectRegistry;
+  readonly stateObserver: BattleStateObserver;
+
+  // Factory function for creating game context
+  readonly createGameContext: (actorId: string) => GameContext;
 }

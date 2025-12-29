@@ -2,6 +2,9 @@ import Phaser from 'phaser';
 import { EntityVisual } from './EntityVisual';
 import type { CharacterClass } from '@src/systems/DataLoader';
 import type { BeadColor } from '@src/types/Beads';
+import type { GridSystem } from '@src/systems/GridSystem';
+import type { Character } from '@src/entities/Character';
+import type { BattleStateObserver } from '@src/systems/BattleStateObserver';
 
 /**
  * Visual representation of a player character.
@@ -27,6 +30,26 @@ export class CharacterVisual extends EntityVisual {
     this.color = color;
     this.index = index;
     this.createVisuals();
+  }
+
+  /**
+   * Create a CharacterVisual from a Character entity.
+   * Handles grid to world coordinate conversion.
+   */
+  static fromEntity(
+    scene: Phaser.Scene,
+    character: Character,
+    charClass: CharacterClass,
+    gridSystem: GridSystem,
+    index: number,
+    color: number
+  ): CharacterVisual | null {
+    const pos = character.getPosition();
+    if (!pos) return null;
+
+    const worldX = gridSystem.gridToWorld(pos.x);
+    const worldY = gridSystem.gridToWorld(pos.y);
+    return new CharacterVisual(scene, worldX, worldY, charClass, color, index);
   }
 
   /**
@@ -131,6 +154,24 @@ export class CharacterVisual extends EntityVisual {
         yoyo: true,
         onComplete: () => resolve(),
       });
+    });
+  }
+
+  /**
+   * Subscribe to state observer for reactive updates.
+   */
+  subscribeToState(observer: BattleStateObserver, heroId: string): void {
+    observer.subscribe({
+      heroHealthChanged: (id: string, current: number, max: number) => {
+        if (id === heroId) {
+          this.updateHealth(current, max);
+        }
+      },
+      heroMoved: (id: string, worldX: number, worldY: number) => {
+        if (id === heroId) {
+          this.updatePosition(worldX, worldY);
+        }
+      },
     });
   }
 }

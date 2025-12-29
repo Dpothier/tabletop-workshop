@@ -2,11 +2,18 @@ import type { Arena, Monster, CharacterClass } from '@src/systems/DataLoader';
 import type { ActionDefinition } from '@src/types/ActionDefinition';
 import type { BattleState } from '@src/state/BattleState';
 import type { Entity } from '@src/entities/Entity';
+import type { GameContext } from '@src/types/Effect';
 import { BattleGrid } from '@src/state/BattleGrid';
 import { ActionWheel } from '@src/systems/ActionWheel';
 import { Character } from '@src/entities/Character';
 import { MonsterEntity, StateConfig } from '@src/entities/MonsterEntity';
 import { ActionRegistry } from '@src/systems/ActionRegistry';
+import { TurnController } from '@src/systems/TurnController';
+import { EffectRegistry } from '@src/systems/EffectRegistry';
+import { MoveEffect } from '@src/effects/MoveEffect';
+import { AttackEffect } from '@src/effects/AttackEffect';
+import { DrawBeadsEffect } from '@src/effects/DrawBeadsEffect';
+import { BattleStateObserver } from '@src/systems/BattleStateObserver';
 
 /**
  * Builder for constructing battle state.
@@ -89,6 +96,32 @@ export class BattleBuilder {
     // 7. Initialize bead hands
     this.initializeBeadHands(characters);
 
+    // 8. Create TurnController
+    const turnController = new TurnController(wheel, monsterEntity, characters);
+
+    // 9. Create EffectRegistry with effects
+    const effectRegistry = new EffectRegistry();
+    effectRegistry.register('move', new MoveEffect());
+    effectRegistry.register('attack', new AttackEffect());
+    effectRegistry.register('drawBeads', new DrawBeadsEffect());
+
+    // 10. Create BattleStateObserver
+    const stateObserver = new BattleStateObserver();
+
+    // 11. Create GameContext factory function
+    const createGameContext = (actorId: string): GameContext => ({
+      grid,
+      actorId,
+      getEntity: (id: string) => {
+        if (id === 'monster') return monsterEntity;
+        return characters.find((c) => c.id === id);
+      },
+      getBeadHand: (entityId: string) => {
+        const char = characters.find((c) => c.id === entityId);
+        return char?.getBeadHand();
+      },
+    });
+
     return {
       arena: this.arena,
       monster: this.monster,
@@ -100,6 +133,10 @@ export class BattleBuilder {
       monsterEntity,
       entityMap,
       actionRegistry,
+      turnController,
+      effectRegistry,
+      stateObserver,
+      createGameContext,
     };
   }
 

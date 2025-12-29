@@ -3,6 +3,8 @@ import type { BeadCounts } from '@src/types/Beads';
 import type { ActionDefinition } from '@src/types/ActionDefinition';
 import type { ActionCost } from '@src/types/ActionCost';
 import { canAfford, beadCountsToActionCost } from '@src/utils/affordability';
+import type { BattleStateObserver } from '@src/systems/BattleStateObserver';
+import type { BattleState } from '@src/state/BattleState';
 
 /**
  * Action button state for E2E testing
@@ -211,6 +213,40 @@ export class SelectedHeroPanel {
     this.container.destroy(true);
     this.actionButtons = [];
     this.onActionCallback = null;
+  }
+
+  /**
+   * Subscribe to state observer for reactive updates.
+   */
+  subscribeToState(observer: BattleStateObserver, state: BattleState): void {
+    observer.subscribe({
+      actorChanged: (actorId) => {
+        if (actorId === 'monster') {
+          this.hidePanel();
+        }
+      },
+      selectionChanged: (characterId) => {
+        if (characterId) {
+          this.showPanel(characterId);
+          // Update affordability for newly selected hero
+          const beads = state.characters.find((c) => c.id === characterId)?.getHandCounts();
+          const position = state.wheel.getPosition(characterId);
+          if (beads && position !== undefined) {
+            const availableTime = 8 - position;
+            this.updateAffordability(beads, availableTime);
+          }
+        } else {
+          this.hidePanel();
+        }
+      },
+      heroBeadsChanged: (heroId, counts) => {
+        if (heroId === this.selectedHeroId) {
+          const position = state.wheel.getPosition(heroId);
+          const availableTime = position !== undefined ? 8 - position : 0;
+          this.updateAffordability(counts, availableTime);
+        }
+      },
+    });
   }
 }
 

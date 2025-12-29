@@ -4,6 +4,13 @@ import type { CharacterVisual } from '@src/visuals/CharacterVisual';
 import type { MonsterVisual } from '@src/visuals/MonsterVisual';
 import type { EntityVisual } from '@src/visuals/EntityVisual';
 import type { BattleUI } from '@src/ui/BattleUI';
+import type { BattleStateObserver } from '@src/systems/BattleStateObserver';
+import type { BeadCounts } from '@src/types/Beads';
+
+export interface EntityAccessors {
+  getHeroBeadCounts: (heroId: string) => BeadCounts | undefined;
+  getMonsterDiscardedCounts: () => BeadCounts | null;
+}
 
 /**
  * AnimationExecutor coordinates visual animations based on animation events.
@@ -14,7 +21,9 @@ export class AnimationExecutor {
     private readonly gridSystem: GridSystem,
     private readonly characterVisuals: Map<string, CharacterVisual>,
     private readonly monsterVisual: MonsterVisual,
-    private readonly battleUI: BattleUI
+    private readonly battleUI: BattleUI,
+    private readonly stateObserver?: BattleStateObserver,
+    private readonly entityAccessors?: EntityAccessors
   ) {}
 
   /**
@@ -75,11 +84,20 @@ export class AnimationExecutor {
     if (!visual) return;
 
     await visual.animateHealthChange(event.newHealth, event.maxHealth);
+
+    if (event.entityId === 'monster') {
+      this.stateObserver?.emitMonsterHealthChanged(event.newHealth, event.maxHealth);
+    } else if (event.entityId.startsWith('hero-')) {
+      this.stateObserver?.emitHeroHealthChanged(event.entityId, event.newHealth, event.maxHealth);
+    }
   }
 
   private async executeBeadDraw(event: AnimationEvent & { type: 'beadDraw' }): Promise<void> {
     await this.monsterVisual.animateBeadDraw(event.color);
     this.battleUI.log(`Drew ${event.color} bead`);
+
+    const discardedCounts = this.entityAccessors?.getMonsterDiscardedCounts();
+    this.stateObserver?.emitMonsterBeadsChanged(discardedCounts ?? null);
   }
 
   private async executeStateChange(event: AnimationEvent & { type: 'stateChange' }): Promise<void> {
@@ -93,6 +111,11 @@ export class AnimationExecutor {
 
     await visual.animateRest(event.beadsDrawn);
     this.battleUI.log(`Rested, drew ${event.beadsDrawn.length} beads`);
+
+    const counts = this.entityAccessors?.getHeroBeadCounts(event.entityId);
+    if (counts) {
+      this.stateObserver?.emitHeroBeadsChanged(event.entityId, counts);
+    }
   }
 
   /**

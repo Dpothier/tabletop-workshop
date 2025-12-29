@@ -1,5 +1,8 @@
 import Phaser from 'phaser';
+import type { Character } from '@src/entities/Character';
+import type { CharacterClass } from '@src/systems/DataLoader';
 import type { BeadCounts } from '@src/types/Beads';
+import type { BattleStateObserver } from '@src/systems/BattleStateObserver';
 
 /**
  * Hero card data for display in the selection bar
@@ -64,6 +67,30 @@ export class HeroSelectionBar {
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
     this.container = scene.add.container(HERO_BAR_X, HERO_BAR_Y);
+  }
+
+  /**
+   * Create hero cards from Character entities and CharacterClass definitions
+   */
+  createFromEntities(characters: Character[], classes: CharacterClass[]): void {
+    const classColors = [0x4488ff, 0xff4444, 0x44ff44, 0xffff44];
+
+    const heroCardData: HeroCardData[] = characters.map((character, index) => {
+      const charClass = classes[index % classes.length];
+      const beadCounts = character.getHandCounts() ?? { red: 0, blue: 0, green: 0, white: 0 };
+
+      return {
+        heroId: character.id,
+        className: charClass.name,
+        classIcon: charClass.icon || charClass.name[0],
+        color: classColors[index],
+        currentHp: character.currentHealth,
+        maxHp: character.maxHealth,
+        beadCounts,
+      };
+    });
+
+    this.create(heroCardData);
   }
 
   /**
@@ -183,6 +210,17 @@ export class HeroSelectionBar {
   destroy(): void {
     this.container.destroy(true);
     this.heroCards.clear();
+  }
+
+  /**
+   * Subscribe to state observer for reactive updates.
+   */
+  subscribeToState(observer: BattleStateObserver): void {
+    observer.subscribe({
+      actorChanged: (actorId) => this.updateCurrentActor(actorId),
+      heroBeadsChanged: (heroId, counts) => this.updateHeroBeads(heroId, counts),
+      heroHealthChanged: (heroId, current, max) => this.updateHeroHP(heroId, current, max),
+    });
   }
 }
 

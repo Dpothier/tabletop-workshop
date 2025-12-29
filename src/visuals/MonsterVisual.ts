@@ -2,6 +2,9 @@ import Phaser from 'phaser';
 import { EntityVisual } from './EntityVisual';
 import type { Monster } from '@src/systems/DataLoader';
 import type { BeadColor } from '@src/types/Beads';
+import type { GridSystem } from '@src/systems/GridSystem';
+import type { MonsterEntity } from '@src/entities/MonsterEntity';
+import type { BattleStateObserver } from '@src/systems/BattleStateObserver';
 
 /**
  * Visual representation of a monster.
@@ -14,6 +17,24 @@ export class MonsterVisual extends EntityVisual {
     super(scene, worldX, worldY, monster.stats.health);
     this.monster = monster;
     this.createVisuals();
+  }
+
+  /**
+   * Create a MonsterVisual from a MonsterEntity.
+   * Handles grid to world coordinate conversion.
+   */
+  static fromEntity(
+    scene: Phaser.Scene,
+    entity: MonsterEntity,
+    monster: Monster,
+    gridSystem: GridSystem
+  ): MonsterVisual | null {
+    const pos = entity.getPosition();
+    if (!pos) return null;
+
+    const worldX = gridSystem.gridToWorld(pos.x);
+    const worldY = gridSystem.gridToWorld(pos.y);
+    return new MonsterVisual(scene, worldX, worldY, monster);
   }
 
   /**
@@ -101,5 +122,19 @@ export class MonsterVisual extends EntityVisual {
   animateStateChange(_fromState: string, _toState: string): Promise<void> {
     // Could show state name or color change
     return Promise.resolve();
+  }
+
+  /**
+   * Subscribe to state observer for reactive updates.
+   */
+  subscribeToState(observer: BattleStateObserver): void {
+    observer.subscribe({
+      monsterHealthChanged: (current: number, max: number) => {
+        this.updateHealth(current, max);
+      },
+      monsterMoved: (worldX: number, worldY: number) => {
+        this.updatePosition(worldX, worldY);
+      },
+    });
   }
 }

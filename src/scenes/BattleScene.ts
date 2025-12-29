@@ -1,9 +1,10 @@
 import Phaser from 'phaser';
 import type { Monster, CharacterClass } from '@src/systems/DataLoader';
 import { GridSystem } from '@src/systems/GridSystem';
-import type { ActionWheel } from '@src/systems/ActionWheel';
 import type { ActionRegistry } from '@src/systems/ActionRegistry';
-import { TurnController } from '@src/systems/TurnController';
+import type { TurnController } from '@src/systems/TurnController';
+import type { EffectRegistry } from '@src/systems/EffectRegistry';
+import type { BattleStateObserver } from '@src/systems/BattleStateObserver';
 import { SelectionManager } from '@src/systems/SelectionManager';
 import { TargetingSystem, TargetingDeps } from '@src/systems/TargetingSystem';
 
@@ -16,16 +17,11 @@ import { CharacterVisual, MonsterVisual } from '@src/visuals';
 import { GridVisual } from '@src/visuals/GridVisual';
 import { BattleUI } from '@src/ui/BattleUI';
 import { AnimationExecutor } from '@src/ui/AnimationExecutor';
-import { HeroSelectionBar, HeroCardData } from '@src/ui/HeroSelectionBar';
+import { HeroSelectionBar } from '@src/ui/HeroSelectionBar';
 import { SelectedHeroPanel } from '@src/ui/SelectedHeroPanel';
 import { OptionSelectionPanel } from '@src/ui/OptionSelectionPanel';
 import { ActionResolution } from '@src/systems/ActionResolution';
-import { EffectRegistry } from '@src/systems/EffectRegistry';
-import { MoveEffect } from '@src/effects/MoveEffect';
-import { AttackEffect } from '@src/effects/AttackEffect';
-import { DrawBeadsEffect } from '@src/effects/DrawBeadsEffect';
 import { getTargetType, getWheelCost, getActionRange } from '@src/utils/actionCompat';
-import type { GameContext } from '@src/types/Effect';
 import type { OptionPrompt } from '@src/types/ParameterPrompt';
 
 interface BattleData {
@@ -53,6 +49,9 @@ export class BattleScene extends Phaser.Scene {
   // Targeting system for tile selection
   private targetingSystem!: TargetingSystem;
 
+  // State observer for reactive UI updates
+  private stateObserver!: BattleStateObserver;
+
   // Turn state
   private currentActorId: string | null = null;
 
@@ -70,6 +69,11 @@ export class BattleScene extends Phaser.Scene {
   // Expose selected character ID for E2E testing
   public get selectedCharacterId(): string | null {
     return this.selectionManager?.getSelected() ?? null;
+  }
+
+  // Expose action wheel for E2E testing
+  public get actionWheel() {
+    return this.state?.wheel;
   }
 
   // Constants
@@ -102,9 +106,6 @@ export class BattleScene extends Phaser.Scene {
   }
   private get monsterEntity(): MonsterEntity {
     return this.state.monsterEntity;
-  }
-  private get actionWheel(): ActionWheel {
-    return this.state.wheel;
   }
   private get actionRegistry(): ActionRegistry {
     return this.state.actionRegistry;
@@ -173,8 +174,8 @@ export class BattleScene extends Phaser.Scene {
     this.targetingSystem = new TargetingSystem(this.createTargetingDeps());
 
     this.createBattleUI();
-    // Initialize TurnController with pure logic dependencies
-    this.turnController = new TurnController(this.actionWheel, this.monsterEntity, this.characters);
+    // Get TurnController from state
+    this.turnController = this.state.turnController;
     this.processTurn();
   }
 
@@ -188,45 +189,52 @@ export class BattleScene extends Phaser.Scene {
     // Create selected hero panel
     this.createSelectedHeroPanel();
 
+    // Get state observer from state BEFORE AnimationExecutor
+    this.stateObserver = this.state.stateObserver;
+
     // Create animation executor after UI and visuals are ready
     this.animationExecutor = new AnimationExecutor(
       this.gridSystem,
       this.characterVisuals,
       this.monsterVisual,
-      this.battleUI
+      this.battleUI,
+      this.stateObserver,
+      {
+        getHeroBeadCounts: (heroId: string) => {
+          const char = this.characters.find((c) => c.id === heroId);
+          return char?.getHandCounts();
+        },
+        getMonsterDiscardedCounts: () => {
+          return this.monsterEntity.hasBeadBag()
+            ? (this.monsterEntity.getDiscardedCounts() ?? null)
+            : null;
+        },
+      }
     );
 
-    // Initialize effect registry
-    this.effectRegistry = new EffectRegistry();
-    this.effectRegistry.register('move', new MoveEffect());
-    this.effectRegistry.register('attack', new AttackEffect());
-    this.effectRegistry.register('drawBeads', new DrawBeadsEffect());
+    // Get effect registry from state
+    this.effectRegistry = this.state.effectRegistry;
 
     // Create option selection panel
     this.optionSelectionPanel = new OptionSelectionPanel(this);
+
+    // Subscribe UI components to state changes
+    this.battleUI.subscribeToState(this.stateObserver, this.state, () =>
+      this.selectionManager.getSelected()
+    );
+    this.heroSelectionBar.subscribeToState(this.stateObserver);
+    this.selectedHeroPanel.subscribeToState(this.stateObserver, this.state);
+
+    // Subscribe visuals to state observer for reactive updates
+    for (const [heroId, visual] of this.characterVisuals) {
+      visual.subscribeToState(this.stateObserver, heroId);
+    }
+    this.monsterVisual.subscribeToState(this.stateObserver);
   }
 
   private createHeroSelectionBar(): void {
     this.heroSelectionBar = new HeroSelectionBar(this);
-
-    // Build hero card data from characters
-    const heroCardData: HeroCardData[] = this.characters.map((character, index) => {
-      const charClass = this.classes[index % this.classes.length];
-      const beadCounts = character.getHandCounts() ?? { red: 0, blue: 0, green: 0, white: 0 };
-      const classColors = [0x4488ff, 0xff4444, 0x44ff44, 0xffff44];
-
-      return {
-        heroId: character.id,
-        className: charClass.name,
-        classIcon: charClass.icon || charClass.name[0],
-        color: classColors[index],
-        currentHp: character.currentHealth,
-        maxHp: character.maxHealth,
-        beadCounts,
-      };
-    });
-
-    this.heroSelectionBar.create(heroCardData);
+    this.heroSelectionBar.createFromEntities(this.characters, this.classes);
     this.heroSelectionBar.onHeroClick((heroId) => this.handleHeroBarClick(heroId));
   }
 
@@ -242,70 +250,6 @@ export class BattleScene extends Phaser.Scene {
   }
 
   /**
-   * Update all UI elements to reflect current state
-   */
-  private updateUI(): void {
-    const nextActorId = this.actionWheel.getNextActor();
-    const nextActorPosition = nextActorId ? this.actionWheel.getPosition(nextActorId) : undefined;
-
-    this.battleUI.updateStatusText(
-      this.monster.name,
-      this.monsterEntity.currentHealth,
-      this.monster.stats.health,
-      nextActorId
-    );
-
-    this.battleUI.updateWheelDisplay(
-      (pos: number) => this.actionWheel.getEntitiesAtPosition(pos),
-      nextActorId,
-      nextActorPosition
-    );
-
-    // Update bead displays
-    const selectedCharId = this.selectionManager.getSelected();
-    const selectedChar = selectedCharId
-      ? this.characters.find((c) => c.id === selectedCharId)
-      : null;
-    this.battleUI.updateBeadHandDisplay(selectedChar?.getHandCounts() ?? null);
-    this.battleUI.updateMonsterBeadDisplay(
-      this.monsterEntity.hasBeadBag() ? (this.monsterEntity.getDiscardedCounts() ?? null) : null
-    );
-
-    // Update hero selection bar
-    this.heroSelectionBar.updateCurrentActor(this.currentActorId);
-    for (const character of this.characters) {
-      const beadCounts = character.getHandCounts();
-      if (beadCounts) {
-        this.heroSelectionBar.updateHeroBeads(character.id, beadCounts);
-      }
-      this.heroSelectionBar.updateHeroHP(
-        character.id,
-        character.currentHealth,
-        character.maxHealth
-      );
-    }
-
-    // Update selected hero panel affordability
-    const selectedId = this.selectionManager.getSelected();
-    if (selectedId) {
-      const selectedChar = this.characters.find((c) => c.id === selectedId);
-      if (selectedChar) {
-        const beadCounts = selectedChar.getHandCounts();
-        if (beadCounts) {
-          const position = this.actionWheel.getPosition(selectedId);
-          const availableTime = position !== undefined ? 8 - position : 0;
-          this.selectedHeroPanel.updateAffordability(beadCounts, availableTime);
-        }
-      }
-    }
-
-    // Hide panel during monster turn
-    if (this.currentActorId === 'monster') {
-      this.selectedHeroPanel.hidePanel();
-    }
-  }
-
-  /**
    * Create visual representations for state entities.
    * State objects already exist from BattleBuilder.
    */
@@ -316,52 +260,28 @@ export class BattleScene extends Phaser.Scene {
     for (let i = 0; i < this.characters.length; i++) {
       const character = this.characters[i];
       const charClass = this.classes[i % this.classes.length];
-      const pos = character.getPosition();
-
-      if (pos) {
-        const worldX = this.gridSystem.gridToWorld(pos.x);
-        const worldY = this.gridSystem.gridToWorld(pos.y);
-        const visual = new CharacterVisual(this, worldX, worldY, charClass, classColors[i], i);
+      const visual = CharacterVisual.fromEntity(
+        this,
+        character,
+        charClass,
+        this.gridSystem,
+        i,
+        classColors[i]
+      );
+      if (visual) {
         this.characterVisuals.set(character.id, visual);
       }
     }
 
     // Create monster visual from state entity
-    const monsterPos = this.monsterEntity.getPosition();
-    if (monsterPos) {
-      const monsterWorldX = this.gridSystem.gridToWorld(monsterPos.x);
-      const monsterWorldY = this.gridSystem.gridToWorld(monsterPos.y);
-      this.monsterVisual = new MonsterVisual(this, monsterWorldX, monsterWorldY, this.monster);
-    }
-  }
-
-  /**
-   * Sync visual state with game state.
-   * Called after any state mutation.
-   */
-  private syncVisuals(): void {
-    // Sync character visuals
-    for (const character of this.characters) {
-      const pos = character.getPosition();
-      const visual = this.characterVisuals.get(character.id);
-      if (pos && visual) {
-        const worldX = this.gridSystem.gridToWorld(pos.x);
-        const worldY = this.gridSystem.gridToWorld(pos.y);
-        visual.updatePosition(worldX, worldY);
-        visual.updateHealth(character.currentHealth, character.maxHealth);
-      }
-    }
-
-    // Sync monster visual
-    const monsterPos = this.monsterEntity.getPosition();
-    if (monsterPos) {
-      const worldX = this.gridSystem.gridToWorld(monsterPos.x);
-      const worldY = this.gridSystem.gridToWorld(monsterPos.y);
-      this.monsterVisual.updatePosition(worldX, worldY);
-      this.monsterVisual.updateHealth(
-        this.monsterEntity.currentHealth,
-        this.monsterEntity.maxHealth
-      );
+    const visual = MonsterVisual.fromEntity(
+      this,
+      this.monsterEntity,
+      this.monster,
+      this.gridSystem
+    );
+    if (visual) {
+      this.monsterVisual = visual;
     }
   }
 
@@ -388,7 +308,7 @@ export class BattleScene extends Phaser.Scene {
       return;
     }
 
-    this.updateUI();
+    this.stateObserver.emitActorChanged(this.currentActorId);
 
     if (this.currentActorId === 'monster') {
       this.battleUI.log('--- Monster Turn ---');
@@ -415,7 +335,7 @@ export class BattleScene extends Phaser.Scene {
       }
     }
 
-    this.updateUI();
+    this.stateObserver.emitSelectionChanged(currentCharacter?.id ?? null);
   }
 
   private selectCharacter(characterId: string): void {
@@ -437,7 +357,7 @@ export class BattleScene extends Phaser.Scene {
     // Show selected hero panel
     this.selectedHeroPanel.showPanel(characterId);
 
-    this.updateUI();
+    this.stateObserver.emitSelectionChanged(characterId);
     this.battleUI.log(`Selected: ${visual?.getClassName() || characterId}`);
   }
 
@@ -465,24 +385,6 @@ export class BattleScene extends Phaser.Scene {
         this.executeImmediateAction(action);
         break;
     }
-  }
-
-  /**
-   * Create a GameContext for action resolution.
-   */
-  private createGameContext(actorId: string): GameContext {
-    return {
-      grid: this.battleGrid,
-      actorId,
-      getEntity: (id: string) => {
-        if (id === 'monster') return this.monsterEntity;
-        return this.characters.find((c) => c.id === id);
-      },
-      getBeadHand: (entityId: string) => {
-        const char = this.characters.find((c) => c.id === entityId);
-        return char?.getBeadHand();
-      },
-    };
   }
 
   /**
@@ -527,7 +429,7 @@ export class BattleScene extends Phaser.Scene {
     gridX: number,
     gridY: number
   ): Promise<void> {
-    const context = this.createGameContext(character.id);
+    const context = this.state.createGameContext(character.id);
 
     // Create and execute action resolution
     const resolution = new ActionResolution(character.id, action, context, this.effectRegistry);
@@ -560,7 +462,7 @@ export class BattleScene extends Phaser.Scene {
     const character = this.characters.find((c) => c.id === selectedCharId);
     if (!character) return;
 
-    const context = this.createGameContext(character.id);
+    const context = this.state.createGameContext(character.id);
 
     // Create and execute action resolution
     const resolution = new ActionResolution(character.id, action, context, this.effectRegistry);
@@ -594,7 +496,6 @@ export class BattleScene extends Phaser.Scene {
           }
 
           await this.animationExecutor.execute(result.events);
-          this.updateUI();
           this.advanceAndProcessTurn(this.currentActorId!, getWheelCost(action));
         },
         onCancel: (): void => {
@@ -614,7 +515,6 @@ export class BattleScene extends Phaser.Scene {
 
     await this.animationExecutor.execute(result.events);
 
-    this.updateUI();
     this.advanceAndProcessTurn(this.currentActorId!, getWheelCost(action));
   }
 
@@ -628,7 +528,7 @@ export class BattleScene extends Phaser.Scene {
     const character = this.characters.find((c) => c.id === selectedCharId);
     if (!character) return;
 
-    const context = this.createGameContext(character.id);
+    const context = this.state.createGameContext(character.id);
 
     // Create and execute action resolution
     const resolution = new ActionResolution(character.id, action, context, this.effectRegistry);
@@ -643,7 +543,6 @@ export class BattleScene extends Phaser.Scene {
 
     await this.animationExecutor.execute(result.events);
 
-    this.updateUI();
     this.advanceAndProcessTurn(this.currentActorId!, getWheelCost(action));
   }
 
@@ -652,9 +551,6 @@ export class BattleScene extends Phaser.Scene {
 
     // Clear selection
     this.selectionManager.deselect();
-
-    // Sync all visuals with state
-    this.syncVisuals();
 
     // Small delay before next turn
     this.time.delayedCall(300, () => this.processTurn());
@@ -678,8 +574,6 @@ export class BattleScene extends Phaser.Scene {
 
     // Phase 2: Animate - play all events
     await this.animationExecutor.execute(events);
-
-    this.updateUI();
 
     // Check for defeat after damage
     const aliveChars = this.characters.filter((c) => c.isAlive());
