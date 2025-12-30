@@ -2,10 +2,10 @@ import Phaser from 'phaser';
 import type { Monster, CharacterClass } from '@src/systems/DataLoader';
 import { GridSystem } from '@src/systems/GridSystem';
 import type { ActionRegistry } from '@src/systems/ActionRegistry';
-import type { TurnController } from '@src/systems/TurnController';
 import type { BattleStateObserver } from '@src/systems/BattleStateObserver';
 import { SelectionManager } from '@src/systems/SelectionManager';
 import { TargetingSystem, TargetingDeps } from '@src/systems/TargetingSystem';
+import { TurnFlowController } from '@src/controllers/TurnFlowController';
 
 import type { BattleGrid, Position } from '@src/state/BattleGrid';
 import type { BattleState } from '@src/state/BattleState';
@@ -38,9 +38,6 @@ export class BattleScene extends Phaser.Scene implements BattleAdapter {
   // Systems (Phaser-dependent)
   private gridSystem!: GridSystem;
 
-  // Turn controller for pure turn logic
-  private turnController!: TurnController;
-
   // Selection manager for character selection state
   private selectionManager!: SelectionManager;
 
@@ -50,11 +47,15 @@ export class BattleScene extends Phaser.Scene implements BattleAdapter {
   // State observer for reactive UI updates
   private stateObserver!: BattleStateObserver;
 
-  // Turn state
-  private currentActorId: string | null = null;
+  // Turn flow controller for orchestration
+  private turnFlowController!: TurnFlowController;
+  private pendingActionResolve?: (actionId: string) => void;
 
   // Valid movement tiles for E2E testing
   public currentValidMoves: { x: number; y: number }[] = [];
+
+  // Current actor for E2E testing
+  public currentActorId: string | null = null;
 
   // Expose log messages for E2E testing
   public get logMessages(): string[] {
@@ -169,9 +170,9 @@ export class BattleScene extends Phaser.Scene implements BattleAdapter {
     this.targetingSystem = new TargetingSystem(this.createTargetingDeps());
 
     this.createBattleUI();
-    // Get TurnController from state
-    this.turnController = this.state.turnController;
-    this.processTurn();
+    // Initialize TurnFlowController for turn orchestration
+    this.turnFlowController = new TurnFlowController(this.state, this);
+    this.turnFlowController.start(); // Don't await - let it run async
   }
 
   private createBattleUI(): void {
@@ -222,6 +223,13 @@ export class BattleScene extends Phaser.Scene implements BattleAdapter {
       visual.subscribeToState(this.stateObserver, heroId);
     }
     this.monsterVisual.subscribeToState(this.stateObserver);
+
+    // Track current actor for E2E testing
+    this.stateObserver.subscribe({
+      actorChanged: (actorId) => {
+        this.currentActorId = actorId;
+      },
+    });
   }
 
   private createHeroSelectionBar(): void {
@@ -231,14 +239,32 @@ export class BattleScene extends Phaser.Scene implements BattleAdapter {
   }
 
   private handleHeroBarClick(heroId: string): void {
-    // Use same logic as selectCharacter
-    this.selectCharacter(heroId);
+    const character = this.characters.find((c) => c.id === heroId);
+    if (!character?.isAlive()) return;
+
+    // Turn enforcement: only allow selecting the current actor
+    if (heroId !== this.currentActorId) {
+      this.battleUI.log(`It's not ${heroId}'s turn`);
+      return;
+    }
+
+    // Select and show panel for current actor
+    this.selectionManager.select(heroId);
+    this.selectedHeroPanel.showPanel(heroId);
+    this.stateObserver.emitSelectionChanged(heroId);
   }
 
   private createSelectedHeroPanel(): void {
     this.selectedHeroPanel = new SelectedHeroPanel(this);
     const actions = this.actionRegistry.getAll();
-    this.selectedHeroPanel.create(actions, (actionId) => this.executeAction(actionId));
+    this.selectedHeroPanel.create(actions, (actionId) => this.onActionSelected(actionId));
+  }
+
+  private onActionSelected(actionId: string): void {
+    if (this.pendingActionResolve) {
+      this.pendingActionResolve(actionId);
+      this.pendingActionResolve = undefined;
+    }
   }
 
   /**
@@ -277,116 +303,6 @@ export class BattleScene extends Phaser.Scene implements BattleAdapter {
     }
   }
 
-  /**
-   * Main turn processing loop - called after each action
-   */
-  private processTurn(): void {
-    // Check battle status via TurnController
-    const status = this.turnController.getBattleStatus();
-    if (status === 'victory') {
-      this.victory();
-      return;
-    }
-    if (status === 'defeat') {
-      this.defeat();
-      return;
-    }
-
-    // Get next actor from wheel
-    this.currentActorId = this.turnController.getNextActor();
-
-    if (!this.currentActorId) {
-      this.battleUI.log('No actors on wheel!');
-      return;
-    }
-
-    this.stateObserver.emitActorChanged(this.currentActorId);
-
-    if (this.currentActorId === 'monster') {
-      this.battleUI.log('--- Monster Turn ---');
-      this.time.delayedCall(500, () => this.executeMonsterTurn());
-    } else {
-      this.battleUI.log('--- Player Turn ---');
-      this.showPlayerActions();
-    }
-  }
-
-  private showPlayerActions(): void {
-    // Select the current actor
-    const currentCharacter = this.characters.find((c) => c.id === this.currentActorId);
-    if (currentCharacter && currentCharacter.isAlive()) {
-      this.selectionManager.select(currentCharacter.id);
-    }
-
-    // Make characters clickable (validation happens in selectCharacter)
-    for (const character of this.characters) {
-      if (character.isAlive()) {
-        const visual = this.characterVisuals.get(character.id);
-        visual?.setInteractive(true);
-        visual?.onClick(() => this.selectCharacter(character.id));
-      }
-    }
-
-    this.stateObserver.emitSelectionChanged(currentCharacter?.id ?? null);
-  }
-
-  private selectCharacter(characterId: string): void {
-    if (this.currentActorId === 'monster') return;
-
-    // Verify this is the current actor
-    if (characterId !== this.currentActorId) {
-      const character = this.characters.find((c) => c.id === characterId);
-      if (character) {
-        this.battleUI.log(`Not this character's turn`);
-      }
-      return;
-    }
-
-    // Update selection
-    this.selectionManager.select(characterId);
-    const visual = this.characterVisuals.get(characterId);
-
-    // Show selected hero panel
-    this.selectedHeroPanel.showPanel(characterId);
-
-    this.stateObserver.emitSelectionChanged(characterId);
-    this.battleUI.log(`Selected: ${visual?.getClassName() || characterId}`);
-  }
-
-  /**
-   * Execute action via new async ActionResolution pattern.
-   * Uses BattleAdapter (this) for parameter collection and animation.
-   */
-  private async executeAction(actionId: string): Promise<void> {
-    const selectedCharId = this.selectionManager.getSelected();
-    if (!selectedCharId) return;
-
-    const action = this.actionRegistry.getAction(actionId);
-    if (!action) {
-      this.battleUI.log(`Unknown action: ${actionId}`);
-      return;
-    }
-
-    // Create resolution and execute via adapter pattern
-    const resolution = await action.resolve(selectedCharId, this);
-    const result = await resolution.execute();
-
-    // Handle cancellation
-    if (result.cancelled) {
-      this.battleUI.log('Action cancelled');
-      return;
-    }
-
-    // Handle failure
-    if (!result.success) {
-      this.battleUI.log(result.reason ?? 'Action failed');
-      return;
-    }
-
-    // Advance turn with action's time cost
-    this.advanceAndProcessTurn(selectedCharId, result.cost.time);
-  }
-
   // === BattleAdapter Implementation ===
 
   async promptTile(params: { range: number }): Promise<Position | null> {
@@ -423,60 +339,40 @@ export class BattleScene extends Phaser.Scene implements BattleAdapter {
     this.battleUI.log(message);
   }
 
-  private advanceAndProcessTurn(entityId: string, wheelCost: number): void {
-    this.turnController.advanceTurn(entityId, wheelCost);
+  // === Phase 4 BattleAdapter methods ===
 
-    // Clear selection
-    this.selectionManager.deselect();
-
-    // Small delay before next turn
-    this.time.delayedCall(300, () => this.processTurn());
-  }
-
-  private async executeMonsterTurn(): Promise<void> {
-    if (!this.monsterEntity.hasBeadBag() || !this.monsterEntity.hasStateMachine()) {
-      this.battleUI.log('Monster has no bead system!');
-      this.advanceAndProcessTurn('monster', 2);
-      return;
+  showPlayerTurn(actorId: string): void {
+    // Auto-select the current actor
+    const character = this.characters.find((c) => c.id === actorId);
+    if (character?.isAlive()) {
+      this.selectionManager.select(character.id);
     }
 
-    // Get alive characters as targets
-    const targets = this.characters.filter((c) => c.isAlive());
-
-    // Phase 1: Decide - get the monster's decision
-    const decision = this.monsterEntity.decideTurn(targets);
-
-    // Phase 1: Execute - apply state changes and get events
-    const events = this.monsterEntity.executeDecision(decision);
-
-    // Phase 2: Animate - play all events
-    await this.animationExecutor.execute(events);
-
-    // Check for defeat after damage
-    const aliveChars = this.characters.filter((c) => c.isAlive());
-    if (aliveChars.length === 0) {
-      this.time.delayedCall(500, () => this.defeat());
-      return;
+    // Make characters clickable
+    for (const char of this.characters) {
+      if (char.isAlive()) {
+        const visual = this.characterVisuals.get(char.id);
+        visual?.setInteractive(true);
+      }
     }
 
-    // Phase 3: Advance turn
-    this.advanceAndProcessTurn('monster', decision.wheelCost);
+    // Show panel for selected hero
+    this.selectedHeroPanel.showPanel(actorId);
+    this.stateObserver.emitSelectionChanged(character?.id ?? null);
   }
 
-  private victory(): void {
-    this.scene.start('VictoryScene', {
-      victory: true,
-      monster: this.monster.name,
-      turns: 0,
+  awaitPlayerAction(_actorId: string): Promise<string> {
+    return new Promise((resolve) => {
+      this.pendingActionResolve = resolve;
     });
   }
 
-  private defeat(): void {
-    this.scene.start('VictoryScene', {
-      victory: false,
-      monster: this.monster.name,
-      turns: 0,
-    });
+  transition(scene: string, data: object): void {
+    this.scene.start(scene, data);
+  }
+
+  delay(ms: number): Promise<void> {
+    return new Promise((resolve) => this.time.delayedCall(ms, resolve));
   }
 
   shutdown(): void {

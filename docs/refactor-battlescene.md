@@ -269,7 +269,21 @@ class BattleScene extends Phaser.Scene implements BattleAdapter {
 
 ---
 
-## Phase 4 - Controller Extraction (Planned)
+## Phase 4 - Controller Extraction ✅ COMPLETED
+
+**Résultat** : BattleScene réduit de 486 à ~380 lignes (-106 lignes, 22% reduction)
+
+### Accomplishments
+- TurnFlowController extracted to `src/controllers/TurnFlowController.ts` (~100 lines)
+- BattleAdapter extended with 4 new methods: showPlayerTurn, awaitPlayerAction, transition, delay
+- BattleScene now implements extended BattleAdapter as thin adapter
+- Turn orchestration logic (start loop, checkBattleStatus, executeMonsterTurn, executePlayerTurn) moved to controller
+- 12 new unit tests in `features/unit/turn-flow-controller/` (4 feature files)
+- All 333 unit tests pass, all 40 E2E tests pass
+
+---
+
+## Phase 4 - Controller Extraction (Details)
 
 **Objectif** : Extraire TurnFlowController, BattleScene devient adaptateur mince
 
