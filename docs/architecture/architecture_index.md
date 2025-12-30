@@ -16,7 +16,13 @@ MenuScene
             └── build() → BattleState
                               │
                               ▼
-BattleScene (Thin Orchestrator)
+                    TurnFlowController
+                    ├── orchestrates game loop
+                    ├── manages turn flow
+                    └── delegates to TurnController
+                              │
+                              ▼
+BattleScene (Thin Adapter - implements BattleAdapter)
 ├── State Layer (received from BattleBuilder)
 │   ├── BattleGrid      → Single source of truth for positions
 │   ├── ActionWheel     → Single source of truth for turn order
@@ -26,7 +32,9 @@ BattleScene (Thin Orchestrator)
 ├── Action System
 │   ├── ActionRegistry        → Action definitions from YAML
 │   ├── ActionHandlerRegistry → Handler functions for execution
-│   └── executeAction()       → Data-driven dispatch by targetType
+│   ├── Action               → Hydrated with effect descriptors
+│   ├── ActionResolution     → Uses BattleAdapter for param collection
+│   └── executeAction()      → Data-driven dispatch by targetType
 │
 └── Visual Layer (Pure Rendering)
     ├── CharacterVisual → Character sprites, health bars, selection
@@ -54,6 +62,15 @@ BattleScene (Thin Orchestrator)
 | `MonsterEntity` | Monster entity: health, beadPool, stateMachine, AI decisions | [bead-system.md](./bead-system.md) |
 | `Entity` | Base class for Character and MonsterEntity | - |
 
+## Controller Layer
+
+| Component | Responsibility | Documentation |
+|-----------|----------------|---------------|
+| `TurnFlowController` | Turn orchestration, game loop, victory/defeat detection | [controller-architecture.md](./controller-architecture.md) |
+| `TurnController` | Wheel operations, action selection, turn completion | [controller-architecture.md](./controller-architecture.md) |
+
+**Architecture**: Pure logic extracted from `BattleScene`, fully testable without Phaser. Controllers receive state and adapter at construction, execute pure functions, emit state changes for scene to sync visuals.
+
 ## Action System
 
 | Component | Responsibility | Documentation |
@@ -61,13 +78,18 @@ BattleScene (Thin Orchestrator)
 | `ActionRegistry` | Stores action definitions loaded from YAML | - |
 | `ActionHandlerRegistry` | Maps handler IDs to execution functions | - |
 | `ActionDefinition` | Data structure: id, name, cost, handlerId, targetType, range, damage | - |
+| `Action` | Hydrated action with effect descriptors and cost | - |
+| `ActionResolution` | Encapsulates resolution logic, uses BattleAdapter to collect parameters | - |
+| `BattleAdapter` | Interface abstracting UI operations (showing ranges, waiting for input) | - |
 
 **Action targeting**: Each action has a `targetType` that determines dispatch:
 - `tile` → Show movement range, wait for tile click (move, run)
 - `entity` → Auto-target enemy (attack)
 - `none` → Execute immediately (rest)
 
-**Flow**: `executeAction(actionId)` → dispatch by `targetType` → `Character.resolveAction()` → `ActionHandlerRegistry.execute()` → `ActionResult`
+**Flow**: `executeAction(actionId)` → `Action.resolve()` → `ActionResolution.execute()` with adapter → UI collects params via adapter → `ActionResult`
+
+**UI Abstraction**: `BattleAdapter` interface enables testing `Action` and `ActionResolution` without Phaser dependencies. `BattleScene` implements the adapter to handle Phaser UI operations.
 
 ## Visual Layer
 
@@ -104,7 +126,7 @@ BattleScene (Thin Orchestrator)
 | Scene | Responsibility | Documentation |
 |-------|----------------|---------------|
 | `MenuScene` | Game setup: monster/arena selection, party size | - |
-| `BattleScene` | Thin orchestrator: routes input, triggers turns, syncs visuals | - |
+| `BattleScene` | Thin adapter: implements BattleAdapter, delegates to TurnFlowController, syncs visuals | - |
 | `VictoryScene` | End game display | - |
 
 ## Key Design Decisions
@@ -120,6 +142,8 @@ BattleScene (Thin Orchestrator)
 | BeadPool.draw() doesn't auto-discard | Consumer controls when/where beads go after use |
 | BattleBuilder constructs state | MenuScene configures, BattleScene receives ready state |
 | targetType drives dispatch | Adding actions requires only YAML changes, no code |
+| BattleAdapter abstracts UI | Enables testing Action/ActionResolution without Phaser |
+| TurnFlowController orchestrates | Pure logic extracted from BattleScene, fully testable |
 
 ---
 
