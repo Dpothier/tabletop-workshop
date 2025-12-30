@@ -1,199 +1,214 @@
 # Controller Architecture
 
-## Overview
+## Summary
 
-Turn orchestration is separated from Phaser UI via the **Adapter pattern**:
+The controller architecture separates turn orchestration from Phaser UI via the Adapter pattern. `TurnFlowController` contains pure game loop logic with no Phaser dependencies, while `BattleScene` implements the `BattleAdapter` interface to handle UI operations.
 
-- **TurnFlowController** contains pure game loop logic with no Phaser dependencies
-- **BattleScene** implements the **BattleAdapter** interface to handle all UI interactions
-- This separation enables unit testing of turn flow logic without Phaser
+This separation enables unit testing of turn logic without Phaser. Controllers receive state and adapter at construction, execute pure functions, and delegate all UI interactions through the adapter interface.
 
-The Adapter pattern ensures that:
-1. Core game logic remains testable and framework-agnostic
-2. UI concerns are isolated in BattleScene
-3. Turn flow is decoupled from rendering and input handling
+## Component List
 
-## Architecture Diagram
+| Component | Responsibility |
+|-----------|----------------|
+| `BattleAdapter` | Interface abstracting UI operations (prompts, animation, scene transitions) |
+| `TurnFlowController` | Turn orchestration: game loop, victory/defeat detection, turn execution |
+| `TurnController` | Wheel operations: get next actor, advance turns, status checks |
+| `BattleScene` | Phaser adapter: implements BattleAdapter, delegates to TurnFlowController |
 
+## Class Diagram
+
+```mermaid
+classDiagram
+    class BattleAdapter {
+        <<interface>>
+        +promptTile(params) Promise~Position~
+        +promptOptions(prompt) Promise~string[]~
+        +animate(events) Promise~void~
+        +log(message) void
+        +showPlayerTurn(actorId) void
+        +awaitPlayerAction(actorId) Promise~string~
+        +transition(scene, data) void
+        +delay(ms) Promise~void~
+    }
+
+    class TurnFlowController {
+        -state: BattleState
+        -adapter: BattleAdapter
+        +checkBattleStatus() BattleStatus
+        +executeMonsterTurn() Promise~void~
+        +executePlayerTurn(actorId) Promise~void~
+        +start() Promise~void~
+    }
+
+    class TurnController {
+        -wheel: ActionWheel
+        -monster: AliveQueryable
+        -characters: AliveQueryable[]
+        +getNextActor() string
+        +advanceTurn(entityId, cost) void
+        +checkVictory() boolean
+        +checkDefeat() boolean
+        +getBattleStatus() BattleStatus
+    }
+
+    class BattleScene {
+        -state: BattleState
+        -turnFlowController: TurnFlowController
+        +promptTile(params) Promise~Position~
+        +promptOptions(prompt) Promise~string[]~
+        +animate(events) Promise~void~
+        +log(message) void
+        +showPlayerTurn(actorId) void
+        +awaitPlayerAction(actorId) Promise~string~
+        +transition(scene, data) void
+        +delay(ms) Promise~void~
+    }
+
+    BattleScene --|> BattleAdapter : implements
+    TurnFlowController ..o BattleAdapter : injected
+    TurnFlowController --> TurnController : uses via state
+    BattleScene ..> TurnFlowController : creates
 ```
-BattleScene (Phaser Scene)
-    │ implements
-    ▼
-BattleAdapter (interface)
-    │ injected into
-    ▼
-TurnFlowController
-    │ uses
-    ├── TurnController (wheel, victory/defeat)
-    ├── ActionRegistry (get actions)
-    └── MonsterEntity (AI decisions)
+
+## Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant Scene as BattleScene
+    participant TFC as TurnFlowController
+    participant TC as TurnController
+    participant Adapter as BattleAdapter
+
+    Scene->>TFC: start()
+
+    loop Game Loop
+        TFC->>TC: getBattleStatus()
+        TC-->>TFC: 'ongoing'
+
+        TFC->>TC: getNextActor()
+        TC-->>TFC: actorId
+
+        TFC->>Adapter: showPlayerTurn(actorId)
+
+        alt actorId == 'monster'
+            TFC->>TFC: executeMonsterTurn()
+            TFC->>Adapter: log('Monster Turn')
+            TFC->>Adapter: animate(events)
+            TFC->>TC: advanceTurn('monster', cost)
+        else Player Turn
+            TFC->>TFC: executePlayerTurn(actorId)
+            TFC->>Adapter: showPlayerTurn(actorId)
+            TFC->>Adapter: awaitPlayerAction(actorId)
+            Adapter-->>TFC: actionId
+            TFC->>Adapter: animate(events)
+            TFC->>TC: advanceTurn(actorId, cost)
+        end
+
+        TFC->>Adapter: delay(300)
+    end
+
+    TFC->>TC: getBattleStatus()
+    TC-->>TFC: 'victory' or 'defeat'
+    TFC->>Adapter: transition('VictoryScene', data)
 ```
 
-## BattleAdapter Interface
+## Implementation Details
 
-The `BattleAdapter` interface defines all UI interactions needed by the controller layer:
+### Async Game Loop
+
+`TurnFlowController.start()` uses an async while loop pattern:
 
 ```typescript
-interface BattleAdapter {
-  // ===== Phase 3: Action Execution =====
+async start(): Promise<void> {
+  while (true) {
+    const status = this.checkBattleStatus();
+    if (status !== 'ongoing') {
+      this.adapter.transition('VictoryScene', { victory: status === 'victory' });
+      return;
+    }
+    const actorId = this.state.turnController.getNextActor();
 
-  /**
-   * Prompt user to select a tile within range.
-   * @returns Selected position or null if cancelled
-   */
-  promptTile(params: { range: number }): Promise<Position | null>;
+    if (actorId === 'monster') {
+      await this.executeMonsterTurn();
+    } else {
+      await this.executePlayerTurn(actorId);
+    }
 
-  /**
-   * Prompt user to select from a list of options.
-   * @returns Selected option IDs or null if cancelled
-   */
-  promptOptions(prompt: OptionPrompt): Promise<string[] | null>;
-
-  /**
-   * Animate a sequence of events.
-   */
-  animate(events: AnimationEvent[]): Promise<void>;
-
-  /**
-   * Log a message to the battle log.
-   */
-  log(message: string): void;
-
-  // ===== Phase 4: Turn Management & Scene Control =====
-
-  /**
-   * Setup UI for player turn (auto-select actor, make characters clickable).
-   * Called at the start of each player turn.
-   */
-  showPlayerTurn(actorId: string): void;
-
-  /**
-   * Wait for player to select an action.
-   * @returns Action ID selected by the player
-   */
-  awaitPlayerAction(actorId: string): Promise<string>;
-
-  /**
-   * Transition to another scene.
-   */
-  transition(scene: string, data: object): void;
-
-  /**
-   * Delay execution for a specified duration.
-   */
-  delay(ms: number): Promise<void>;
+    await this.adapter.delay(300);
+  }
 }
 ```
 
-## TurnFlowController
+### Monster Turn Execution
 
-The controller orchestrates the battle turn flow with the following key methods:
+`executeMonsterTurn()` follows a four-phase pattern:
 
-### `start(): Promise<void>`
-
-Main async game loop that:
-1. Checks battle status (victory/defeat/ongoing)
-2. Gets the next actor from the action wheel
-3. Emits `actorChanged` event to observers
-4. Executes either a monster turn or player turn
-5. Loops until battle ends
-
-Transitions to `VictoryScene` when:
-- **Victory**: Monster is defeated
-- **Defeat**: All characters are defeated
-
-### `checkBattleStatus(): BattleStatus`
-
-Delegates to `TurnController.getBattleStatus()` to determine current game state:
-- Returns `'victory'` if monster is dead
-- Returns `'defeat'` if all characters are dead
-- Returns `'ongoing'` otherwise
-
-### `executeMonsterTurn(): Promise<void>`
-
-Executes AI logic for the monster:
-1. Validates monster has bead system and state machine
-2. Gets all alive characters as potential targets
-3. **Phase 1 (Decide)**: Calls `monster.decideTurn(targets)` to get AI decision
-4. **Phase 2 (Execute)**: Calls `monster.executeDecision(decision)` to apply state changes and collect events
-5. **Phase 3 (Animate)**: Calls `adapter.animate(events)` to play animations
-6. **Phase 4 (Advance)**: Advances monster on wheel by decision's `wheelCost`
-7. Adds 300ms delay before returning
-
-### `executePlayerTurn(actorId: string): Promise<void>`
-
-Executes player-controlled turn with retry loop:
-1. Calls `adapter.showPlayerTurn(actorId)` to setup UI
-2. **Loop**: While action not accepted:
-   a. Calls `adapter.awaitPlayerAction(actorId)` to wait for player selection
-   b. Gets `Action` from `actionRegistry.getAction(actionId)`
-   c. Calls `action.resolve(actorId, adapter)` to get `ActionResolution`
-   d. Calls `resolution.execute()` to collect parameters and apply effects
-   e. If `result.cancelled` is true, loops back to step 2a
-   f. If action failed, logs failure reason
-   g. Advances actor on wheel by `result.cost.time`
-3. Adds 300ms delay and returns
-
-## Game Loop Flow
-
-The main battle loop executes the following steps:
-
-1. **Check Status** → Call `checkBattleStatus()`
-2. **Victory/Defeat?** → If true, transition to `VictoryScene` with results
-3. **Get Next Actor** → Call `turnController.getNextActor()`
-4. **Emit Change** → Call `stateObserver.emitActorChanged(actorId)`
-5. **Execute Turn** → If actor is 'monster', call `executeMonsterTurn()`, else call `executePlayerTurn(actorId)`
-6. **Loop** → Return to step 1
-
-## Player Turn Flow
-
-When `executePlayerTurn(actorId)` is called, the following sequence occurs:
-
-1. **Setup UI** → Call `adapter.showPlayerTurn(actorId)` to auto-select character and enable action buttons
-2. **Wait for Action** → Call `adapter.awaitPlayerAction(actorId)` - blocks until player clicks an action button
-3. **Get Action Object** → Call `actionRegistry.getAction(actionId)` - retrieves the Action definition
-4. **Resolve Action** → Call `action.resolve(actorId, adapter)` - returns `ActionResolution` with parameter collection logic
-5. **Execute Resolution** → Call `resolution.execute()` - collects parameters (tiles, options), applies effects, returns `AdapterActionResult`
-6. **Check Cancellation** → If `result.cancelled` is true, go back to step 2 to allow player to choose again
-7. **Log Outcome** → If action failed, log the failure reason via `adapter.log(reason)`
-8. **Advance Turn** → Call `turnController.advanceTurn(actorId, result.cost.time)` to move actor forward on wheel
-9. **Delay & Exit** → Wait 300ms, then return to main loop
-
-## Testing
-
-TurnFlowController can be tested with a mock BattleAdapter:
+1. **Decide**: Call `monster.decideTurn(targets)` to get AI decision
+2. **Execute**: Call `monster.executeDecision(decision)` to apply state changes and collect events
+3. **Animate**: Call `adapter.animate(events)` to play animations
+4. **Advance**: Advance monster on wheel by decision's time cost
 
 ```typescript
-const mockAdapter: BattleAdapter = {
-  log: vi.fn(),
-  animate: vi.fn(async () => {}),
-  awaitPlayerAction: vi.fn(async () => 'move'),
-  promptTile: vi.fn(async () => ({ x: 0, y: 0 })),
-  promptOptions: vi.fn(async () => []),
-  showPlayerTurn: vi.fn(),
-  transition: vi.fn(),
-  delay: vi.fn(async () => {}),
-};
+async executeMonsterTurn(): Promise<void> {
+  const monster = this.state.monster;
+  const targets = this.state.characters.filter(c => c.isAlive());
 
-const controller = new TurnFlowController(state, mockAdapter);
-await controller.start();
+  const decision = monster.decideTurn(targets);
+  const events = monster.executeDecision(decision);
 
-// Verify adapter methods were called correctly
-expect(mockAdapter.animate).toHaveBeenCalled();
-expect(mockAdapter.awaitPlayerAction).toHaveBeenCalled();
+  await this.adapter.animate(events);
+  this.state.turnController.advanceTurn('monster', decision.wheelCost);
+  await this.adapter.delay(300);
+}
 ```
 
-Key benefits:
-- **No Phaser dependencies** - Controller runs in pure Node.js
-- **Deterministic** - Can control time with mocked `delay()`
-- **Observable** - Can track all adapter calls via `vi.fn()`
-- **Fast** - No rendering overhead
+### Player Turn Execution with Retry Loop
 
-## File Locations
+`executePlayerTurn()` handles action cancellation with a retry loop:
+
+```typescript
+async executePlayerTurn(actorId: string): Promise<void> {
+  this.adapter.showPlayerTurn(actorId);
+
+  while (true) {
+    const actionId = await this.adapter.awaitPlayerAction(actorId);
+    const action = this.actionRegistry.getAction(actionId);
+    const resolution = action.resolve(actorId, this.adapter);
+    const result = await resolution.execute();
+
+    if (result.cancelled) {
+      continue;  // Let player choose again
+    }
+
+    if (!result.success) {
+      this.adapter.log(result.failureReason);
+    }
+
+    this.state.turnController.advanceTurn(actorId, result.cost.time);
+    await this.adapter.delay(300);
+    return;
+  }
+}
+```
+
+### BattleAdapter Method Reference
+
+| Method | Purpose |
+|--------|---------|
+| `promptTile(params)` | Show targeting range, wait for tile click |
+| `promptOptions(prompt)` | Show option panel, wait for selection |
+| `animate(events)` | Play animation events via AnimationExecutor |
+| `log(message)` | Write message to battle log |
+| `showPlayerTurn(actorId)` | Auto-select actor, setup UI for turn |
+| `awaitPlayerAction(actorId)` | Return Promise that resolves when action button clicked |
+| `transition(scene, data)` | Switch to another Phaser scene |
+| `delay(ms)` | Wait for specified milliseconds |
+
+### File Locations
 
 | File | Purpose |
 |------|---------|
-| `src/controllers/TurnFlowController.ts` | Battle loop orchestration (no Phaser) |
-| `src/types/BattleAdapter.ts` | UI abstraction interface |
-| `src/systems/TurnController.ts` | Wheel and victory/defeat logic |
-| `src/scenes/BattleScene.ts` | Phaser implementation of BattleAdapter |
+| `src/controllers/TurnFlowController.ts` | Turn orchestration logic |
+| `src/types/BattleAdapter.ts` | Adapter interface definition |
+| `src/systems/TurnController.ts` | Wheel and status operations |
+| `src/scenes/BattleScene.ts` | Adapter implementation |

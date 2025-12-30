@@ -15,6 +15,7 @@ You are a coordinator. Delegate ALL file changes to specialized agents.
 | e2e-test-verifier | Run + validate E2E tests | - |
 | architecture-reviewer | Review code quality | - |
 | documentation-checker | Validate documentation | - |
+| documentation-writer | Write architecture docs | `docs/architecture/` |
 
 ## TDD Cycle (Mandatory)
 
