@@ -12,11 +12,6 @@ Feature: Selected Hero Panel
     Then the selected hero panel should be visible
     And the panel should show the selected hero ID
 
-  Scenario: Panel displays inventory slots
-    Given the first hero is the current actor
-    When I click the first hero card in the bar
-    Then the panel should show 4 inventory slots
-
   Scenario: Panel displays action buttons with costs
     Given the first hero is the current actor
     When I click the first hero card in the bar

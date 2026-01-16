@@ -6,23 +6,21 @@ import {
   getCharacterPosition,
   clickGridTile,
   UI_PANEL_COORDS,
+  HERO_BAR_COORDS,
 } from '@tests/e2e/fixtures';
 
 const { Given, When, Then } = createBdd();
-
-// Hero Selection Bar coordinates (from plan)
-const HERO_BAR_X = 80;
-const HERO_BAR_Y = 480;
-const HERO_CARD_WIDTH = 120;
-const HERO_CARD_GAP = 8;
 
 /**
  * Calculate the click position for a hero card in the bar
  * @param index 0-based hero index
  */
 function getHeroCardCenter(index: number): { x: number; y: number } {
-  const cardX = HERO_BAR_X + index * (HERO_CARD_WIDTH + HERO_CARD_GAP) + HERO_CARD_WIDTH / 2;
-  const cardY = HERO_BAR_Y + 50; // Center of the card height
+  const cardX =
+    HERO_BAR_COORDS.X +
+    index * (HERO_BAR_COORDS.CARD_WIDTH + HERO_BAR_COORDS.CARD_GAP) +
+    HERO_BAR_COORDS.CARD_WIDTH / 2;
+  const cardY = HERO_BAR_COORDS.Y + HERO_BAR_COORDS.CARD_CLICK_Y_OFFSET;
   return { x: cardX, y: cardY };
 }
 

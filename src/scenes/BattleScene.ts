@@ -179,6 +179,19 @@ export class BattleScene extends Phaser.Scene implements BattleAdapter {
     this.battleUI = new BattleUI(this);
     this.battleUI.createAllPanels();
 
+    // Set up toggle callback to show/hide action panel
+    this.battleUI.setToggleCallback((showingLog) => {
+      if (showingLog) {
+        this.selectedHeroPanel.hidePanel();
+      } else {
+        const selectedId = this.selectionManager.getSelected();
+        if (selectedId) {
+          this.battleUI.hideLog();
+          this.selectedHeroPanel.showPanel(selectedId);
+        }
+      }
+    });
+
     // Create hero selection bar
     this.createHeroSelectionBar();
 
@@ -212,9 +225,7 @@ export class BattleScene extends Phaser.Scene implements BattleAdapter {
     this.optionSelectionPanel = new OptionSelectionPanel(this);
 
     // Subscribe UI components to state changes
-    this.battleUI.subscribeToState(this.stateObserver, this.state, () =>
-      this.selectionManager.getSelected()
-    );
+    this.battleUI.subscribeToState(this.stateObserver, this.state);
     this.heroSelectionBar.subscribeToState(this.stateObserver);
     this.selectedHeroPanel.subscribeToState(this.stateObserver, this.state);
 
@@ -250,8 +261,26 @@ export class BattleScene extends Phaser.Scene implements BattleAdapter {
 
     // Select and show panel for current actor
     this.selectionManager.select(heroId);
+    this.battleUI.hideLog();
     this.selectedHeroPanel.showPanel(heroId);
     this.stateObserver.emitSelectionChanged(heroId);
+  }
+
+  private handleCharacterVisualClick(characterId: string): void {
+    const character = this.characters.find((c) => c.id === characterId);
+    if (!character?.isAlive()) return;
+
+    // Turn enforcement: only allow selecting the current actor
+    if (characterId !== this.currentActorId) {
+      this.battleUI.log(`It's not ${characterId}'s turn`);
+      return;
+    }
+
+    // Select and show panel for current actor
+    this.selectionManager.select(characterId);
+    this.battleUI.hideLog();
+    this.selectedHeroPanel.showPanel(characterId);
+    this.stateObserver.emitSelectionChanged(characterId);
   }
 
   private createSelectedHeroPanel(): void {
@@ -288,6 +317,8 @@ export class BattleScene extends Phaser.Scene implements BattleAdapter {
       );
       if (visual) {
         this.characterVisuals.set(character.id, visual);
+        // Add click handler for turn validation
+        visual.onClick(() => this.handleCharacterVisualClick(character.id));
       }
     }
 
@@ -357,6 +388,7 @@ export class BattleScene extends Phaser.Scene implements BattleAdapter {
     }
 
     // Show panel for selected hero
+    this.battleUI.hideLog();
     this.selectedHeroPanel.showPanel(actorId);
     this.stateObserver.emitSelectionChanged(character?.id ?? null);
   }

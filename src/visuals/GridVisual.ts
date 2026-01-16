@@ -17,9 +17,9 @@ export class GridVisual {
     pit: 0x1a1a1a,
   };
 
-  private static readonly LINE_COLOR = 0x444466;
-  private static readonly LINE_WIDTH = 1;
-  private static readonly LINE_ALPHA = 0.5;
+  private static readonly LINE_COLOR = 0x5a5a7a;
+  private static readonly LINE_WIDTH = 2;
+  private static readonly LINE_ALPHA = 0.7;
   private static readonly TERRAIN_ALPHA = 0.3;
 
   private readonly scene: Phaser.Scene;

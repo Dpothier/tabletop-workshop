@@ -9,12 +9,12 @@ import { Page, expect } from '@playwright/test';
 /** Selected Hero Panel coordinates */
 export const UI_PANEL_COORDS = {
   /** X position for action buttons (center of buttons) */
-  BUTTON_X: 712,
+  BUTTON_X: 910,
   /** Y positions for each action button */
-  MOVE_BUTTON_Y: 430,
-  RUN_BUTTON_Y: 470,
-  ATTACK_BUTTON_Y: 510,
-  REST_BUTTON_Y: 550,
+  MOVE_BUTTON_Y: 510,
+  RUN_BUTTON_Y: 550,
+  ATTACK_BUTTON_Y: 590,
+  REST_BUTTON_Y: 630,
 } as const;
 
 /** Hero Selection Bar coordinates */
@@ -22,7 +22,7 @@ export const HERO_BAR_COORDS = {
   /** X position of the hero bar (left edge) */
   X: 80,
   /** Y position of the hero bar */
-  Y: 480,
+  Y: 600,
   /** Width of each hero card */
   CARD_WIDTH: 120,
   /** Gap between hero cards */

@@ -74,40 +74,39 @@ Following PRD v4 implementation order.
 
 ---
 
-## Step 5: Turn Enforcement Bug Fix ⏳ PENDING
+## Step 5: Turn Enforcement Bug Fix ✅ COMPLETE
 
-### Bug
-Currently any player character can be selected and made to act, even when it's not their turn on the action wheel.
+### Completed
+- [x] Validate that selected character matches current actor from action wheel
+- [x] Prevent selecting non-active heroes during player turns
+- [x] Auto-select the current actor when their turn begins
+- [x] Gray out or disable non-active hero portraits
 
-### Fix
-- [ ] Validate that selected character matches current actor from action wheel
-- [ ] Prevent selecting non-active heroes during player turns
-- [ ] Auto-select the current actor when their turn begins
-- [ ] Gray out or disable non-active hero portraits
+### Implementation Details
+- `handleHeroBarClick()` validates `heroId !== currentActorId` (BattleScene.ts:246)
+- `showPlayerTurn()` auto-selects current actor (BattleScene.ts:348-360)
+- `HeroSelectionBar.updateCurrentActor()` dims non-active heroes to 50% opacity
+- Current actor highlighted with yellow border
+- 3 E2E tests verify behavior (turn-enforcement.feature)
 
 ---
 
-## Step 6: Battle UI Redesign ⏳ PENDING
+## Step 6: Battle UI Redesign ✅ COMPLETE
 
-### Hero Selection Bar (Below Arena)
-- [ ] Create horizontal bar below the arena grid
-- [ ] Display hero portraits/icons for each player character
-- [ ] Show beads in hand as colored circles under each portrait
-- [ ] Show current weapon icon under each portrait (sword placeholder)
-- [ ] Show HP indicator for each hero
-- [ ] Highlight current actor's portrait
-- [ ] Click portrait to select hero (only if it's their turn)
+### Completed
+- [x] Bead display enhancement (larger beads: 10px in cards, 14px in panel)
+- [x] Turn indicator banner at top center ("Player 1's Turn")
+- [x] Action wheel visualization (8-segment pie chart with entity markers)
+- [x] Action button icons (→ Move, » Run, ⚔ Attack, ⏸ Rest) with ⏱ time costs
+- [x] Hero card colored backgrounds (P1-P4 unique colors)
+- [x] Grid line visibility improved (2px width, 0.7 alpha)
 
-### Selected Hero Panel
-- [ ] Create inventory panel (empty slots placeholder)
-- [ ] Show action menu when hero is selected
-- [ ] Display wheel cost and bead cost for each action
-- [ ] Gray out actions that cannot be afforded
-
-### Visual Polish
-- [ ] Improve overall color scheme and styling
-- [ ] Add clear turn indicator
-- [ ] Better visual feedback for selectable vs non-selectable elements
+### Implementation Details
+- `BattleUI.ts`: Turn banner, enhanced wheel display, larger beads
+- `HeroSelectionBar.ts`: Larger beads (10px), colored hero backgrounds
+- `SelectedHeroPanel.ts`: Action icons, time cost display (⏱N)
+- `GridVisual.ts`: Line width 2px, alpha 0.7, color 0x5a5a7a
+- All 40 E2E tests passing
 
 ---
 

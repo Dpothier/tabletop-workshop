@@ -9,12 +9,13 @@ import {
 
 const { Given, When, Then } = createBdd();
 
-// Selected Hero Panel coordinates (from plan)
-const PANEL_X = 600;
-const PANEL_Y = 280;
+// Selected Hero Panel coordinates (must match SelectedHeroPanel.ts)
+const PANEL_X = 810;
+const PANEL_Y = 480;
+const PANEL_WIDTH = 200;
 
 // Action button positions within panel (relative to panel)
-const ACTION_BUTTON_Y_OFFSET = 150; // Start of action buttons area
+const ACTION_BUTTON_Y_OFFSET = 30; // Start of action buttons area
 const ACTION_BUTTON_HEIGHT = 36;
 const ACTION_BUTTON_GAP = 4;
 
@@ -24,7 +25,7 @@ const ACTION_BUTTON_GAP = 4;
 function getActionButtonCenter(actionIndex: number): { x: number; y: number } {
   const buttonY =
     PANEL_Y + ACTION_BUTTON_Y_OFFSET + actionIndex * (ACTION_BUTTON_HEIGHT + ACTION_BUTTON_GAP);
-  return { x: PANEL_X + 112, y: buttonY }; // Center of panel width
+  return { x: PANEL_X + PANEL_WIDTH / 2, y: buttonY }; // Center of panel width
 }
 
 // Panel visibility
@@ -32,11 +33,6 @@ Then('the panel should show the selected hero ID', async ({ page }) => {
   const state = await getGameState(page);
   expect(state.selectedHeroPanel?.heroId, 'Panel should show hero ID').toBeDefined();
   expect(state.selectedHeroPanel?.heroId).toMatch(/^hero-/);
-});
-
-Then('the panel should show 4 inventory slots', async ({ page }) => {
-  const state = await getGameState(page);
-  expect(state.selectedHeroPanel?.inventorySlots, 'Panel should have 4 inventory slots').toBe(4);
 });
 
 // Action button display

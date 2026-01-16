@@ -25,29 +25,21 @@ export interface SelectedHeroPanelState {
   actionButtons: ActionButtonState[];
 }
 
-// Layout constants from plan
-const PANEL_X = 600;
-const PANEL_Y = 280;
-const PANEL_WIDTH = 224;
-const PANEL_HEIGHT = 280;
-
-// Inventory layout
-const INVENTORY_SLOTS = 4;
-const SLOT_SIZE = 40;
-const SLOT_GAP = 8;
-const INVENTORY_Y_OFFSET = 40;
+// Layout constants
+const PANEL_X = 810;
+const PANEL_Y = 480;
+const PANEL_WIDTH = 200;
+const PANEL_HEIGHT = 230;
 
 // Action button layout
-const ACTION_BUTTON_Y_OFFSET = 150;
-const ACTION_BUTTON_WIDTH = 180;
+const ACTION_BUTTON_Y_OFFSET = 30;
+const ACTION_BUTTON_WIDTH = 200;
 const ACTION_BUTTON_HEIGHT = 36;
 const ACTION_BUTTON_GAP = 4;
 
 // Colors
 const PANEL_BG_COLOR = 0x1a1a2e;
 const PANEL_BORDER_COLOR = 0x4a4a6a;
-const SLOT_BG_COLOR = 0x2a2a4a;
-const SLOT_BORDER_COLOR = 0x5a5a7a;
 const BUTTON_BG_COLOR = 0x3a3a5a;
 const BUTTON_HOVER_COLOR = 0x4a4a6a;
 const BUTTON_DISABLED_COLOR = 0x2a2a3a;
@@ -56,9 +48,8 @@ const DISABLED_TEXT_COLOR = '#666666';
 const COST_COLOR = '#ffcc00';
 
 /**
- * SelectedHeroPanel displays the selected hero's inventory and action menu.
- * Shows 4 inventory slots (empty placeholders) and action buttons with costs.
- * Grays out unaffordable actions based on beads in hand.
+ * SelectedHeroPanel displays action buttons for the selected hero.
+ * Shows action buttons with time costs and grays out unaffordable actions.
  */
 export class SelectedHeroPanel {
   private scene: Phaser.Scene;
@@ -93,7 +84,7 @@ export class SelectedHeroPanel {
     this.container.add(bg);
 
     // Title
-    const title = this.scene.add.text(PANEL_WIDTH / 2, 15, 'Selected Hero', {
+    const title = this.scene.add.text(PANEL_WIDTH / 2, 15, 'Actions', {
       fontSize: '14px',
       color: TEXT_COLOR,
       fontStyle: 'bold',
@@ -101,28 +92,8 @@ export class SelectedHeroPanel {
     title.setOrigin(0.5);
     this.container.add(title);
 
-    // Create inventory slots
-    this.createInventorySlots();
-
     // Create action buttons
     this.createActionButtons();
-  }
-
-  /**
-   * Create 4 empty inventory slots
-   */
-  private createInventorySlots(): void {
-    const startX =
-      (PANEL_WIDTH - (INVENTORY_SLOTS * SLOT_SIZE + (INVENTORY_SLOTS - 1) * SLOT_GAP)) / 2;
-
-    for (let i = 0; i < INVENTORY_SLOTS; i++) {
-      const x = startX + i * (SLOT_SIZE + SLOT_GAP) + SLOT_SIZE / 2;
-      const y = INVENTORY_Y_OFFSET + SLOT_SIZE / 2;
-
-      const slot = this.scene.add.rectangle(x, y, SLOT_SIZE, SLOT_SIZE, SLOT_BG_COLOR);
-      slot.setStrokeStyle(1, SLOT_BORDER_COLOR);
-      this.container.add(slot);
-    }
   }
 
   /**
@@ -197,7 +168,7 @@ export class SelectedHeroPanel {
     return {
       visible: this.container.visible,
       heroId: this.selectedHeroId,
-      inventorySlots: INVENTORY_SLOTS,
+      inventorySlots: 0, // No inventory slots currently
       actionButtons: this.actionButtons.map((button) => ({
         name: button.getName(),
         cost: button.getCost(),
@@ -289,26 +260,60 @@ class ActionButton {
     this.background.on('pointerout', () => this.onHover(false));
     this.background.on('pointerdown', () => this.onClick());
 
-    // Action name label
-    this.label = scene.add.text(-70, 0, name, {
+    // Action icon and name label
+    const icon = this.getActionIcon(name);
+    this.label = scene.add.text(-70, 0, `${icon} ${name}`, {
       fontSize: '14px',
       color: TEXT_COLOR,
     });
     this.label.setOrigin(0, 0.5);
 
-    // Cost label
-    this.costLabel = scene.add.text(70, 0, `${cost.time}`, {
+    // Time cost with clock icon
+    this.costLabel = scene.add.text(70, 0, `⏱${cost.time}`, {
       fontSize: '14px',
       color: COST_COLOR,
       fontStyle: 'bold',
     });
     this.costLabel.setOrigin(1, 0.5);
 
-    // Bead icon before cost
-    const beadIcon = scene.add.circle(50, 0, 6, 0xffffff);
-    beadIcon.setStrokeStyle(1, 0x000000);
+    // Add bead cost indicators
+    let beadX = 30;
+    const beadColors = { red: 0xff4444, blue: 0x4444ff, green: 0x44ff44 };
+    const beads: { color: string; count: number }[] = [
+      { color: 'red', count: cost.red || 0 },
+      { color: 'blue', count: cost.blue || 0 },
+      { color: 'green', count: cost.green || 0 },
+    ];
 
-    this.container.add([this.background, this.label, beadIcon, this.costLabel]);
+    for (const bead of beads) {
+      if (bead.count > 0) {
+        const circle = scene.add.circle(
+          beadX,
+          0,
+          5,
+          beadColors[bead.color as keyof typeof beadColors]
+        );
+        circle.setStrokeStyle(1, 0x000000);
+        this.container.add(circle);
+        beadX += 12;
+      }
+    }
+
+    this.container.add([this.background, this.label, this.costLabel]);
+  }
+
+  /**
+   * Get the action icon based on action name
+   */
+  private getActionIcon(name: string): string {
+    const ACTION_ICONS: Record<string, string> = {
+      Move: '→',
+      Run: '»',
+      Attack: '⚔',
+      Rest: '⏸',
+      'Power Attack': '⚔⚔',
+    };
+    return ACTION_ICONS[name] || '•';
   }
 
   /**

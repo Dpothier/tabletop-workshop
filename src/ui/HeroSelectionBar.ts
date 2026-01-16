@@ -35,7 +35,7 @@ export interface HeroCardState {
 
 // Layout constants
 const HERO_BAR_X = 80;
-const HERO_BAR_Y = 480;
+const HERO_BAR_Y = 600;
 const HERO_BAR_WIDTH = 512;
 const HERO_BAR_HEIGHT = 100;
 const HERO_CARD_WIDTH = 120;
@@ -52,6 +52,13 @@ const BEAD_COLORS: Record<string, number> = {
   green: 0x44ff44,
   white: 0xffffff,
 };
+// Hero background colors by player index (P1-P4)
+const HERO_BG_COLORS = [
+  0x8b2020,   // P1: Dark red
+  0x2d6b2d,   // P2: Dark green
+  0x2d4d8b,   // P3: Dark blue
+  0x8b8b2d,   // P4: Gold/olive
+];
 
 /**
  * HeroSelectionBar displays hero cards below the arena grid.
@@ -272,7 +279,12 @@ class HeroCardContainer {
       backgroundColor: '#000000',
     });
 
-    const classIcon = scene.add
+    // Hero background circle (colored by player index)
+    const heroBgColor = HERO_BG_COLORS[this.getPlayerIndex()] || 0x4a4a6a;
+    const heroBackground = scene.add.circle(0, -30, 20, heroBgColor);
+    heroBackground.setStrokeStyle(2, 0x6a6a8a);
+
+    const heroIcon = scene.add
       .text(0, -30, heroData.classIcon || heroData.className[0], {
         fontSize: '24px',
         color: '#ffffff',
@@ -303,7 +315,8 @@ class HeroCardContainer {
       this.background,
       this.highlightBorder,
       playerLabel,
-      classIcon,
+      heroBackground,
+      heroIcon,
       hpBg,
       this.hpBar,
       this.beadContainer,
@@ -379,9 +392,9 @@ class HeroCardContainer {
   private renderBeads(): void {
     this.beadContainer.removeAll(true);
 
-    const beadSize = 6;
-    const beadGap = 3;
-    let x = -30;
+    const beadSize = 10;
+    const beadGap = 4;
+    let x = -40;
 
     for (const [color, count] of Object.entries(this.beadCounts)) {
       for (let i = 0; i < count; i++) {
