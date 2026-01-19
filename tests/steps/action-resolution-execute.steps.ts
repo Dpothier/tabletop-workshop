@@ -51,6 +51,7 @@ Given('an action with no parameters', function (world: ActionResolutionExecuteWo
     id: 'test-action',
     name: 'Test Action',
     cost: { time: 1 },
+    category: 'other',
     parameters: [],
     effects: [],
   };
@@ -105,6 +106,7 @@ Given(
       id: 'test-action',
       name: 'Test Action',
       cost: { time: 1 },
+      category: 'other',
       parameters: [],
       effects: [
         {
@@ -160,6 +162,7 @@ Given(
       id: 'test-action',
       name: 'Test Action',
       cost: { time: 1 },
+      category: 'other',
       parameters: [],
       effects: [
         {
@@ -216,6 +219,7 @@ Given(
       id: 'test-action',
       name: 'Test Action',
       cost: { time: 1 },
+      category: 'other',
       parameters: [],
       effects: [
         {
@@ -376,6 +380,7 @@ Given(
       id: 'tile-action',
       name: 'Tile Action',
       cost: { time: 1 },
+      category: 'other',
       parameters: [
         {
           type: 'tile',
@@ -464,6 +469,7 @@ Given(
       id: 'multi-tile-action',
       name: 'Multi Tile Action',
       cost: { time: 1 },
+      category: 'other',
       parameters: [
         {
           type: 'tile',
@@ -624,6 +630,7 @@ Given('an action with an option parameter', function (world: ActionResolutionExe
     id: 'option-action',
     name: 'Option Action',
     cost: { time: 1 },
+    category: 'other',
     parameters: [
       {
         type: 'option',
@@ -713,6 +720,7 @@ Given(
       id: 'multi-option-action',
       name: 'Multi Option Action',
       cost: { time: 1 },
+      category: 'other',
       parameters: [
         {
           type: 'option',

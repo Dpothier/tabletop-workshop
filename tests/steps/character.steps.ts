@@ -27,6 +27,7 @@ const CORE_ACTIONS: ActionDefinition[] = [
     id: 'move',
     name: 'Move',
     cost: { time: 1 },
+    category: 'movement',
     parameters: [
       { key: 'target', type: 'tile', prompt: 'Select destination', range: 2, filter: 'empty' },
     ],
@@ -36,6 +37,7 @@ const CORE_ACTIONS: ActionDefinition[] = [
     id: 'run',
     name: 'Run',
     cost: { time: 2 },
+    category: 'movement',
     parameters: [
       { key: 'target', type: 'tile', prompt: 'Select destination', range: 6, filter: 'empty' },
     ],
@@ -45,6 +47,7 @@ const CORE_ACTIONS: ActionDefinition[] = [
     id: 'attack',
     name: 'Attack',
     cost: { time: 2 },
+    category: 'attack',
     parameters: [
       { key: 'target', type: 'entity', prompt: 'Select target', filter: 'enemy', range: 1 },
     ],
@@ -54,6 +57,7 @@ const CORE_ACTIONS: ActionDefinition[] = [
     id: 'rest',
     name: 'Rest',
     cost: { time: 2 },
+    category: 'other',
     parameters: [],
     effects: [{ id: 'drawBeads', type: 'drawBeads', params: { entityId: 'hero-0', count: 2 } }],
   },

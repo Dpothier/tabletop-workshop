@@ -3,6 +3,11 @@ import type { ParameterPrompt } from '@src/types/ParameterPrompt';
 import type { AnimationEvent } from '@src/types/AnimationEvent';
 
 /**
+ * Action category for grouping actions in the UI
+ */
+export type ActionCategory = 'movement' | 'attack' | 'other';
+
+/**
  * EffectDefinition represents a single effect to be executed as part of an action.
  */
 export interface EffectDefinition {
@@ -29,6 +34,8 @@ export interface ActionDefinition {
   id: string;
   /** Display name shown in UI */
   name: string;
+  /** Category for grouping in UI tabs */
+  category: ActionCategory;
   /** Optional description for tooltips */
   description?: string;
   /** Base cost to perform the action */

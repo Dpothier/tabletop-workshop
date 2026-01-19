@@ -74,6 +74,7 @@ Given(
       id: actionId,
       name: `${actionId} action`,
       cost: { time: 1 },
+      category: 'other',
       parameters: [],
       effects: [
         {
@@ -103,6 +104,7 @@ Given(
       id: actionId,
       name: `${actionId} action`,
       cost: { time: 1 },
+      category: 'other',
       parameters: [],
       effects,
     };

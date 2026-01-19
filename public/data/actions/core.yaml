@@ -1,6 +1,7 @@
 actions:
   - id: move
     name: Move
+    category: movement
     description: Move up to 2 tiles
     cost:
       time: 1
@@ -18,6 +19,7 @@ actions:
 
   - id: run
     name: Run
+    category: movement
     description: Move up to 6 tiles
     cost:
       time: 2
@@ -35,6 +37,7 @@ actions:
 
   - id: attack
     name: Attack
+    category: attack
     description: Attack an adjacent enemy
     cost:
       time: 2
@@ -48,6 +51,7 @@ actions:
 
   - id: rest
     name: Rest
+    category: other
     description: Draw 2 beads to hand
     cost:
       time: 2
@@ -61,6 +65,7 @@ actions:
 
   - id: power_attack
     name: Power Attack
+    category: attack
     description: A powerful attack with enhancement options
     cost:
       time: 2

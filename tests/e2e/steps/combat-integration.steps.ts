@@ -1,5 +1,6 @@
 import { createBdd } from 'playwright-bdd';
 import { expect } from '@playwright/test';
+import type { Page } from '@playwright/test';
 import {
   waitForGameReady,
   clickGameCoords,
@@ -14,6 +15,29 @@ import {
 } from '@tests/e2e/fixtures';
 
 const { Given, When, Then } = createBdd();
+
+/**
+ * Click on a specific tab in the Selected Hero Panel
+ */
+async function clickTab(page: Page, tab: 'movement' | 'attacks' | 'others'): Promise<void> {
+  const tabX =
+    tab === 'movement'
+      ? UI_PANEL_COORDS.MOVEMENT_TAB_X
+      : tab === 'attacks'
+        ? UI_PANEL_COORDS.ATTACKS_TAB_X
+        : UI_PANEL_COORDS.OTHERS_TAB_X;
+  await clickGameCoords(page, tabX, UI_PANEL_COORDS.TAB_Y);
+  await page.waitForTimeout(200);
+}
+
+/**
+ * Click the Rest button (in Others tab, centered single button)
+ */
+async function clickRestButton(page: Page): Promise<void> {
+  await clickTab(page, 'others');
+  const restX = UI_PANEL_COORDS.PANEL_X + UI_PANEL_COORDS.PANEL_WIDTH / 2;
+  await clickGameCoords(page, restX, UI_PANEL_COORDS.BUTTON_ROW_Y);
+}
 
 // Background step for bead-based battle
 Given('I have started a battle with bead system', async ({ page }) => {
@@ -94,7 +118,7 @@ When('I click a valid movement tile', async ({ page }) => {
 });
 
 When('I complete an action', async ({ page }) => {
-  await clickGameCoords(page, UI_PANEL_COORDS.BUTTON_X, UI_PANEL_COORDS.REST_BUTTON_Y);
+  await clickRestButton(page);
   await page.waitForTimeout(500);
 });
 
@@ -138,7 +162,7 @@ Given('all players have higher wheel positions than the monster', async ({ page 
     }
 
     // Click Rest button (in SelectedHeroPanel)
-    await clickGameCoords(page, UI_PANEL_COORDS.BUTTON_X, UI_PANEL_COORDS.REST_BUTTON_Y);
+    await clickRestButton(page);
 
     // Wait for rest animation and turn processing
     await page.waitForTimeout(1000);
@@ -256,7 +280,7 @@ Then('the battle log should show the transition', async ({ page }) => {
 
 Given('the monster has taken several turns', async ({ page }) => {
   for (let i = 0; i < 3; i++) {
-    await clickGameCoords(page, UI_PANEL_COORDS.BUTTON_X, UI_PANEL_COORDS.REST_BUTTON_Y);
+    await clickRestButton(page);
     await page.waitForTimeout(1500);
   }
 });

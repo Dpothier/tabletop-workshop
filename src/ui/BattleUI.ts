@@ -3,6 +3,7 @@ import type { BeadCounts } from '@src/types/Beads';
 import type { WheelEntry } from '@src/systems/ActionWheel';
 import type { BattleStateObserver } from '@src/systems/BattleStateObserver';
 import type { BattleState } from '@src/state/BattleState';
+import { HERO_COLORS } from '@src/ui/colors';
 
 /**
  * BattleUI handles all Phaser-based UI rendering for the battle scene.
@@ -27,6 +28,7 @@ export class BattleUI {
   private wheelTooltipBg!: Phaser.GameObjects.Graphics;
   private wheelTooltipText!: Phaser.GameObjects.Text;
   private getEntitiesAtPositionCallback: ((pos: number) => WheelEntry[]) | null = null;
+  private wheelCountTexts: Phaser.GameObjects.Text[] = [];
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -64,16 +66,17 @@ export class BattleUI {
       .setOrigin(0.5);
 
     // Create tooltip background graphics (initially hidden)
-    this.wheelTooltipBg = this.scene.add.graphics()
-      .setVisible(false)
-      .setDepth(200);
+    this.wheelTooltipBg = this.scene.add.graphics().setVisible(false).setDepth(200);
 
     // Create tooltip text (initially hidden)
-    this.wheelTooltipText = this.scene.add.text(0, 0, '', {
-      fontSize: '11px',
-      color: '#cccccc',
-      align: 'left',
-    }).setVisible(false).setDepth(201);
+    this.wheelTooltipText = this.scene.add
+      .text(0, 0, '', {
+        fontSize: '11px',
+        color: '#cccccc',
+        align: 'left',
+      })
+      .setVisible(false)
+      .setDepth(201);
 
     // Add pointer move handler for wheel hover detection
     this.scene.input.on('pointermove', (pointer: Phaser.Input.Pointer): void => {
@@ -107,13 +110,15 @@ export class BattleUI {
 
     this.logContainer.add([bg, title, this.logText]);
 
-    // Toggle button above action panel, between beads and panel
-    this.toggleButton = this.scene.add.text(810, 465, '📜', {
-      fontSize: '20px',
-      color: '#aaaaaa',
-      backgroundColor: '#2a2a4a',
-      padding: { x: 8, y: 4 },
-    }).setDepth(100);
+    // Toggle button - positioned to the right of the action wheel
+    this.toggleButton = this.scene.add
+      .text(990, 410, '📜', {
+        fontSize: '20px',
+        color: '#aaaaaa',
+        backgroundColor: '#2a2a4a',
+        padding: { x: 8, y: 4 },
+      })
+      .setDepth(100);
     this.toggleButton.setInteractive({ useHandCursor: true });
     this.toggleButton.on('pointerover', () => this.toggleButton.setColor('#ffffff'));
     this.toggleButton.on('pointerout', () => this.toggleButton.setColor('#aaaaaa'));
@@ -121,14 +126,17 @@ export class BattleUI {
   }
 
   private createTurnBanner(): void {
-    this.turnBannerBg = this.scene.add.rectangle(512, 40, 300, 50, 0x2a4a2a)
+    this.turnBannerBg = this.scene.add
+      .rectangle(512, 40, 300, 50, 0x2a4a2a)
       .setStrokeStyle(2, 0x4a6a4a);
 
-    this.turnBannerText = this.scene.add.text(512, 40, '', {
-      fontSize: '24px',
-      color: '#ffffff',
-      fontStyle: 'bold',
-    }).setOrigin(0.5);
+    this.turnBannerText = this.scene.add
+      .text(512, 40, '', {
+        fontSize: '24px',
+        color: '#ffffff',
+        fontStyle: 'bold',
+      })
+      .setOrigin(0.5);
   }
 
   // ===== Update Methods =====
@@ -155,6 +163,12 @@ export class BattleUI {
     nextActorPosition: number | undefined
   ): void {
     this.wheelGraphics.clear();
+
+    // Clear previous count text indicators
+    for (const text of this.wheelCountTexts) {
+      text.destroy();
+    }
+    this.wheelCountTexts = [];
 
     // Store callback for tooltip system
     this.getEntitiesAtPositionCallback = getEntitiesAtPosition;
@@ -202,10 +216,9 @@ export class BattleUI {
             this.wheelGraphics.lineStyle(1, 0xffffff);
             this.wheelGraphics.strokeCircle(markerX, markerY, 12);
           } else {
-            // Hero: colored circle based on index
+            // Hero: colored circle based on index (uses shared HERO_COLORS)
             const heroIndex = parseInt(entity.id.split('-')[1]);
-            const heroColors = [0x44ff44, 0x4488ff, 0xff8844, 0xffff44];
-            this.wheelGraphics.fillStyle(heroColors[heroIndex % 4], 0.9);
+            this.wheelGraphics.fillStyle(HERO_COLORS[heroIndex % HERO_COLORS.length], 0.9);
             this.wheelGraphics.fillCircle(markerX, markerY, 10);
             this.wheelGraphics.lineStyle(1, 0xffffff);
             this.wheelGraphics.strokeCircle(markerX, markerY, 10);
@@ -224,12 +237,16 @@ export class BattleUI {
           this.wheelGraphics.lineStyle(1, 0xffffff);
           this.wheelGraphics.strokeCircle(indicatorX, indicatorY, 8);
 
-          // Draw text indicator
-          this.scene.add.text(indicatorX, indicatorY, `+${extraCount}`, {
-            fontSize: '10px',
-            color: '#000000',
-            align: 'center',
-          }).setOrigin(0.5).setDepth(100);
+          // Draw text indicator and store reference for cleanup
+          const countText = this.scene.add
+            .text(indicatorX, indicatorY, `+${extraCount}`, {
+              fontSize: '10px',
+              color: '#000000',
+              align: 'center',
+            })
+            .setOrigin(0.5)
+            .setDepth(100);
+          this.wheelCountTexts.push(countText);
         }
       }
     }
@@ -452,10 +469,7 @@ export class BattleUI {
   /**
    * Subscribe to state observer for reactive updates.
    */
-  subscribeToState(
-    observer: BattleStateObserver,
-    state: BattleState
-  ): void {
+  subscribeToState(observer: BattleStateObserver, state: BattleState): void {
     observer.subscribe({
       actorChanged: (actorId) => {
         this.updateStatusText(

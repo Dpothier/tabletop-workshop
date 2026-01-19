@@ -51,6 +51,7 @@ function createActionDefinition(id: string = 'test-action'): ActionDefinition {
     id,
     name: 'Test Action',
     cost: { time: 1, red: 0, blue: 0, green: 0, white: 0 },
+    category: 'other',
     parameters: [],
     effects: [],
     options: undefined,

@@ -1,5 +1,6 @@
 import { createBdd } from 'playwright-bdd';
 import { expect } from '@playwright/test';
+import type { Page } from '@playwright/test';
 import {
   getGameState,
   clickGameCoords,
@@ -10,6 +11,29 @@ import {
 } from '@tests/e2e/fixtures';
 
 const { Given, When, Then } = createBdd();
+
+/**
+ * Click on a specific tab in the Selected Hero Panel
+ */
+async function clickTab(page: Page, tab: 'movement' | 'attacks' | 'others'): Promise<void> {
+  const tabX =
+    tab === 'movement'
+      ? UI_PANEL_COORDS.MOVEMENT_TAB_X
+      : tab === 'attacks'
+        ? UI_PANEL_COORDS.ATTACKS_TAB_X
+        : UI_PANEL_COORDS.OTHERS_TAB_X;
+  await clickGameCoords(page, tabX, UI_PANEL_COORDS.TAB_Y);
+  await page.waitForTimeout(200);
+}
+
+/**
+ * Click the Rest button (in Others tab, centered single button)
+ */
+async function clickRestButton(page: Page): Promise<void> {
+  await clickTab(page, 'others');
+  const restX = UI_PANEL_COORDS.PANEL_X + UI_PANEL_COORDS.PANEL_WIDTH / 2;
+  await clickGameCoords(page, restX, UI_PANEL_COORDS.BUTTON_ROW_Y);
+}
 
 /**
  * Calculate the click position for a hero card in the bar
@@ -132,8 +156,8 @@ Given('I wait for the monster to attack a hero', async ({ page }) => {
         await clickGridTile(page, heroPos.x, heroPos.y);
         await page.waitForTimeout(300);
       }
-      // Rest to advance turns using correct panel coordinates
-      await clickGameCoords(page, UI_PANEL_COORDS.BUTTON_X, UI_PANEL_COORDS.REST_BUTTON_Y);
+      // Rest to advance turns (click Others tab first)
+      await clickRestButton(page);
       await page.waitForTimeout(1000);
     }
   }

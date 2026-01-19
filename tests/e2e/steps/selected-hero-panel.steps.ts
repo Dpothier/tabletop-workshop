@@ -1,31 +1,39 @@
 import { createBdd } from 'playwright-bdd';
 import { expect } from '@playwright/test';
+import type { Page } from '@playwright/test';
 import {
   getGameState,
   clickGameCoords,
   getCharacterPosition,
   clickGridTile,
+  UI_PANEL_COORDS,
 } from '@tests/e2e/fixtures';
 
 const { Given, When, Then } = createBdd();
 
-// Selected Hero Panel coordinates (must match SelectedHeroPanel.ts)
-const PANEL_X = 810;
-const PANEL_Y = 480;
-const PANEL_WIDTH = 200;
-
-// Action button positions within panel (relative to panel)
-const ACTION_BUTTON_Y_OFFSET = 30; // Start of action buttons area
-const ACTION_BUTTON_HEIGHT = 36;
-const ACTION_BUTTON_GAP = 4;
+/**
+ * Click on a specific tab in the Selected Hero Panel
+ */
+async function clickTab(page: Page, tab: 'movement' | 'attacks' | 'others'): Promise<void> {
+  const tabX =
+    tab === 'movement'
+      ? UI_PANEL_COORDS.MOVEMENT_TAB_X
+      : tab === 'attacks'
+        ? UI_PANEL_COORDS.ATTACKS_TAB_X
+        : UI_PANEL_COORDS.OTHERS_TAB_X;
+  await clickGameCoords(page, tabX, UI_PANEL_COORDS.TAB_Y);
+  await page.waitForTimeout(200);
+}
 
 /**
- * Get click position for an action button in the panel
+ * Click the Rest button (in Others tab, first button in single-button row)
  */
-function getActionButtonCenter(actionIndex: number): { x: number; y: number } {
-  const buttonY =
-    PANEL_Y + ACTION_BUTTON_Y_OFFSET + actionIndex * (ACTION_BUTTON_HEIGHT + ACTION_BUTTON_GAP);
-  return { x: PANEL_X + PANEL_WIDTH / 2, y: buttonY }; // Center of panel width
+async function clickRestButton(page: Page): Promise<void> {
+  // Click Others tab first
+  await clickTab(page, 'others');
+  // Rest is centered (single button in row) at center of panel
+  const restX = UI_PANEL_COORDS.PANEL_X + UI_PANEL_COORDS.PANEL_WIDTH / 2;
+  await clickGameCoords(page, restX, UI_PANEL_COORDS.BUTTON_ROW_Y);
 }
 
 // Panel visibility
@@ -79,9 +87,8 @@ Given('I wait until the monster is the current actor', async ({ page }) => {
         await clickGridTile(page, heroPos.x, heroPos.y);
         await page.waitForTimeout(300);
       }
-      // Click Rest button using correct panel coordinates
-      const pos = getActionButtonCenter(3);
-      await clickGameCoords(page, pos.x, pos.y);
+      // Click Rest button (will click Others tab first)
+      await clickRestButton(page);
       await page.waitForTimeout(1000);
     } else {
       await page.waitForTimeout(500);
@@ -98,9 +105,7 @@ Then('the selected hero panel should not be visible', async ({ page }) => {
 
 // Panel update on hero change
 When('I click the Rest button from panel', async ({ page }) => {
-  // Rest button is at index 3 (Move=0, Run=1, Attack=2, Rest=3)
-  const pos = getActionButtonCenter(3);
-  await clickGameCoords(page, pos.x, pos.y);
+  await clickRestButton(page);
   await page.waitForTimeout(500);
 });
 
@@ -119,9 +124,8 @@ Given('the second hero becomes the current actor', async ({ page }) => {
         await clickGridTile(page, heroPos.x, heroPos.y);
         await page.waitForTimeout(300);
       }
-      // Click Rest button using correct panel coordinates
-      const pos = getActionButtonCenter(3);
-      await clickGameCoords(page, pos.x, pos.y);
+      // Click Rest button (will click Others tab first)
+      await clickRestButton(page);
       await page.waitForTimeout(1000);
     } else {
       // Monster turn, wait for it to complete

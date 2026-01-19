@@ -6,15 +6,25 @@ import { Page, expect } from '@playwright/test';
 // These constants define the pixel positions of UI elements in the game.
 // They match the layout defined in the production UI components.
 
-/** Selected Hero Panel coordinates */
+/** Selected Hero Panel coordinates - matches SelectedHeroPanel.ts layout */
 export const UI_PANEL_COORDS = {
-  /** X position for action buttons (center of buttons) */
-  BUTTON_X: 910,
-  /** Y positions for each action button */
-  MOVE_BUTTON_Y: 510,
-  RUN_BUTTON_Y: 550,
-  ATTACK_BUTTON_Y: 590,
-  REST_BUTTON_Y: 630,
+  /** Panel position */
+  PANEL_X: 600,
+  PANEL_Y: 420,
+  PANEL_WIDTH: 410,
+
+  /** Tab positions (3 tabs: Movement, Attacks, Others) */
+  TAB_Y: 440, // PANEL_Y + 20
+  TAB_WIDTH: 136, // PANEL_WIDTH / 3
+  MOVEMENT_TAB_X: 668, // PANEL_X + TAB_WIDTH/2
+  ATTACKS_TAB_X: 805, // PANEL_X + TAB_WIDTH + TAB_WIDTH/2
+  OTHERS_TAB_X: 941, // PANEL_X + TAB_WIDTH*2 + TAB_WIDTH/2
+
+  /** Action button layout (2-column grid below tabs) */
+  BUTTON_ROW_Y: 535, // PANEL_Y + 70 + 45 (center of first row)
+  BUTTON_LEFT_X: 710, // Left column center
+  BUTTON_RIGHT_X: 900, // Right column center
+  BUTTON_ROW_HEIGHT: 100, // HEIGHT + GAP
 } as const;
 
 /** Hero Selection Bar coordinates */

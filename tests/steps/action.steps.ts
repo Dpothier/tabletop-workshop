@@ -27,6 +27,7 @@ function createActionDefinition(params: Array<{ key: string; type: string }>): A
     id: 'test-action',
     name: 'Test Action',
     cost: { time: 1 },
+    category: 'other',
     parameters: params.map((p) => {
       if (p.type === 'tile') {
         return {
@@ -182,6 +183,7 @@ Given(
       id: 'test-move-action',
       name: 'Test Move Action',
       cost: { time: 1 },
+      category: 'movement',
       parameters: [],
       effects: [
         {
@@ -265,6 +267,7 @@ Given(
       id: 'test-paramref-action',
       name: 'Test Param Ref Action',
       cost: { time: 1 },
+      category: 'movement',
       parameters: [],
       effects: [
         {
@@ -348,6 +351,7 @@ Given(
       id: 'test-chain-action',
       name: 'Test Chain Action',
       cost: { time: 1 },
+      category: 'movement',
       parameters: [],
       effects: [
         {
@@ -403,6 +407,7 @@ Given('an action with two effects where first fails', function (world: ActionWor
     id: 'test-early-termination-action',
     name: 'Test Early Termination Action',
     cost: { time: 1 },
+    category: 'movement',
     parameters: [],
     effects: [
       {
@@ -457,6 +462,7 @@ Given(
       id: 'test-two-success-action',
       name: 'Test Two Success Action',
       cost: { time: 1 },
+      category: 'movement',
       parameters: [],
       effects: [
         {

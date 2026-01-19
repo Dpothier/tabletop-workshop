@@ -18,6 +18,7 @@ import { AnimationExecutor } from '@src/ui/AnimationExecutor';
 import { HeroSelectionBar } from '@src/ui/HeroSelectionBar';
 import { SelectedHeroPanel } from '@src/ui/SelectedHeroPanel';
 import { OptionSelectionPanel } from '@src/ui/OptionSelectionPanel';
+import { HERO_COLORS } from '@src/ui/colors';
 import type { BattleAdapter } from '@src/types/BattleAdapter';
 import type { OptionPrompt } from '@src/types/ParameterPrompt';
 import type { AnimationEvent } from '@src/types/AnimationEvent';
@@ -301,8 +302,6 @@ export class BattleScene extends Phaser.Scene implements BattleAdapter {
    * State objects already exist from BattleBuilder.
    */
   private createVisuals(): void {
-    const classColors = [0x4488ff, 0xff4444, 0x44ff44, 0xffff44];
-
     // Create character visuals from state entities
     for (let i = 0; i < this.characters.length; i++) {
       const character = this.characters[i];
@@ -313,7 +312,7 @@ export class BattleScene extends Phaser.Scene implements BattleAdapter {
         charClass,
         this.gridSystem,
         i,
-        classColors[i]
+        HERO_COLORS[i % HERO_COLORS.length]
       );
       if (visual) {
         this.characterVisuals.set(character.id, visual);

@@ -1,5 +1,6 @@
 import { createBdd } from 'playwright-bdd';
 import { expect } from '@playwright/test';
+import type { Page } from '@playwright/test';
 import {
   waitForGameReady,
   clickGameCoords,
@@ -15,6 +16,42 @@ const { Given, When, Then } = createBdd();
 
 // State captured before actions for wheel position verification
 let lastActionState: ActionState;
+
+/**
+ * Click on a specific tab in the Selected Hero Panel
+ */
+async function clickTab(page: Page, tab: 'movement' | 'attacks' | 'others'): Promise<void> {
+  const tabX =
+    tab === 'movement'
+      ? UI_PANEL_COORDS.MOVEMENT_TAB_X
+      : tab === 'attacks'
+        ? UI_PANEL_COORDS.ATTACKS_TAB_X
+        : UI_PANEL_COORDS.OTHERS_TAB_X;
+  await clickGameCoords(page, tabX, UI_PANEL_COORDS.TAB_Y);
+  await page.waitForTimeout(200);
+}
+
+/**
+ * Click a button in the action panel grid.
+ * @param page Playwright page
+ * @param col 0 for left column, 1 for right column
+ * @param row 0 for first row, 1 for second row, etc.
+ */
+async function clickActionButton(page: Page, col: number, row: number): Promise<void> {
+  const x = col === 0 ? UI_PANEL_COORDS.BUTTON_LEFT_X : UI_PANEL_COORDS.BUTTON_RIGHT_X;
+  const y = UI_PANEL_COORDS.BUTTON_ROW_Y + row * UI_PANEL_COORDS.BUTTON_ROW_HEIGHT;
+  await clickGameCoords(page, x, y);
+}
+
+/**
+ * Click the Rest button (in Others tab, centered single button)
+ */
+async function clickRestButton(page: Page): Promise<void> {
+  await clickTab(page, 'others');
+  // Rest is centered (single button in row)
+  const restX = UI_PANEL_COORDS.PANEL_X + UI_PANEL_COORDS.PANEL_WIDTH / 2;
+  await clickGameCoords(page, restX, UI_PANEL_COORDS.BUTTON_ROW_Y);
+}
 
 Given('I have started a battle', async ({ page }) => {
   await page.goto('/');
@@ -66,26 +103,32 @@ When('I click the Attack button', async ({ page }) => {
   const attackBtn = finalState.selectedHeroPanel?.actionButtons?.find((b) => b.name === 'Attack');
   expect(attackBtn?.affordable, 'Attack should be affordable').toBe(true);
 
-  await clickGameCoords(page, UI_PANEL_COORDS.BUTTON_X, UI_PANEL_COORDS.ATTACK_BUTTON_Y);
+  // Click Attacks tab then Attack button (left column, first row)
+  await clickTab(page, 'attacks');
+  await clickActionButton(page, 0, 0);
   // Wait for async animation to complete (damage flash takes ~600ms)
   await page.waitForTimeout(1000);
 });
 
 When('I click the Move button', async ({ page }) => {
   lastActionState = await captureActionState(page);
-  await clickGameCoords(page, UI_PANEL_COORDS.BUTTON_X, UI_PANEL_COORDS.MOVE_BUTTON_Y);
+  // Movement tab is default, Move is left column first row
+  await clickTab(page, 'movement');
+  await clickActionButton(page, 0, 0);
   await page.waitForTimeout(300);
 });
 
 When('I click the Run button', async ({ page }) => {
   lastActionState = await captureActionState(page);
-  await clickGameCoords(page, UI_PANEL_COORDS.BUTTON_X, UI_PANEL_COORDS.RUN_BUTTON_Y);
+  // Movement tab is default, Run is right column first row
+  await clickTab(page, 'movement');
+  await clickActionButton(page, 1, 0);
   await page.waitForTimeout(300);
 });
 
 When('I click the Rest button', async ({ page }) => {
   lastActionState = await captureActionState(page);
-  await clickGameCoords(page, UI_PANEL_COORDS.BUTTON_X, UI_PANEL_COORDS.REST_BUTTON_Y);
+  await clickRestButton(page);
   // Wait longer for async animation to complete
   await page.waitForTimeout(1000);
 });
