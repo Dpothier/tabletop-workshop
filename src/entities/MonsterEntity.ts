@@ -4,7 +4,9 @@ import type { BeadColor, BeadCounts } from '@src/types/Beads';
 import { BeadPile } from '@src/systems/BeadPile';
 import { BeadPool } from '@src/systems/BeadPool';
 import { MonsterStateMachine, MonsterStateDefinition } from '@src/systems/MonsterStateMachine';
-import type { AnimationEvent } from '@src/types/AnimationEvent';
+import type { AnimationEvent, DodgeEvent, GuardedEvent, HitEvent } from '@src/types/AnimationEvent';
+import type { AttackModifier } from '@src/types/Combat';
+import { resolveAttack } from '@src/combat/CombatResolver';
 
 /**
  * Configuration for a monster.
@@ -20,6 +22,7 @@ export interface MonsterConfig {
 export interface StateConfig {
   name: string;
   damage?: number;
+  agility?: number;
   wheel_cost?: number;
   range?: number;
   area?: string;
@@ -67,6 +70,7 @@ export class MonsterEntity extends Entity {
     const stateDefinitions: MonsterStateDefinition[] = states.map((state) => ({
       name: state.name,
       damage: state.damage,
+      agility: state.agility,
       wheel_cost: state.wheel_cost,
       range: state.range,
       area: state.area,
@@ -74,6 +78,19 @@ export class MonsterEntity extends Entity {
     }));
 
     this.stateMachine = new MonsterStateMachine(stateDefinitions, startState);
+  }
+
+  /**
+   * Apply stats from monster configuration.
+   * Used when loading monster from YAML data.
+   */
+  applyStats(stats: { armor?: number; evasion?: number }): void {
+    if (stats.armor !== undefined) {
+      this.setArmor(stats.armor);
+    }
+    if (stats.evasion !== undefined) {
+      this.setEvasion(stats.evasion);
+    }
   }
 
   /**
@@ -185,21 +202,60 @@ export class MonsterEntity extends Entity {
 
     // Execute the action based on type
     if (decision.type === 'attack' && decision.target && decision.state) {
-      const damage = decision.state.damage ?? 1;
-      decision.target.receiveAttack(damage);
+      const power = decision.state.damage ?? 1;
+      const agility = decision.state.agility ?? 1;
 
+      // Get target's defense stats
+      const defenseStats = decision.target.getDefenseStats();
+
+      // Resolve combat
+      const combatResult = resolveAttack({ power, agility }, defenseStats, [] as AttackModifier[]);
+
+      // Add legacy attack event for backward compatibility
       events.push({
         type: 'attack',
         attackerId: this.id,
         targetId: decision.target.id,
-        damage,
+        damage: combatResult.damage,
       });
-      events.push({
-        type: 'damage',
-        entityId: decision.target.id,
-        newHealth: decision.target.currentHealth,
-        maxHealth: decision.target.maxHealth,
-      });
+
+      // Add outcome-specific event
+      if (combatResult.outcome === 'dodged') {
+        events.push({
+          type: 'dodge',
+          entityId: decision.target.id,
+          attackerId: this.id,
+          canReact: combatResult.canReact,
+        } as DodgeEvent);
+      } else if (combatResult.outcome === 'guarded') {
+        events.push({
+          type: 'guarded',
+          entityId: decision.target.id,
+          attackerId: this.id,
+          blockedDamage: power - combatResult.damage,
+        } as GuardedEvent);
+      } else {
+        // Hit - cap damage at target's current health
+        const actualDamage = Math.min(combatResult.damage, decision.target.currentHealth);
+
+        events.push({
+          type: 'hit',
+          entityId: decision.target.id,
+          attackerId: this.id,
+          damage: actualDamage,
+        } as HitEvent);
+
+        // Only apply damage on hit
+        decision.target.receiveDamage(actualDamage);
+
+        // Add damage event for UI health bar update
+        events.push({
+          type: 'damage',
+          entityId: decision.target.id,
+          newHealth: decision.target.currentHealth,
+          maxHealth: decision.target.maxHealth,
+        });
+      }
     } else if (decision.type === 'move' && decision.destination) {
       const from = this.getPosition();
       this.moveTo(decision.destination);

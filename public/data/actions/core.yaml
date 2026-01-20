@@ -47,7 +47,8 @@ actions:
         type: attack
         params:
           targetEntity: monster
-          damage: 1
+          power: 3
+          agility: 3
 
   - id: rest
     name: Rest
@@ -62,6 +63,75 @@ actions:
         params:
           entityId: hero-0
           count: 2
+
+  - id: feint_attack
+    name: Feint Attack
+    category: attack
+    description: A deceptive strike that bypasses guard
+    cost:
+      time: 2
+      blue: 1
+    parameters:
+      - key: target
+        type: entity
+        prompt: Select target
+        filter: enemy
+        range: 1
+    effects:
+      - id: feintStrike
+        type: attack
+        params:
+          targetEntity: $target
+          power: 1
+          agility: 2
+          modifiers:
+            - feint
+
+  - id: heavy_strike
+    name: Heavy Strike
+    category: attack
+    description: A crushing blow that pierces armor
+    cost:
+      time: 3
+      red: 2
+    parameters:
+      - key: target
+        type: entity
+        prompt: Select target
+        filter: enemy
+        range: 1
+    effects:
+      - id: heavyBlow
+        type: attack
+        params:
+          targetEntity: $target
+          power: 3
+          agility: 1
+          modifiers:
+            - heavy
+
+  - id: precise_strike
+    name: Precise Strike
+    category: attack
+    description: A carefully aimed attack that rarely misses
+    cost:
+      time: 2
+      green: 1
+    parameters:
+      - key: target
+        type: entity
+        prompt: Select target
+        filter: enemy
+        range: 1
+    effects:
+      - id: preciseHit
+        type: attack
+        params:
+          targetEntity: $target
+          power: 1
+          agility: 3
+          modifiers:
+            - precise
 
   - id: power_attack
     name: Power Attack
@@ -95,12 +165,13 @@ actions:
         type: attack
         params:
           targetEntity: $target
-          damage: 1
+          power: 2
+          agility: 1
     options:
       extra_damage:
         modifies: baseAttack
         modifier:
-          damage: +1
+          power: +1
       knockback:
         adds:
           - id: knockbackEffect

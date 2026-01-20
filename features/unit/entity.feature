@@ -80,3 +80,49 @@ Feature: Entity
   Scenario: Entity max health is preserved
     Given an entity "hero-0" with 15 health registered at position 3,3
     Then the entity max health should be 15
+
+  # Defense Stats
+
+  Scenario: Entity has default defense stats of zero
+    Given an entity "hero-0" with 10 health registered at position 3,3
+    Then the entity armor should be 0
+    And the entity guard should be 0
+    And the entity evasion should be 0
+
+  Scenario: Entity can have armor set
+    Given an entity "hero-0" with 10 health registered at position 3,3
+    When the entity armor is set to 2
+    Then the entity armor should be 2
+
+  Scenario: Entity can have guard set
+    Given an entity "hero-0" with 10 health registered at position 3,3
+    When the entity guard is set to 3
+    Then the entity guard should be 3
+
+  Scenario: Entity can have evasion set
+    Given an entity "hero-0" with 10 health registered at position 3,3
+    When the entity evasion is set to 4
+    Then the entity evasion should be 4
+
+  Scenario: Entity guard can be reset to zero
+    Given an entity "hero-0" with 10 health registered at position 3,3
+    When the entity guard is set to 3
+    And the entity guard is reset
+    Then the entity guard should be 0
+
+  Scenario: Entity getDefenseStats returns all stats
+    Given an entity "hero-0" with 10 health registered at position 3,3
+    When the entity armor is set to 2
+    And the entity guard is set to 1
+    And the entity evasion is set to 3
+    Then the entity defense stats should have armor 2, guard 1, and evasion 3
+
+  Scenario: Entity receiveDamage reduces health directly
+    Given an entity "hero-0" with 10 health registered at position 3,3
+    When the entity receives 4 direct damage
+    Then the entity should have 6 health
+
+  Scenario: Entity receiveDamage cannot reduce health below zero
+    Given an entity "hero-0" with 10 health registered at position 3,3
+    When the entity receives 15 direct damage
+    Then the entity should have 0 health

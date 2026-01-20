@@ -87,6 +87,39 @@ export abstract class EntityVisual {
   }
 
   /**
+   * Animate dodge effect.
+   * Default implementation does a quick side-step animation.
+   */
+  animateDodge(): Promise<void> {
+    return new Promise((resolve) => {
+      this.scene.tweens.add({
+        targets: this.container,
+        x: this.container.x - 10,
+        duration: 100,
+        yoyo: true,
+        onComplete: () => resolve(),
+      });
+    });
+  }
+
+  /**
+   * Animate guard effect.
+   * Default implementation does a brief flash in blue/white.
+   */
+  animateGuard(): Promise<void> {
+    return new Promise((resolve) => {
+      // Flash effect using alpha
+      this.scene.tweens.add({
+        targets: this.container,
+        alpha: 0.7,
+        duration: 150,
+        yoyo: true,
+        onComplete: () => resolve(),
+      });
+    });
+  }
+
+  /**
    * Destroy this visual and clean up resources.
    */
   destroy(): void {

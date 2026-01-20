@@ -1,4 +1,5 @@
 import { BattleGrid, MoveResult, Position } from '@src/state/BattleGrid';
+import type { DefenseStats } from '@src/types/Combat';
 
 /**
  * Result of an attack on an entity.
@@ -19,6 +20,9 @@ export class Entity {
   public readonly id: string;
   public readonly maxHealth: number;
   public currentHealth: number;
+  public armor: number = 0;
+  public guard: number = 0;
+  public evasion: number = 0;
   protected readonly grid: BattleGrid;
 
   constructor(id: string, maxHealth: number, grid: BattleGrid) {
@@ -70,5 +74,52 @@ export class Entity {
    */
   isAlive(): boolean {
     return this.currentHealth > 0;
+  }
+
+  /**
+   * Get defense stats for combat resolution.
+   */
+  getDefenseStats(): DefenseStats {
+    return {
+      armor: this.armor,
+      guard: this.guard,
+      evasion: this.evasion,
+    };
+  }
+
+  /**
+   * Set armor value.
+   */
+  setArmor(amount: number): void {
+    this.armor = amount;
+  }
+
+  /**
+   * Set guard value (for defensive stance).
+   */
+  setGuard(amount: number): void {
+    this.guard = amount;
+  }
+
+  /**
+   * Reset guard to 0 (at start of turn).
+   */
+  resetGuard(): void {
+    this.guard = 0;
+  }
+
+  /**
+   * Set evasion value.
+   */
+  setEvasion(amount: number): void {
+    this.evasion = amount;
+  }
+
+  /**
+   * Receive damage directly (bypasses combat resolution).
+   * Used by CombatResolver after determining final damage.
+   */
+  receiveDamage(amount: number): void {
+    this.currentHealth = Math.max(0, this.currentHealth - amount);
   }
 }

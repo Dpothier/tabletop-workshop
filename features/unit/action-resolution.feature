@@ -169,7 +169,7 @@ Feature: Action Resolution System
     Then the action should succeed
     And the entity "hero-0" should be at position 4,4
     And entity "goblin" should have 3 health
-    And the result should contain 3 animation events
+    And the result should contain 4 animation events
 
   Scenario: Applies modifiers from selected options to effects
     Given an action definition with effects:

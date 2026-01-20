@@ -11,7 +11,10 @@ export type AnimationEvent =
   | DamageEvent
   | BeadDrawEvent
   | StateChangeEvent
-  | RestEvent;
+  | RestEvent
+  | DodgeEvent
+  | GuardedEvent
+  | HitEvent;
 
 export interface MoveEvent {
   type: 'move';
@@ -49,4 +52,25 @@ export interface RestEvent {
   type: 'rest';
   entityId: string;
   beadsDrawn: BeadColor[];
+}
+
+export interface DodgeEvent {
+  type: 'dodge';
+  entityId: string;
+  attackerId: string;
+  canReact: boolean;
+}
+
+export interface GuardedEvent {
+  type: 'guarded';
+  entityId: string;
+  attackerId: string;
+  blockedDamage: number;
+}
+
+export interface HitEvent {
+  type: 'hit';
+  entityId: string;
+  attackerId: string;
+  damage: number;
 }

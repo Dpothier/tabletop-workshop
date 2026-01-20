@@ -154,3 +154,48 @@ Feature: Effect System
     When I execute MoveEffect with destination 4,4
     Then the effect result should fail
     And no attack should be executed
+
+  # AttackEffect with Combat Resolution
+
+  Scenario: Attack hits when agility exceeds evasion
+    Given an entity "hero-0" with 10 health registered at position 3,3
+    And an entity "goblin" with 5 health registered at position 4,3
+    And entity "goblin" has armor 1, guard 0, and evasion 2
+    When I execute AttackEffect with power 4, agility 5 on "goblin"
+    Then the effect result should be successful
+    And the effect result should contain hit animation event
+    And entity "goblin" should have 2 health
+
+  Scenario: Attack dodged when evasion meets agility
+    Given an entity "hero-0" with 10 health registered at position 3,3
+    And an entity "goblin" with 5 health registered at position 4,3
+    And entity "goblin" has armor 1, guard 0, and evasion 3
+    When I execute AttackEffect with power 4, agility 3 on "goblin"
+    Then the effect result should be successful
+    And the effect result should contain dodge animation event
+    And entity "goblin" should have 5 health
+
+  Scenario: Attack guarded when defense exceeds power
+    Given an entity "hero-0" with 10 health registered at position 3,3
+    And an entity "goblin" with 5 health registered at position 4,3
+    And entity "goblin" has armor 2, guard 2, and evasion 1
+    When I execute AttackEffect with power 3, agility 5 on "goblin"
+    Then the effect result should be successful
+    And the effect result should contain guarded animation event
+    And entity "goblin" should have 5 health
+
+  Scenario: Attack with feint modifier ignores guard
+    Given an entity "hero-0" with 10 health registered at position 3,3
+    And an entity "goblin" with 5 health registered at position 4,3
+    And entity "goblin" has armor 1, guard 3, and evasion 1
+    When I execute AttackEffect with power 4, agility 5 on "goblin" with modifiers "feint"
+    Then the effect result should be successful
+    And the effect result should contain hit animation event
+    And entity "goblin" should have 2 health
+
+  Scenario: Attack with backward-compatible damage param
+    Given an entity "hero-0" with 10 health registered at position 3,3
+    And an entity "goblin" with 5 health registered at position 4,3
+    When I execute AttackEffect on "goblin" with damage 2
+    Then the effect result should be successful
+    And entity "goblin" should have 3 health

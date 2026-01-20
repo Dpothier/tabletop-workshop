@@ -119,3 +119,38 @@ Feature: AnimationExecutor emits UI state events
     And the subscriber should receive a monsterHealthChanged event with health 8 and max 15
     And the subscriber should receive a heroBeadsChanged event for hero-1 with beads red=1 blue=1 green=1 white=1
     And the subscriber should receive a monsterBeadsChanged event with beads red=2 blue=0 green=1 white=2
+
+  # Combat Resolution Events
+
+  Scenario: Dodge event logs dodge message
+    Given an animation executor with a battle state observer
+    When the executor processes a dodge event for hero-1 from monster
+    Then the battle log should contain "dodge"
+
+  Scenario: Guarded event logs guarded message
+    Given an animation executor with a battle state observer
+    When the executor processes a guarded event for hero-1 from monster blocking 3 damage
+    Then the battle log should contain "guard"
+
+  Scenario: Hit event logs hit message
+    Given an animation executor with a battle state observer
+    When the executor processes a hit event for hero-1 from monster dealing 2 damage
+    Then the battle log should contain "hit"
+
+  Scenario: Dodge event does not emit health changes
+    Given an animation executor with a battle state observer
+    And a subscriber listening to heroHealthChanged events
+    When the executor processes a dodge event for hero-1 from monster
+    Then the subscriber should not receive any state change events
+
+  Scenario: Guarded event does not emit health changes
+    Given an animation executor with a battle state observer
+    And a subscriber listening to heroHealthChanged events
+    When the executor processes a guarded event for hero-1 from monster blocking 2 damage
+    Then the subscriber should not receive any state change events
+
+  Scenario: Hit event does not emit health changes directly
+    Given an animation executor with a battle state observer
+    And a subscriber listening to heroHealthChanged events
+    When the executor processes a hit event for hero-1 from monster dealing 3 damage
+    Then the subscriber should not receive any state change events

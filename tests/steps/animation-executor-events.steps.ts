@@ -2,7 +2,14 @@ import { Given, When, Then } from 'quickpickle';
 import { expect } from 'vitest';
 import { vi } from 'vitest';
 import type { QuickPickleWorld } from 'quickpickle';
-import type { DamageEvent, RestEvent, BeadDrawEvent } from '@src/types/AnimationEvent';
+import type {
+  DamageEvent,
+  RestEvent,
+  BeadDrawEvent,
+  DodgeEvent,
+  GuardedEvent,
+  HitEvent,
+} from '@src/types/AnimationEvent';
 import type { BeadCounts, BeadColor } from '@src/types/Beads';
 import type { UIStateSubscriber } from '@src/types/UIStateEvents';
 import { AnimationExecutor } from '@src/ui/AnimationExecutor';
@@ -135,8 +142,12 @@ Given(
       getMonsterName: vi.fn().mockReturnValue('Monster'),
     };
 
+    const logMessages: string[] = [];
     world.battleUIMock = {
-      log: vi.fn(),
+      log: vi.fn((message: string) => {
+        logMessages.unshift(message);
+      }),
+      getLogMessages: vi.fn(() => [...logMessages]),
     };
 
     // Create the executor with the observer (cast to any to avoid private property type mismatch)
@@ -385,6 +396,55 @@ When('the executor processes a stateChange event', async function (world: Animat
   await world.executor!.execute([event]);
 });
 
+When(
+  'the executor processes a dodge event for {word} from {word}',
+  async function (world: AnimationExecutorWorld, entityId: string, attackerId: string) {
+    const event: DodgeEvent = {
+      type: 'dodge',
+      entityId,
+      attackerId,
+      canReact: true,
+    };
+    await world.executor!.execute([event]);
+  }
+);
+
+When(
+  'the executor processes a guarded event for {word} from {word} blocking {int} damage',
+  async function (
+    world: AnimationExecutorWorld,
+    entityId: string,
+    attackerId: string,
+    blockedDamage: number
+  ) {
+    const event: GuardedEvent = {
+      type: 'guarded',
+      entityId,
+      attackerId,
+      blockedDamage,
+    };
+    await world.executor!.execute([event]);
+  }
+);
+
+When(
+  'the executor processes a hit event for {word} from {word} dealing {int} damage',
+  async function (
+    world: AnimationExecutorWorld,
+    entityId: string,
+    attackerId: string,
+    damage: number
+  ) {
+    const event: HitEvent = {
+      type: 'hit',
+      entityId,
+      attackerId,
+      damage,
+    };
+    await world.executor!.execute([event]);
+  }
+);
+
 // Then steps
 
 Then(
@@ -478,5 +538,17 @@ Then(
       world.tracker!.monsterHealthChanged.length +
       world.tracker!.monsterBeadsChanged.length;
     expect(totalEvents).toBe(expectedCount);
+  }
+);
+
+Then(
+  'the battle log should contain {string}',
+  function (world: AnimationExecutorWorld, expectedText: string) {
+    expect(world.battleUIMock).toBeDefined();
+    const logs = world.battleUIMock!.getLogMessages?.() ?? [];
+    const found = logs.some((log: string) =>
+      log.toLowerCase().includes(expectedText.toLowerCase())
+    );
+    expect(found).toBe(true);
   }
 );

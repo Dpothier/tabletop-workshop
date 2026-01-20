@@ -106,8 +106,8 @@ When('I click the Attack button', async ({ page }) => {
   // Click Attacks tab then Attack button (left column, first row)
   await clickTab(page, 'attacks');
   await clickActionButton(page, 0, 0);
-  // Wait for async animation to complete (damage flash takes ~600ms)
-  await page.waitForTimeout(1000);
+  // Wait for async animation to complete (combat resolution + damage flash)
+  await page.waitForTimeout(2000);
 });
 
 When('I click the Move button', async ({ page }) => {

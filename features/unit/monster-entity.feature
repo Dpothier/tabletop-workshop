@@ -79,3 +79,50 @@ Feature: Monster Entity with Bead-Based AI
     And a target character at position 6,5
     When the monster decides its turn
     Then the monster action wheel cost should be 3
+
+  # Defense Stats
+
+  Scenario: Monster has default defense stats of zero
+    Given a monster "boss" with 30 health at position 5,5
+    Then the monster armor should be 0
+    And the monster evasion should be 0
+
+  Scenario: Monster can apply stats from config
+    Given a monster "boss" with 30 health at position 5,5
+    When the monster applies stats: armor 2, evasion 1
+    Then the monster armor should be 2
+    And the monster evasion should be 1
+
+  Scenario: Monster getDefenseStats returns correct values
+    Given a monster "boss" with 30 health at position 5,5
+    When the monster applies stats: armor 2, evasion 3
+    Then the monster defense stats should be: armor 2, guard 0, evasion 3
+
+  # Combat Resolution
+
+  Scenario: Monster attack is dodged by high evasion target
+    Given a monster "boss" with 30 health at position 5,5
+    And the monster has attack state with damage 2, agility 2, and wheel cost 2
+    And a target character at position 6,5 with evasion 3
+    When the monster decides its turn
+    And the monster executes its decision
+    Then the target should have 10 health
+    And the execution events should contain a dodge event
+
+  Scenario: Monster attack is guarded by high defense target
+    Given a monster "boss" with 30 health at position 5,5
+    And the monster has attack state with damage 2, agility 3, and wheel cost 2
+    And a target character at position 6,5 with armor 2 and guard 1
+    When the monster decides its turn
+    And the monster executes its decision
+    Then the target should have 10 health
+    And the execution events should contain a guarded event
+
+  Scenario: Monster attack hits and deals reduced damage
+    Given a monster "boss" with 30 health at position 5,5
+    And the monster has attack state with damage 3, agility 3, and wheel cost 2
+    And a target character at position 6,5 with armor 1 and evasion 1
+    When the monster decides its turn
+    And the monster executes its decision
+    Then the target should have 8 health
+    And the execution events should contain a hit event

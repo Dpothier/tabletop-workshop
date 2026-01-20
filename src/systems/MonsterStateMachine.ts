@@ -6,6 +6,7 @@ import type { BeadColor } from '@src/types/Beads';
 export interface MonsterState {
   readonly name: string;
   readonly damage?: number;
+  readonly agility?: number;
   readonly wheel_cost?: number;
   readonly range?: number;
   readonly area?: string;
@@ -18,6 +19,7 @@ export interface MonsterState {
 export interface MonsterStateDefinition {
   name: string;
   damage?: number;
+  agility?: number;
   wheel_cost?: number;
   range?: number;
   area?: string;
@@ -49,6 +51,7 @@ export class MonsterStateMachine {
       const state: MonsterState = {
         name: def.name,
         damage: def.damage,
+        agility: def.agility,
         wheel_cost: def.wheel_cost,
         range: def.range,
         area: def.area,

@@ -10,6 +10,7 @@ import {
 } from '@src/entities/MonsterEntity';
 import { Entity } from '@src/entities/Entity';
 import type { BeadColor } from '@src/types/Beads';
+import type { AnimationEvent } from '@src/types/AnimationEvent';
 
 interface MonsterEntityWorld extends QuickPickleWorld {
   grid?: BattleGrid;
@@ -21,6 +22,8 @@ interface MonsterEntityWorld extends QuickPickleWorld {
   monsterMoveResult?: MoveResult;
   monsterAction?: MonsterAction;
   transitions?: Map<string, Map<BeadColor, string>>;
+  executionEvents?: AnimationEvent[];
+  targets?: Entity[];
 }
 
 // Background
@@ -254,7 +257,7 @@ Then('the monster should have a state machine', function (world: MonsterEntityWo
 // Turn decision
 
 When('the monster decides its turn', function (world: MonsterEntityWorld) {
-  const targets = world.targetCharacter ? [world.targetCharacter] : [];
+  const targets = world.targets || (world.targetCharacter ? [world.targetCharacter] : []);
   world.monsterAction = world.monsterEntity!.decideTurn(targets);
 });
 
@@ -292,3 +295,121 @@ Then(
     expect(world.monsterAction!.wheelCost).toBe(cost);
   }
 );
+
+// Defense Stats
+
+When(
+  'the monster applies stats: armor {int}, evasion {int}',
+  function (world: MonsterEntityWorld, armor: number, evasion: number) {
+    world.monsterEntity!.applyStats({ armor, evasion });
+  }
+);
+
+Then('the monster armor should be {int}', function (world: MonsterEntityWorld, expected: number) {
+  expect(world.monsterEntity!.armor).toBe(expected);
+});
+
+Then('the monster evasion should be {int}', function (world: MonsterEntityWorld, expected: number) {
+  expect(world.monsterEntity!.evasion).toBe(expected);
+});
+
+Then(
+  'the monster defense stats should be: armor {int}, guard {int}, evasion {int}',
+  function (world: MonsterEntityWorld, armor: number, guard: number, evasion: number) {
+    const stats = world.monsterEntity!.getDefenseStats();
+    expect(stats.armor).toBe(armor);
+    expect(stats.guard).toBe(guard);
+    expect(stats.evasion).toBe(evasion);
+  }
+);
+
+// Combat Resolution
+
+Given(
+  'the monster has attack state with damage {int}, agility {int}, and wheel cost {int}',
+  function (world: MonsterEntityWorld, damage: number, agility: number, wheelCost: number) {
+    const states = [
+      {
+        name: 'attack',
+        damage,
+        agility,
+        wheel_cost: wheelCost,
+        transitions: { red: 'attack', blue: 'attack', green: 'attack', white: 'attack' },
+      },
+    ];
+    world.monsterEntity!.initializeStateMachine(states, 'attack');
+    world.monsterEntity!.initializeBeadBag({ red: 1, blue: 0, green: 0, white: 0 });
+  }
+);
+
+Given(
+  'a target character at position {int},{int} with evasion {int}',
+  function (world: MonsterEntityWorld, x: number, y: number, evasion: number) {
+    if (!world.targets) {
+      world.targets = [];
+    }
+    const target = new Entity(`target-${x}-${y}`, 10, world.grid!);
+    world.grid!.register(target.id, x, y);
+    target.setEvasion(evasion);
+    world.targets.push(target);
+  }
+);
+
+Given(
+  'a target character at position {int},{int} with armor {int} and guard {int}',
+  function (world: MonsterEntityWorld, x: number, y: number, armor: number, guard: number) {
+    if (!world.targets) {
+      world.targets = [];
+    }
+    const target = new Entity(`target-${x}-${y}`, 10, world.grid!);
+    world.grid!.register(target.id, x, y);
+    target.setArmor(armor);
+    target.setGuard(guard);
+    world.targets.push(target);
+  }
+);
+
+Given(
+  'a target character at position {int},{int} with armor {int} and evasion {int}',
+  function (world: MonsterEntityWorld, x: number, y: number, armor: number, evasion: number) {
+    if (!world.targets) {
+      world.targets = [];
+    }
+    const target = new Entity(`target-${x}-${y}`, 10, world.grid!);
+    world.grid!.register(target.id, x, y);
+    target.setArmor(armor);
+    target.setEvasion(evasion);
+    world.targets.push(target);
+  }
+);
+
+When('the monster executes its decision', function (world: MonsterEntityWorld) {
+  world.executionEvents = world.monsterEntity!.executeDecision(world.monsterAction!);
+});
+
+Then(
+  'the target should have {int} health',
+  function (world: MonsterEntityWorld, expectedHealth: number) {
+    expect(world.targets).toBeDefined();
+    expect(world.targets!.length).toBeGreaterThan(0);
+    expect(world.targets![0].currentHealth).toBe(expectedHealth);
+  }
+);
+
+Then('the execution events should contain a dodge event', function (world: MonsterEntityWorld) {
+  expect(world.executionEvents).toBeDefined();
+  const dodgeEvent = world.executionEvents!.find((e) => e.type === 'dodge');
+  expect(dodgeEvent).toBeDefined();
+});
+
+Then('the execution events should contain a guarded event', function (world: MonsterEntityWorld) {
+  expect(world.executionEvents).toBeDefined();
+  const guardedEvent = world.executionEvents!.find((e) => e.type === 'guarded');
+  expect(guardedEvent).toBeDefined();
+});
+
+Then('the execution events should contain a hit event', function (world: MonsterEntityWorld) {
+  expect(world.executionEvents).toBeDefined();
+  const hitEvent = world.executionEvents!.find((e) => e.type === 'hit');
+  expect(hitEvent).toBeDefined();
+});

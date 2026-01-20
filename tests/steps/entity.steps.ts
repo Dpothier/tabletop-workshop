@@ -124,3 +124,47 @@ Then('the entity ID should be {string}', function (world: EntityWorld, expectedI
 Then('the entity max health should be {int}', function (world: EntityWorld, expectedMax: number) {
   expect(world.entity!.maxHealth).toBe(expectedMax);
 });
+
+// Defense Stats
+
+When('the entity armor is set to {int}', function (world: EntityWorld, amount: number) {
+  world.entity!.setArmor(amount);
+});
+
+When('the entity guard is set to {int}', function (world: EntityWorld, amount: number) {
+  world.entity!.setGuard(amount);
+});
+
+When('the entity evasion is set to {int}', function (world: EntityWorld, amount: number) {
+  world.entity!.setEvasion(amount);
+});
+
+When('the entity guard is reset', function (world: EntityWorld) {
+  world.entity!.resetGuard();
+});
+
+When('the entity receives {int} direct damage', function (world: EntityWorld, damage: number) {
+  world.entity!.receiveDamage(damage);
+});
+
+Then('the entity armor should be {int}', function (world: EntityWorld, expected: number) {
+  expect(world.entity!.armor).toBe(expected);
+});
+
+Then('the entity guard should be {int}', function (world: EntityWorld, expected: number) {
+  expect(world.entity!.guard).toBe(expected);
+});
+
+Then('the entity evasion should be {int}', function (world: EntityWorld, expected: number) {
+  expect(world.entity!.evasion).toBe(expected);
+});
+
+Then(
+  'the entity defense stats should have armor {int}, guard {int}, and evasion {int}',
+  function (world: EntityWorld, armor: number, guard: number, evasion: number) {
+    const stats = world.entity!.getDefenseStats();
+    expect(stats.armor).toBe(armor);
+    expect(stats.guard).toBe(guard);
+    expect(stats.evasion).toBe(evasion);
+  }
+);

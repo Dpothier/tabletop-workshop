@@ -11,6 +11,7 @@ monsters:
       health: 10
       armor: 2
       speed: 1
+      evasion: 0
     # Bead-based AI configuration
     beads:
       red: 3
@@ -27,6 +28,7 @@ monsters:
           white: earthquake
       stone_slam:
         damage: 2
+        agility: 1
         wheel_cost: 3
         range: 1
         transitions:
@@ -36,6 +38,7 @@ monsters:
           white: earthquake
       rock_throw:
         damage: 1
+        agility: 1
         wheel_cost: 2
         range: 4
         transitions:
@@ -45,6 +48,7 @@ monsters:
           white: earthquake
       earthquake:
         damage: 1
+        agility: 1
         wheel_cost: 4
         area: "all"
         transitions:
@@ -65,6 +69,7 @@ monsters:
       health: 10
       armor: 1
       speed: 2
+      evasion: 0
     # Bead-based AI configuration
     beads:
       red: 4
@@ -81,6 +86,7 @@ monsters:
           white: ground_pound
       crushing_slam:
         damage: 2
+        agility: 1
         wheel_cost: 3
         range: 1
         transitions:
@@ -90,6 +96,7 @@ monsters:
           white: ground_pound
       flame_breath:
         damage: 1
+        agility: 1
         wheel_cost: 2
         range: 3
         area: "cone 3"
@@ -100,6 +107,7 @@ monsters:
           white: ground_pound
       ground_pound:
         damage: 1
+        agility: 1
         wheel_cost: 3
         area: "radius 2"
         transitions:
@@ -120,6 +128,7 @@ monsters:
       health: 10
       armor: 0
       speed: 4
+      evasion: 3
     # Bead-based AI configuration
     beads:
       red: 2
@@ -136,6 +145,7 @@ monsters:
           white: shadow_barrage
       shadow_strike:
         damage: 2
+        agility: 2
         wheel_cost: 2
         range: 1
         transitions:
@@ -145,6 +155,7 @@ monsters:
           white: shadow_barrage
       vanish:
         damage: 0
+        agility: 1
         wheel_cost: 1
         transitions:
           red: shadow_strike
@@ -153,6 +164,7 @@ monsters:
           white: shadow_barrage
       shadow_barrage:
         damage: 1
+        agility: 2
         wheel_cost: 3
         area: "3 targets"
         transitions:
@@ -173,6 +185,7 @@ monsters:
       health: 10
       armor: 2
       speed: 1
+      evasion: 0
     # Bead-based AI configuration
     beads:
       red: 3
@@ -189,6 +202,7 @@ monsters:
           white: earthquake
       stone_slam:
         damage: 2
+        agility: 1
         wheel_cost: 3
         range: 1
         transitions:
@@ -198,6 +212,7 @@ monsters:
           white: earthquake
       ground_pound:
         damage: 1
+        agility: 1
         wheel_cost: 2
         area: "radius 2"
         transitions:
@@ -207,6 +222,7 @@ monsters:
           white: earthquake
       earthquake:
         damage: 3
+        agility: 1
         wheel_cost: 4
         area: "all"
         transitions:

@@ -29,3 +29,4 @@ import './battle-state-observer.steps';
 import './animation-executor-events.steps';
 import './turn-flow-controller.steps';
 import './wheel-display.steps';
+import './combat-resolver.steps';

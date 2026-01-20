@@ -403,3 +403,70 @@ Then('no attack should be executed', function (world: EffectsWorld) {
   expect(world.effectResult).toBeDefined();
   expect(world.effectResult!.success).toBe(false);
 });
+
+// AttackEffect with Combat Resolution Tests
+
+Given(
+  'entity {string} has armor {int}, guard {int}, and evasion {int}',
+  function (world: EffectsWorld, entityId: string, armor: number, guard: number, evasion: number) {
+    const entity = world.entities!.get(entityId);
+    expect(entity).toBeDefined();
+    entity!.setArmor(armor);
+    entity!.setGuard(guard);
+    entity!.setEvasion(evasion);
+  }
+);
+
+When(
+  'I execute AttackEffect with power {int}, agility {int} on {string}',
+  function (world: EffectsWorld, power: number, agility: number, targetId: string) {
+    const effect = new AttackEffect();
+    world.effectResult = effect.execute(
+      world.gameContext!,
+      { targetEntity: targetId, power, agility },
+      {},
+      new Map()
+    );
+  }
+);
+
+When(
+  'I execute AttackEffect with power {int}, agility {int} on {string} with modifiers {string}',
+  function (
+    world: EffectsWorld,
+    power: number,
+    agility: number,
+    targetId: string,
+    modifiersStr: string
+  ) {
+    const effect = new AttackEffect();
+    const modifiers = modifiersStr.split(',').map((m) => m.trim());
+    world.effectResult = effect.execute(
+      world.gameContext!,
+      { targetEntity: targetId, power, agility, modifiers },
+      {},
+      new Map()
+    );
+  }
+);
+
+Then('the effect result should contain hit animation event', function (world: EffectsWorld) {
+  expect(world.effectResult).toBeDefined();
+  expect(world.effectResult!.events).toBeDefined();
+  const hitEvent = world.effectResult!.events.find((e) => e.type === 'hit');
+  expect(hitEvent).toBeDefined();
+});
+
+Then('the effect result should contain dodge animation event', function (world: EffectsWorld) {
+  expect(world.effectResult).toBeDefined();
+  expect(world.effectResult!.events).toBeDefined();
+  const dodgeEvent = world.effectResult!.events.find((e) => e.type === 'dodge');
+  expect(dodgeEvent).toBeDefined();
+});
+
+Then('the effect result should contain guarded animation event', function (world: EffectsWorld) {
+  expect(world.effectResult).toBeDefined();
+  expect(world.effectResult!.events).toBeDefined();
+  const guardedEvent = world.effectResult!.events.find((e) => e.type === 'guarded');
+  expect(guardedEvent).toBeDefined();
+});

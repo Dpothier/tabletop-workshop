@@ -1,4 +1,4 @@
-import type { AnimationEvent } from '@src/types/AnimationEvent';
+import type { AnimationEvent, DodgeEvent, GuardedEvent, HitEvent } from '@src/types/AnimationEvent';
 import type { GridSystem } from '@src/systems/GridSystem';
 import type { CharacterVisual } from '@src/visuals/CharacterVisual';
 import type { MonsterVisual } from '@src/visuals/MonsterVisual';
@@ -58,6 +58,15 @@ export class AnimationExecutor {
         break;
       case 'rest':
         await this.executeRest(event);
+        break;
+      case 'dodge':
+        await this.executeDodge(event);
+        break;
+      case 'guarded':
+        await this.executeGuarded(event);
+        break;
+      case 'hit':
+        await this.executeHit(event);
         break;
     }
   }
@@ -140,5 +149,31 @@ export class AnimationExecutor {
       return visual.getClassName();
     }
     return entityId;
+  }
+
+  private async executeDodge(event: DodgeEvent): Promise<void> {
+    const visual = this.getVisual(event.entityId);
+    if (visual) {
+      await visual.animateDodge?.();
+    }
+    this.battleUI.log(`${this.getEntityName(event.entityId)} dodged the attack!`);
+  }
+
+  private async executeGuarded(event: GuardedEvent): Promise<void> {
+    const visual = this.getVisual(event.entityId);
+    if (visual) {
+      await visual.animateGuard?.();
+    }
+    this.battleUI.log(
+      `${this.getEntityName(event.entityId)} guarded! (blocked ${event.blockedDamage} damage)`
+    );
+  }
+
+  private async executeHit(event: HitEvent): Promise<void> {
+    const visual = this.getVisual(event.entityId);
+    if (visual) {
+      await visual.animateDamage();
+    }
+    this.battleUI.log(`${this.getEntityName(event.entityId)} hit for ${event.damage} damage!`);
   }
 }
