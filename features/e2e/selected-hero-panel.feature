@@ -20,9 +20,10 @@ Feature: Selected Hero Panel
     And the panel should show the Attack action with cost 2
     And the panel should show the Rest action with cost 2
 
-  Scenario: Panel hides during monster turn
-    Given I wait until the monster is the current actor
-    Then the selected hero panel should not be visible
+  Scenario: Panel visibility depends on current actor type
+    Given I have selected the current hero
+    Then the selected hero panel should be visible
+    And the panel should hide when a non-hero is the current actor
 
   Scenario: Panel updates when different hero selected
     Given the first hero is the current actor
