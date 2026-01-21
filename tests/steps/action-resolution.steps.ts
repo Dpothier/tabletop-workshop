@@ -810,7 +810,7 @@ Then(
 
 // ===== resolve() Tests =====
 
-When('I resolve the action', function (world: ActionResolutionWorld) {
+When('I resolve the action', async function (world: ActionResolutionWorld) {
   if (!world.actionResolution) {
     if (!world.actionDefinition) {
       world.actionDefinition = createActionDefinition();
@@ -837,7 +837,7 @@ When('I resolve the action', function (world: ActionResolutionWorld) {
   }
 
   // Call resolve() on the real ActionResolution instance
-  world.actionResult = world.actionResolution.resolve();
+  world.actionResult = await world.actionResolution.resolve();
 });
 
 Then('the action should succeed', function (world: ActionResolutionWorld) {

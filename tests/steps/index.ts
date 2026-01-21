@@ -30,3 +30,5 @@ import './animation-executor-events.steps';
 import './turn-flow-controller.steps';
 import './wheel-display.steps';
 import './combat-resolver.steps';
+import './battle-ui-defense-display.steps';
+import './defensive-reactions.steps';

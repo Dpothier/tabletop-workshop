@@ -51,7 +51,7 @@ export class TurnFlowController {
     const decision = monster.decideTurn(targets);
 
     // Phase 2: Execute - apply state changes and get events
-    const events = monster.executeDecision(decision);
+    const events = await monster.executeDecision(decision, this.adapter);
 
     // Phase 3: Animate - play all events
     await this.adapter.animate(events);

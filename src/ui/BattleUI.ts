@@ -145,14 +145,14 @@ export class BattleUI {
     monsterName: string,
     monsterHealth: number,
     maxHealth: number,
-    currentActorId: string | null
+    defenseStats: { armor: number; guard: number; evasion: number }
   ): void {
-    const actorName = currentActorId === 'monster' ? monsterName : 'Player';
     const lines = [
       `Monster: ${monsterName}`,
       `HP: ${monsterHealth}/${maxHealth}`,
+      `🛡 ${defenseStats.armor}  🔰 ${defenseStats.guard}  💨 ${defenseStats.evasion}`,
       '',
-      `Current Actor: ${actorName}`,
+      `Discards: `,
     ];
     this.statusText.setText(lines.join('\n'));
   }
@@ -286,6 +286,7 @@ export class BattleUI {
       `Discards: R:${discardCounts.red} B:${discardCounts.blue} G:${discardCounts.green} W:${discardCounts.white}`
     );
   }
+
 
   private handleWheelHover(x: number, y: number): void {
     const centerX = 900;
@@ -472,11 +473,12 @@ export class BattleUI {
   subscribeToState(observer: BattleStateObserver, state: BattleState): void {
     observer.subscribe({
       actorChanged: (actorId) => {
+        const defenseStats = state.monsterEntity.getDefenseStats();
         this.updateStatusText(
           state.monster.name,
           state.monsterEntity.currentHealth,
           state.monster.stats.health,
-          actorId
+          defenseStats
         );
         this.updateTurnBanner(actorId, state.monster.name);
         // Also update wheel display on actor change (initial draw)
@@ -498,8 +500,8 @@ export class BattleUI {
         );
       },
       monsterHealthChanged: (current, max) => {
-        const nextId = state.wheel.getNextActor();
-        this.updateStatusText(state.monster.name, current, max, nextId);
+        const defenseStats = state.monsterEntity.getDefenseStats();
+        this.updateStatusText(state.monster.name, current, max, defenseStats);
       },
       monsterBeadsChanged: (counts) => {
         this.updateMonsterBeadDisplay(counts);

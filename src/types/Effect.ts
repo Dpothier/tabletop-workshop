@@ -2,6 +2,7 @@ import type { BattleGrid } from '@src/state/BattleGrid';
 import type { Entity } from '@src/entities/Entity';
 import type { AnimationEvent } from '@src/types/AnimationEvent';
 import type { PlayerBeadSystem } from '@src/systems/PlayerBeadSystem';
+import type { BattleAdapter } from '@src/types/BattleAdapter';
 
 /**
  * EffectResult indicates the outcome of an effect execution.
@@ -25,6 +26,7 @@ export type ResolvedParams = Record<string, unknown>;
 /**
  * Effect interface - single responsibility: execute and return result.
  * Effects are stateless, reusable objects that apply game logic.
+ * Can be synchronous or asynchronous (returns EffectResult or Promise<EffectResult>).
  */
 export interface Effect {
   execute(
@@ -32,7 +34,7 @@ export interface Effect {
     params: ResolvedParams,
     modifiers: Record<string, unknown>,
     chainResults: Map<string, EffectResult>
-  ): EffectResult;
+  ): EffectResult | Promise<EffectResult>;
 }
 
 /**
@@ -44,4 +46,5 @@ export interface GameContext {
   getEntity(id: string): Entity | undefined;
   getBeadHand(entityId: string): PlayerBeadSystem | undefined;
   actorId?: string;
+  adapter?: BattleAdapter;
 }

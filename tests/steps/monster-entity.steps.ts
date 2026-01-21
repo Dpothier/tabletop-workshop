@@ -383,8 +383,8 @@ Given(
   }
 );
 
-When('the monster executes its decision', function (world: MonsterEntityWorld) {
-  world.executionEvents = world.monsterEntity!.executeDecision(world.monsterAction!);
+When('the monster executes its decision', async function (world: MonsterEntityWorld) {
+  world.executionEvents = await world.monsterEntity!.executeDecision(world.monsterAction!);
 });
 
 Then(

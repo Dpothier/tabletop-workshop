@@ -22,6 +22,8 @@ export interface HydratedEffect {
  * them in sequence with parameter resolution and effect chaining.
  */
 export class Action {
+  private adapter?: BattleAdapter;
+
   constructor(
     private definition: ActionDefinition,
     private effects: HydratedEffect[],
@@ -45,6 +47,8 @@ export class Action {
     actorId: string,
     adapter: BattleAdapter
   ): Promise<{ execute: () => Promise<import('@src/types/ActionDefinition').ActionResult> }> {
+    // Store adapter for use in applyEffects
+    this.adapter = adapter;
     // Dynamic import to avoid circular dependencies
     const { ActionResolution } = await import('@src/systems/ActionResolution');
     return new ActionResolution(this, actorId, this.createContext(actorId), adapter);
@@ -79,20 +83,29 @@ export class Action {
    * @param context - Game context for effect execution
    * @returns Combined result with all events
    */
-  applyEffects(params: Map<string, unknown>, context: GameContext): EffectResult {
+  async applyEffects(params: Map<string, unknown>, context: GameContext): Promise<EffectResult> {
     const chainResults = new Map<string, EffectResult>();
     const allEvents: AnimationEvent[] = [];
+
+    // Add adapter to context if available
+    const contextWithAdapter: GameContext = {
+      ...context,
+      adapter: this.adapter,
+    };
 
     for (const hydrated of this.effects) {
       const resolvedParams = this.resolveParams(hydrated.params, params, chainResults);
 
-      // Execute effect
-      const result = hydrated.effect.execute(
-        context,
+      // Execute effect (may be async)
+      const resultOrPromise = hydrated.effect.execute(
+        contextWithAdapter,
         resolvedParams,
         {}, // No modifiers in steps 3.1-3.5
         chainResults
       );
+
+      // Await if it's a promise
+      const result = resultOrPromise instanceof Promise ? await resultOrPromise : resultOrPromise;
 
       // Store result for subsequent effects
       chainResults.set(hydrated.id, result);

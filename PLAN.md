@@ -110,15 +110,36 @@ Following PRD v4 implementation order.
 
 ---
 
-## Step 7: Defense and Evasion System ⏳ PENDING
+## Step 7: Defense and Evasion System ✅ COMPLETE
 
-- [ ] Add defensive stats (Armor, Guard, Evasion) to creature schema
-- [ ] Add offensive stats (Power, Agility) to attack schema
-- [ ] Implement attack resolution: Agility vs Evasion
-- [ ] Implement damage resolution: Power vs Defense
-- [ ] Implement attack modifiers (Feint, Heavy, Precise, Swift)
-- [ ] Implement dodge reaction system
-- [ ] UI feedback for combat resolution
+### Combat Resolution
+- [x] Add defensive stats (Armor, Guard, Evasion) to creature schema
+- [x] Add offensive stats (Power, Agility) to attack schema
+- [x] Implement attack resolution: Agility vs Evasion
+- [x] Implement damage resolution: Power vs Defense
+- [x] Implement attack modifiers (Feint, Heavy, Precise, Swift)
+- [x] Unit tests for CombatResolver (32 scenarios)
+- [x] Unit tests for Entity defense stats (8 scenarios)
+- [x] Unit tests for MonsterEntity combat (5 scenarios)
+
+### Boss Defense Display
+- [x] Display defensive stats on monster status panel below HP
+- [x] Show stat icons with values: 🛡 Armor  🔰 Guard  💨 Evasion
+- [x] Removed redundant "Current Actor" text
+- [x] Unit tests for defense display (15 scenarios)
+
+### Player Defensive Reactions
+- [x] When player is attacked, prompt for defensive reaction before resolving
+- [x] Option to discard red bead → +1 Guard against current attack
+- [x] Option to discard green bead → +1 Evasion against current attack
+- [x] Allow multiple bead discards for stacking bonuses
+- [x] Skip reaction if player has no beads or chooses to pass
+- [x] Unit tests for defensive reactions (10 scenarios)
+
+### Implementation Details
+- `AttackEffect.promptDefensiveReaction()` handles the reaction flow
+- `Effect.execute()` now supports async for UI prompts
+- Defense boosts are temporary (reset at turn start via `resetGuard()`)
 
 ---
 
@@ -190,9 +211,9 @@ Following PRD v4 implementation order.
 ## Test Results
 
 ```
-Unit/Integration Tests: 132 passed
-E2E Tests: 27 passed
-Total: 159 tests passing
+Unit/Integration Tests: 418 passed
+E2E Tests: 39 passed
+Total: 457 tests passing
 ```
 
 ---

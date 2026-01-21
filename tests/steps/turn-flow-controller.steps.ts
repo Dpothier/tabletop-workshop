@@ -203,7 +203,7 @@ Given(
       { type: 'beadDraw', color: 'red' },
       { type: 'attack', attackerId: 'monster', targetId: 'char1', damage: 5 },
     ];
-    world.monsterEntity!.executeDecision.mockReturnValue(world.animationEvents);
+    world.monsterEntity!.executeDecision.mockResolvedValue(world.animationEvents);
   }
 );
 

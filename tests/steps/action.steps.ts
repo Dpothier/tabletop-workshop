@@ -202,7 +202,7 @@ Given(
   }
 );
 
-When('I call applyEffects with empty params', function (world: ActionWorld) {
+When('I call applyEffects with empty params', async function (world: ActionWorld) {
   if (!world.action) {
     throw new Error('Action not initialized');
   }
@@ -213,7 +213,8 @@ When('I call applyEffects with empty params', function (world: ActionWorld) {
 
   // Call applyEffects with empty params
   const params = new Map<string, unknown>();
-  world.effectResult = world.action.applyEffects(params, world.gameContext);
+  const resultOrPromise = world.action.applyEffects(params, world.gameContext);
+  world.effectResult = resultOrPromise instanceof Promise ? await resultOrPromise : resultOrPromise;
 });
 
 Then('the effect result is successful', function (world: ActionWorld) {
@@ -286,7 +287,7 @@ Given(
   }
 );
 
-When('I call applyEffects with params:', function (world: ActionWorld, table: any) {
+When('I call applyEffects with params:', async function (world: ActionWorld, table: any) {
   if (!world.action) {
     throw new Error('Action not initialized');
   }
@@ -314,7 +315,8 @@ When('I call applyEffects with params:', function (world: ActionWorld, table: an
     }
   }
 
-  world.effectResult = world.action.applyEffects(params, world.gameContext);
+  const resultOrPromise = world.action.applyEffects(params, world.gameContext);
+  world.effectResult = resultOrPromise instanceof Promise ? await resultOrPromise : resultOrPromise;
 });
 
 Given(

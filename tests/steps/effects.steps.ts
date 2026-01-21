@@ -107,27 +107,29 @@ Then('the result should be undefined', function (world: EffectsWorld) {
 
 When(
   'I execute MoveEffect with destination {int},{int}',
-  function (world: EffectsWorld, x: number, y: number) {
+  async function (world: EffectsWorld, x: number, y: number) {
     const effect = new MoveEffect();
-    world.effectResult = effect.execute(
+    const result = effect.execute(
       world.gameContext!,
       { destination: { x, y } },
       {},
       new Map()
     );
+    world.effectResult = result instanceof Promise ? await result : result;
   }
 );
 
 When(
   'I execute MoveEffect with destination {int},{int} and range modifier {int}',
-  function (world: EffectsWorld, x: number, y: number, range: number) {
+  async function (world: EffectsWorld, x: number, y: number, range: number) {
     const effect = new MoveEffect();
-    world.effectResult = effect.execute(
+    const result = effect.execute(
       world.gameContext!,
       { destination: { x, y } },
       { range },
       new Map()
     );
+    world.effectResult = result instanceof Promise ? await result : result;
   }
 );
 
@@ -182,40 +184,43 @@ Then(
 
 When(
   'I execute AttackEffect on {string} with damage {int}',
-  function (world: EffectsWorld, targetId: string, damage: number) {
+  async function (world: EffectsWorld, targetId: string, damage: number) {
     const effect = new AttackEffect();
-    world.effectResult = effect.execute(
+    const result = effect.execute(
       world.gameContext!,
       { targetEntity: targetId, damage },
       {},
       new Map()
     );
+    world.effectResult = result instanceof Promise ? await result : result;
   }
 );
 
 When(
   'I execute AttackEffect on {string} with damage {int} and damage modifier {int}',
-  function (world: EffectsWorld, targetId: string, damage: number, modifier: number) {
+  async function (world: EffectsWorld, targetId: string, damage: number, modifier: number) {
     const effect = new AttackEffect();
-    world.effectResult = effect.execute(
+    const result = effect.execute(
       world.gameContext!,
       { targetEntity: targetId, damage },
       { damage: modifier },
       new Map()
     );
+    world.effectResult = result instanceof Promise ? await result : result;
   }
 );
 
 When(
   'I execute AttackEffect on {string} with damage {int} storing result as {string}',
-  function (world: EffectsWorld, targetId: string, damage: number, resultKey: string) {
+  async function (world: EffectsWorld, targetId: string, damage: number, resultKey: string) {
     const effect = new AttackEffect();
-    world.effectResult = effect.execute(
+    const result = effect.execute(
       world.gameContext!,
       { targetEntity: targetId, damage },
       {},
       new Map()
     );
+    world.effectResult = result instanceof Promise ? await result : result;
 
     if (!world.previousResults) {
       world.previousResults = new Map();
@@ -226,14 +231,15 @@ When(
 
 When(
   'I execute AttackEffect on {string} with damage {int} with no prior results',
-  function (world: EffectsWorld, targetId: string, damage: number) {
+  async function (world: EffectsWorld, targetId: string, damage: number) {
     const effect = new AttackEffect();
-    world.effectResult = effect.execute(
+    const result = effect.execute(
       world.gameContext!,
       { targetEntity: targetId, damage },
       {},
       new Map()
     );
+    world.effectResult = result instanceof Promise ? await result : result;
   }
 );
 
@@ -304,14 +310,15 @@ Then(
 
 When(
   'I execute DrawBeadsEffect to draw {int} beads for {string}',
-  function (world: EffectsWorld, count: number, _entityId: string) {
+  async function (world: EffectsWorld, count: number, _entityId: string) {
     const effect = new DrawBeadsEffect();
-    world.effectResult = effect.execute(
+    const result = effect.execute(
       world.gameContext!,
       { count, entityId: _entityId },
       {},
       new Map()
     );
+    world.effectResult = result instanceof Promise ? await result : result;
   }
 );
 
@@ -364,14 +371,15 @@ Then('the effect should execute with empty chain results', function (world: Effe
 
 When(
   'then execute AttackEffect on {string} with damage {int}',
-  function (world: EffectsWorld, targetId: string, damage: number) {
+  async function (world: EffectsWorld, targetId: string, damage: number) {
     const effect = new AttackEffect();
-    world.effectResult = effect.execute(
+    const result = effect.execute(
       world.gameContext!,
       { targetEntity: targetId, damage },
       {},
       new Map()
     );
+    world.effectResult = result instanceof Promise ? await result : result;
   }
 );
 
@@ -419,20 +427,21 @@ Given(
 
 When(
   'I execute AttackEffect with power {int}, agility {int} on {string}',
-  function (world: EffectsWorld, power: number, agility: number, targetId: string) {
+  async function (world: EffectsWorld, power: number, agility: number, targetId: string) {
     const effect = new AttackEffect();
-    world.effectResult = effect.execute(
+    const result = effect.execute(
       world.gameContext!,
       { targetEntity: targetId, power, agility },
       {},
       new Map()
     );
+    world.effectResult = result instanceof Promise ? await result : result;
   }
 );
 
 When(
   'I execute AttackEffect with power {int}, agility {int} on {string} with modifiers {string}',
-  function (
+  async function (
     world: EffectsWorld,
     power: number,
     agility: number,
@@ -441,12 +450,13 @@ When(
   ) {
     const effect = new AttackEffect();
     const modifiers = modifiersStr.split(',').map((m) => m.trim());
-    world.effectResult = effect.execute(
+    const result = effect.execute(
       world.gameContext!,
       { targetEntity: targetId, power, agility, modifiers },
       {},
       new Map()
     );
+    world.effectResult = result instanceof Promise ? await result : result;
   }
 );
 

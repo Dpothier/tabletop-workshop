@@ -7,6 +7,9 @@ import { MonsterStateMachine, MonsterStateDefinition } from '@src/systems/Monste
 import type { AnimationEvent, DodgeEvent, GuardedEvent, HitEvent } from '@src/types/AnimationEvent';
 import type { AttackModifier } from '@src/types/Combat';
 import { resolveAttack } from '@src/combat/CombatResolver';
+import type { BattleAdapter } from '@src/types/BattleAdapter';
+import { Character } from '@src/entities/Character';
+import type { OptionPrompt, OptionChoice } from '@src/types/ParameterPrompt';
 
 /**
  * Configuration for a monster.
@@ -182,8 +185,9 @@ export class MonsterEntity extends Entity {
   /**
    * Execute a decided action and return animation events.
    * This method applies state changes and returns events describing what happened.
+   * Prompts player characters for defensive reactions before combat resolution.
    */
-  executeDecision(decision: MonsterAction): AnimationEvent[] {
+  async executeDecision(decision: MonsterAction, adapter?: BattleAdapter): Promise<AnimationEvent[]> {
     const events: AnimationEvent[] = [];
 
     // Add bead draw event if a bead was drawn
@@ -204,6 +208,11 @@ export class MonsterEntity extends Entity {
     if (decision.type === 'attack' && decision.target && decision.state) {
       const power = decision.state.damage ?? 1;
       const agility = decision.state.agility ?? 1;
+
+      // Prompt for defensive reaction if target is a Character
+      if (decision.target instanceof Character) {
+        await this.promptDefensiveReaction(decision.target, adapter);
+      }
 
       // Get target's defense stats
       const defenseStats = decision.target.getDefenseStats();
@@ -271,6 +280,83 @@ export class MonsterEntity extends Entity {
     }
 
     return events;
+  }
+
+  /**
+   * Prompt the target character for defensive reactions (guard or evasion).
+   * Allows spending beads to boost defense stats before combat resolution.
+   */
+  private async promptDefensiveReaction(target: Character, adapter?: BattleAdapter): Promise<void> {
+    const beadHand = target.getBeadHand();
+    if (!beadHand) {
+      return;
+    }
+
+    const handCounts = beadHand.getHandCounts();
+    const hasDefensiveBeads = handCounts.red > 0 || handCounts.green > 0;
+
+    if (!hasDefensiveBeads || !adapter) {
+      return;
+    }
+
+    // Build options for defensive reaction
+    const options: OptionChoice[] = [];
+
+    // Add options for red beads (guard)
+    for (let i = 1; i <= handCounts.red; i++) {
+      options.push({
+        id: `guard-${i}`,
+        label: `Spend ${i} red bead${i > 1 ? 's' : ''} for +${i} Guard`,
+      });
+    }
+
+    // Add options for green beads (evasion)
+    for (let i = 1; i <= handCounts.green; i++) {
+      options.push({
+        id: `evade-${i}`,
+        label: `Spend ${i} green bead${i > 1 ? 's' : ''} for +${i} Evasion`,
+      });
+    }
+
+    // Always include pass option
+    options.push({
+      id: 'pass',
+      label: 'Pass',
+    });
+
+    const prompt: OptionPrompt = {
+      type: 'option',
+      key: 'defensiveReaction',
+      prompt: 'Boost your defenses against this attack?',
+      optional: true,
+      multiSelect: false,
+      options,
+    };
+
+    const selected = await adapter.promptOptions(prompt);
+    if (!selected || selected.length === 0) {
+      return;
+    }
+
+    const reactionId = selected[0];
+
+    // Handle guard reaction
+    if (reactionId.startsWith('guard-')) {
+      const count = parseInt(reactionId.substring(6), 10);
+      for (let i = 0; i < count; i++) {
+        beadHand.spend('red');
+      }
+      target.setGuard(target.guard + count);
+    }
+
+    // Handle evasion reaction
+    if (reactionId.startsWith('evade-')) {
+      const count = parseInt(reactionId.substring(6), 10);
+      for (let i = 0; i < count; i++) {
+        beadHand.spend('green');
+      }
+      target.setEvasion(target.evasion + count);
+    }
   }
 
   /**

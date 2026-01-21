@@ -154,7 +154,7 @@ Given('the character has a bead hand', function (world: CharacterWorld) {
 
 When(
   'the character resolves action {string} with target position {int},{int}',
-  function (world: CharacterWorld, actionId: string, x: number, y: number) {
+  async function (world: CharacterWorld, actionId: string, x: number, y: number) {
     setupActionSystem(world);
     setupEffectRegistry(world);
 
@@ -178,7 +178,7 @@ When(
     );
 
     resolution.provideValue('target', { x, y });
-    const result = resolution.resolve();
+    const result = await resolution.resolve();
 
     world.actionResult = {
       success: result.success,
@@ -191,7 +191,7 @@ When(
 
 When(
   'character {string} resolves action {string} with target position {int},{int}',
-  function (world: CharacterWorld, characterId: string, actionId: string, x: number, y: number) {
+  async function (world: CharacterWorld, characterId: string, actionId: string, x: number, y: number) {
     setupActionSystem(world);
     setupEffectRegistry(world);
 
@@ -226,7 +226,7 @@ When(
     );
 
     resolution.provideValue('target', { x, y });
-    const result = resolution.resolve();
+    const result = await resolution.resolve();
 
     world.actionResult = {
       success: result.success,
@@ -239,7 +239,7 @@ When(
 
 When(
   'the character resolves action {string} with target entity {string}',
-  function (world: CharacterWorld, actionId: string, targetId: string) {
+  async function (world: CharacterWorld, actionId: string, targetId: string) {
     setupActionSystem(world);
     setupEffectRegistry(world);
 
@@ -263,7 +263,7 @@ When(
     );
 
     resolution.provideValue('target', targetId);
-    const result = resolution.resolve();
+    const result = await resolution.resolve();
 
     world.actionResult = {
       success: result.success,
@@ -274,7 +274,7 @@ When(
   }
 );
 
-When('the character resolves action {string}', function (world: CharacterWorld, actionId: string) {
+When('the character resolves action {string}', async function (world: CharacterWorld, actionId: string) {
   setupActionSystem(world);
   setupEffectRegistry(world);
 
@@ -298,7 +298,7 @@ When('the character resolves action {string}', function (world: CharacterWorld, 
   );
 
   // No parameters for rest action
-  const result = resolution.resolve();
+  const result = await resolution.resolve();
 
   world.actionResult = {
     success: result.success,
@@ -310,7 +310,7 @@ When('the character resolves action {string}', function (world: CharacterWorld, 
 
 When(
   'the character attempts to resolve action {string}',
-  function (world: CharacterWorld, actionId: string) {
+  async function (world: CharacterWorld, actionId: string) {
     setupActionSystem(world);
     setupEffectRegistry(world);
 
@@ -329,7 +329,7 @@ When(
         world.effectRegistry!
       );
 
-      const result = resolution.resolve();
+      const result = await resolution.resolve();
       world.actionResult = {
         success: result.success,
         reason: result.reason,

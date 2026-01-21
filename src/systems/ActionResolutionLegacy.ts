@@ -108,7 +108,7 @@ export class ActionResolutionLegacy {
   /**
    * Execute the action - apply modifiers, run effects in sequence, return result.
    */
-  resolve(): ActionResult {
+  async resolve(): Promise<ActionResult> {
     const events: any[] = [];
     let success = true;
     let reason: string | undefined;
@@ -126,11 +126,13 @@ export class ActionResolutionLegacy {
         break;
       }
 
-      const result: EffectResult = effectClass.execute(
-        this.context,
-        resolvedParams,
-        modifiers,
-        this.chainResults
+      const result: EffectResult = await Promise.resolve(
+        effectClass.execute(
+          this.context,
+          resolvedParams,
+          modifiers,
+          this.chainResults
+        )
       );
 
       // Store chain result for subsequent effects

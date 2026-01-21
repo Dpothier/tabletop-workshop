@@ -203,7 +203,7 @@ Then('I receive an Action instance', function (world: ActionRegistryHydrationWor
  * Verify that the action has hydrated effects.
  * This checks that the Action was created with HydratedEffect objects.
  */
-Then('the action has hydrated effects', function (world: ActionRegistryHydrationWorld) {
+Then('the action has hydrated effects', async function (world: ActionRegistryHydrationWorld) {
   expect(world.actionResult).toBeDefined();
   const action = world.actionResult!;
 
@@ -224,7 +224,8 @@ Then('the action has hydrated effects', function (world: ActionRegistryHydration
   // Calling applyEffects without throwing proves effects are hydrated
   // We don't assert success because effects may have validation logic that fails
   // (e.g., AttackEffect fails if no target entity exists)
-  const result = action.applyEffects(new Map(), dummyContext);
+  const resultOrPromise = action.applyEffects(new Map(), dummyContext);
+  const result = resultOrPromise instanceof Promise ? await resultOrPromise : resultOrPromise;
   expect(result).toBeDefined();
   expect(typeof result.success).toBe('boolean');
 });
@@ -254,7 +255,7 @@ Then('I receive undefined', function (world: ActionRegistryHydrationWorld) {
  */
 Then(
   'the action has {int} hydrated effects',
-  function (world: ActionRegistryHydrationWorld, expectedCount: number) {
+  async function (world: ActionRegistryHydrationWorld, expectedCount: number) {
     expect(world.actionResult).toBeDefined();
     const action = world.actionResult!;
 
@@ -275,7 +276,8 @@ Then(
       getBeadHand: () => undefined,
     };
 
-    const result = action.applyEffects(new Map(), dummyContext);
+    const resultOrPromise = action.applyEffects(new Map(), dummyContext);
+    const result = resultOrPromise instanceof Promise ? await resultOrPromise : resultOrPromise;
     expect(result).toBeDefined();
   }
 );

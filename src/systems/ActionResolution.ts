@@ -54,8 +54,8 @@ export class ActionResolution {
       }
     }
 
-    // Apply effects with collected values
-    const effectResult = this.action.applyEffects(collectedValues, this.context);
+    // Apply effects with collected values (may be async)
+    const effectResult = await this.action.applyEffects(collectedValues, this.context);
 
     // Animate if there are events
     if (effectResult.events.length > 0) {
