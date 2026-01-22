@@ -32,3 +32,5 @@ import './wheel-display.steps';
 import './combat-resolver.steps';
 import './battle-ui-defense-display.steps';
 import './defensive-reactions.steps';
+import './option-selection-panel.steps';
+import './selected-hero-panel-tabs.steps';

@@ -231,9 +231,11 @@ export class SelectedHeroPanel {
    * Show panel for a specific hero
    */
   showPanel(heroId: string): void {
+    // Only reset tab if showing for a different hero
+    if (heroId !== this.selectedHeroId) {
+      this.activeTab = 'movement';
+    }
     this.selectedHeroId = heroId;
-    // Reset to movement tab when showing panel
-    this.activeTab = 'movement';
     this.updateTabHighlights();
     this.rebuildActionButtons();
     this.container.setVisible(true);

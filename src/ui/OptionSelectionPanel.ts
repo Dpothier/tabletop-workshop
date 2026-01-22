@@ -140,6 +140,11 @@ export class OptionSelectionPanel {
       this.logic.deselectOption(optionId);
     } else {
       this.logic.selectOption(optionId);
+      // Auto-confirm for single-select prompts
+      if (this.config && !this.config.multiSelect) {
+        this.logic.confirm();
+        return;
+      }
     }
     this.updateButtonStates();
   }
