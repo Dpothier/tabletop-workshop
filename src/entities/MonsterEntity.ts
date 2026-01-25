@@ -211,7 +211,7 @@ export class MonsterEntity extends Entity {
 
       // Prompt for defensive reaction if target is a Character
       if (decision.target instanceof Character) {
-        await this.promptDefensiveReaction(decision.target, adapter);
+        await this.promptDefensiveReaction(decision.target, power, agility, adapter);
       }
 
       // Get target's defense stats
@@ -286,7 +286,12 @@ export class MonsterEntity extends Entity {
    * Prompt the target character for defensive reactions (guard or evasion).
    * Allows spending beads to boost defense stats before combat resolution.
    */
-  private async promptDefensiveReaction(target: Character, adapter?: BattleAdapter): Promise<void> {
+  private async promptDefensiveReaction(
+    target: Character,
+    power: number,
+    agility: number,
+    adapter?: BattleAdapter
+  ): Promise<void> {
     const beadHand = target.getBeadHand();
     if (!beadHand) {
       return;
@@ -327,7 +332,8 @@ export class MonsterEntity extends Entity {
     const prompt: OptionPrompt = {
       type: 'option',
       key: 'defensiveReaction',
-      prompt: 'Boost your defenses against this attack?',
+      prompt: 'Incoming Attack! Boost your defenses?',
+      subtitle: `⚔ Power ${power}    💨 Agility ${agility}`,
       optional: true,
       multiSelect: false,
       options,
@@ -339,6 +345,7 @@ export class MonsterEntity extends Entity {
     }
 
     const reactionId = selected[0];
+    let beadsSpent = false;
 
     // Handle guard reaction
     if (reactionId.startsWith('guard-')) {
@@ -347,6 +354,7 @@ export class MonsterEntity extends Entity {
         beadHand.spend('red');
       }
       target.setGuard(target.guard + count);
+      beadsSpent = true;
     }
 
     // Handle evasion reaction
@@ -356,6 +364,12 @@ export class MonsterEntity extends Entity {
         beadHand.spend('green');
       }
       target.setEvasion(target.evasion + count);
+      beadsSpent = true;
+    }
+
+    // Notify UI that beads have changed
+    if (beadsSpent) {
+      adapter.notifyBeadsChanged(target.id, beadHand.getHandCounts());
     }
   }
 

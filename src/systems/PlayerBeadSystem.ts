@@ -101,6 +101,20 @@ export class PlayerBeadSystem {
   }
 
   /**
+   * Set the hand to specific bead counts (for testing).
+   * Clears existing hand and sets to the provided counts.
+   * @param counts - Desired bead counts in hand
+   */
+  setHand(counts: BeadCounts): void {
+    this.hand.clear();
+    for (const color of BEAD_COLORS) {
+      if (counts[color] > 0) {
+        this.hand.add(color, counts[color]);
+      }
+    }
+  }
+
+  /**
    * Get total number of beads remaining in pool.
    */
   getBagTotal(): number {

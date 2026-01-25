@@ -142,4 +142,14 @@ export class Character extends Entity {
   getHandCounts(): { red: number; blue: number; green: number; white: number } | undefined {
     return this.beadHand?.getHandCounts();
   }
+
+  /**
+   * Set the bead hand to specific counts (for testing).
+   * @param counts - Desired bead counts in hand
+   */
+  setBeadHand(counts: { red: number; blue: number; green: number; white: number }): void {
+    if (this.beadHand) {
+      this.beadHand.setHand(counts);
+    }
+  }
 }

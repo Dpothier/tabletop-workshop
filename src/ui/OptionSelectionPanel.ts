@@ -4,13 +4,14 @@ import type { OptionChoice } from '@src/types/ParameterPrompt';
 import { OptionSelectionUI } from '@src/ui/OptionSelectionUI';
 
 // Layout constants
-const PANEL_WIDTH = 320;
-const BUTTON_WIDTH = 270;
+const PANEL_WIDTH = 380;
+const BUTTON_WIDTH = 340;
 const BUTTON_HEIGHT = 32;
 const BUTTON_GAP = 4;
-const PADDING = 20;
+const PADDING = 24;
 const ACTION_BUTTON_WIDTH = 90;
 const ACTION_BUTTON_HEIGHT = 28;
+const SUBTITLE_HEIGHT = 36;
 
 // Colors (match SelectedHeroPanel)
 const PANEL_BG_COLOR = 0x1a1a2e;
@@ -25,6 +26,8 @@ const COST_COLOR = '#ffcc00';
 
 export interface OptionSelectionPanelConfig {
   prompt: string;
+  /** Optional subtitle shown below the prompt (e.g., attack stats with icons) */
+  subtitle?: string;
   options: OptionChoice[];
   multiSelect: boolean;
   availableBeads: BeadCounts;
@@ -89,10 +92,16 @@ export class OptionSelectionPanel {
 
     if (!this.config) return;
 
-    // Calculate panel height based on options
+    // Calculate panel height based on options and subtitle
     const optionCount = this.config.options.length;
+    const subtitleSpace = this.config.subtitle ? SUBTITLE_HEIGHT : 0;
     const panelHeight =
-      PADDING * 2 + 30 + optionCount * (BUTTON_HEIGHT + BUTTON_GAP) + ACTION_BUTTON_HEIGHT + 30;
+      PADDING * 2 +
+      30 +
+      subtitleSpace +
+      optionCount * (BUTTON_HEIGHT + BUTTON_GAP) +
+      ACTION_BUTTON_HEIGHT +
+      30;
 
     // Background
     const bg = this.scene.add.rectangle(0, 0, PANEL_WIDTH, panelHeight, PANEL_BG_COLOR);
@@ -108,8 +117,21 @@ export class OptionSelectionPanel {
     promptText.setOrigin(0.5, 0);
     this.container.add(promptText);
 
+    // Subtitle (e.g., attack stats with icons)
+    let contentStartY = -panelHeight / 2 + PADDING + 30;
+    if (this.config.subtitle) {
+      const subtitleText = this.scene.add.text(0, contentStartY, this.config.subtitle, {
+        fontSize: '16px',
+        color: '#ffaa00',
+        fontStyle: 'bold',
+      });
+      subtitleText.setOrigin(0.5, 0);
+      this.container.add(subtitleText);
+      contentStartY += SUBTITLE_HEIGHT;
+    }
+
     // Option buttons
-    let y = -panelHeight / 2 + PADDING + 30;
+    let y = contentStartY;
     for (const option of this.config.options) {
       const button = new OptionButton(
         this.scene,

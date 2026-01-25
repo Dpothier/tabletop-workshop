@@ -2,6 +2,7 @@ import type { Action } from '@src/models/Action';
 import type { BattleAdapter } from '@src/types/BattleAdapter';
 import type { ActionResult } from '@src/types/ActionDefinition';
 import type { GameContext } from '@src/types/Effect';
+import type { EntityPrompt } from '@src/types/ParameterPrompt';
 
 /**
  * ActionResolution handles the execution of an action with async parameter collection
@@ -51,6 +52,18 @@ export class ActionResolution {
           };
         }
         collectedValues.set(prompt.key, selected);
+      } else if (prompt.type === 'entity') {
+        const entity = await this.adapter.promptEntity(prompt as EntityPrompt);
+        if (entity === null) {
+          return {
+            cancelled: true,
+            success: false,
+            cost: this.action.cost,
+            events: [],
+            data: {},
+          };
+        }
+        collectedValues.set(prompt.key, entity);
       }
     }
 

@@ -18,7 +18,7 @@ import { Character } from '@src/entities/Character';
  * Prompts player characters to spend beads for defensive bonuses before combat resolution.
  */
 export class AttackEffect implements Effect {
-  private async promptDefensiveReaction(context: GameContext, target: Character): Promise<void> {
+  private async promptDefensiveReaction(context: GameContext, target: Character, power: number, agility: number): Promise<void> {
     const beadHand = context.getBeadHand(target.id);
     if (!beadHand) {
       return;
@@ -59,7 +59,8 @@ export class AttackEffect implements Effect {
     const prompt: OptionPrompt = {
       type: 'option',
       key: 'defensiveReaction',
-      prompt: 'Boost your defenses against this attack?',
+      prompt: 'Incoming Attack! Boost your defenses?',
+      subtitle: `⚔ Power ${power}    💨 Agility ${agility}`,
       optional: true,
       multiSelect: false,
       options,
@@ -71,6 +72,7 @@ export class AttackEffect implements Effect {
     }
 
     const reactionId = selected[0];
+    let beadsSpent = false;
 
     // Handle guard reaction
     if (reactionId.startsWith('guard-')) {
@@ -79,6 +81,7 @@ export class AttackEffect implements Effect {
         beadHand.spend('red');
       }
       target.setGuard(target.guard + count);
+      beadsSpent = true;
     }
 
     // Handle evasion reaction
@@ -88,6 +91,12 @@ export class AttackEffect implements Effect {
         beadHand.spend('green');
       }
       target.setEvasion(target.evasion + count);
+      beadsSpent = true;
+    }
+
+    // Notify UI that beads have changed
+    if (beadsSpent) {
+      context.adapter.notifyBeadsChanged(target.id, beadHand.getHandCounts());
     }
   }
   async execute(
@@ -137,7 +146,7 @@ export class AttackEffect implements Effect {
 
     // Prompt for defensive reaction if target is a Character
     if (target instanceof Character) {
-      await this.promptDefensiveReaction(context, target);
+      await this.promptDefensiveReaction(context, target, power, agility);
     }
 
     // Get target's defense stats

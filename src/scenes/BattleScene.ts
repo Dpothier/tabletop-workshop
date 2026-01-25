@@ -20,7 +20,7 @@ import { SelectedHeroPanel } from '@src/ui/SelectedHeroPanel';
 import { OptionSelectionPanel } from '@src/ui/OptionSelectionPanel';
 import { HERO_COLORS } from '@src/ui/colors';
 import type { BattleAdapter } from '@src/types/BattleAdapter';
-import type { OptionPrompt } from '@src/types/ParameterPrompt';
+import type { OptionPrompt, EntityPrompt } from '@src/types/ParameterPrompt';
 import type { AnimationEvent } from '@src/types/AnimationEvent';
 
 interface BattleData {
@@ -58,9 +58,28 @@ export class BattleScene extends Phaser.Scene implements BattleAdapter {
   // Current actor for E2E testing
   public currentActorId: string | null = null;
 
+  // Entity targeting state for E2E testing
+  public entityTargetingActive: boolean = false;
+  public highlightedEntityTargets: string[] = [];
+
   // Expose log messages for E2E testing
   public get logMessages(): string[] {
     return this.battleUI?.getLogMessages() ?? [];
+  }
+
+  /**
+   * Set a hero's bead hand to specific counts (for E2E testing).
+   * @param heroId - ID of the hero
+   * @param counts - Desired bead counts
+   */
+  public setHeroBeadHand(
+    heroId: string,
+    counts: { red: number; blue: number; green: number; white: number }
+  ): void {
+    const character = this.characters.find((c) => c.id === heroId);
+    if (character) {
+      character.setBeadHand(counts);
+    }
   }
 
   // Expose selected character ID for E2E testing
@@ -351,6 +370,7 @@ export class BattleScene extends Phaser.Scene implements BattleAdapter {
     return new Promise<string[] | null>((resolve) => {
       this.optionSelectionPanel!.show({
         prompt: prompt.prompt,
+        subtitle: prompt.subtitle,
         options: prompt.options,
         multiSelect: prompt.multiSelect ?? false,
         availableBeads: beadCounts,
@@ -359,6 +379,205 @@ export class BattleScene extends Phaser.Scene implements BattleAdapter {
         onCancel: () => resolve(null),
       });
     });
+  }
+
+  async promptEntity(prompt: EntityPrompt): Promise<string | null> {
+    const actorId = this.selectionManager.getSelected();
+    if (!actorId) return null;
+
+    const validTargets = this.getValidEntityTargets(actorId, prompt);
+    if (validTargets.length === 0) {
+      this.battleUI.log('No valid targets in range');
+      return null;
+    }
+
+    // Always show the target selector, even for single targets
+    // This gives visual feedback and allows the player to cancel
+    this.entityTargetingActive = true;
+    this.highlightedEntityTargets = validTargets;
+    const { highlights, targetHalos } = this.highlightEntityTargetsWithHalos(
+      actorId,
+      validTargets,
+      prompt.range ?? 1
+    );
+
+    // Log the prompt to inform player what to do
+    this.battleUI.log(prompt.prompt || 'Select target');
+
+    // Track currently hovered target for visual feedback
+    let hoveredTargetId: string | null = null;
+
+    return new Promise((resolve) => {
+      // Hover effect handler
+      const onPointerMove = (pointer: Phaser.Input.Pointer): void => {
+        const gridX = this.gridSystem.worldToGrid(pointer.x);
+        const gridY = this.gridSystem.worldToGrid(pointer.y);
+
+        let newHoveredTarget: string | null = null;
+        for (const targetId of validTargets) {
+          const targetPos = this.battleGrid.getPosition(targetId);
+          if (targetPos && targetPos.x === gridX && targetPos.y === gridY) {
+            newHoveredTarget = targetId;
+            break;
+          }
+        }
+
+        // Update hover visuals if hovered target changed
+        if (newHoveredTarget !== hoveredTargetId) {
+          // Reset previous hovered target
+          if (hoveredTargetId && targetHalos.has(hoveredTargetId)) {
+            this.updateTargetHalo(targetHalos.get(hoveredTargetId)!, hoveredTargetId, false);
+          }
+          // Highlight new hovered target
+          if (newHoveredTarget && targetHalos.has(newHoveredTarget)) {
+            this.updateTargetHalo(targetHalos.get(newHoveredTarget)!, newHoveredTarget, true);
+          }
+          hoveredTargetId = newHoveredTarget;
+        }
+      };
+
+      const cleanup = (): void => {
+        this.entityTargetingActive = false;
+        this.highlightedEntityTargets = [];
+        highlights.forEach((h) => h.destroy());
+        targetHalos.forEach((h) => h.destroy());
+        this.input.off('pointermove', onPointerMove);
+        this.input.removeAllListeners('pointerdown');
+        this.input.keyboard?.removeAllListeners('keydown-ESC');
+      };
+
+      // Add hover listener
+      this.input.on('pointermove', onPointerMove);
+
+      this.input.once('pointerdown', (pointer: Phaser.Input.Pointer) => {
+        const gridX = this.gridSystem.worldToGrid(pointer.x);
+        const gridY = this.gridSystem.worldToGrid(pointer.y);
+
+        for (const targetId of validTargets) {
+          const targetPos = this.battleGrid.getPosition(targetId);
+          if (targetPos && targetPos.x === gridX && targetPos.y === gridY) {
+            cleanup();
+            resolve(targetId);
+            return;
+          }
+        }
+
+        // Click wasn't on a valid target - cancel
+        cleanup();
+        resolve(null);
+      });
+
+      this.input.keyboard?.once('keydown-ESC', () => {
+        cleanup();
+        resolve(null);
+      });
+    });
+  }
+
+  /**
+   * Update a target halo's appearance based on hover state
+   */
+  private updateTargetHalo(
+    graphics: Phaser.GameObjects.Graphics,
+    targetId: string,
+    isHovered: boolean
+  ): void {
+    const pos = this.battleGrid.getPosition(targetId);
+    if (!pos) return;
+
+    const worldX = this.gridSystem.gridToWorld(pos.x);
+    const worldY = this.gridSystem.gridToWorld(pos.y);
+    graphics.clear();
+
+    if (isHovered) {
+      // Hovered: dramatic yellow highlight with filled background
+      // Filled yellow background for high visibility
+      graphics.fillStyle(0xffff00, 0.4);
+      graphics.fillCircle(worldX, worldY, this.GRID_SIZE / 2 + 12);
+      // Thick bright yellow outer ring
+      graphics.lineStyle(8, 0xffff00, 1.0);
+      graphics.strokeCircle(worldX, worldY, this.GRID_SIZE / 2 + 12);
+      // White inner glow for contrast
+      graphics.lineStyle(4, 0xffffff, 0.8);
+      graphics.strokeCircle(worldX, worldY, this.GRID_SIZE / 2 + 4);
+    } else {
+      // Normal: standard red halo
+      graphics.lineStyle(4, 0xff0000, 0.9);
+      graphics.strokeCircle(worldX, worldY, this.GRID_SIZE / 2 + 4);
+    }
+  }
+
+  private getValidEntityTargets(actorId: string, prompt: EntityPrompt): string[] {
+    const targets: string[] = [];
+    const actorPos = this.battleGrid.getPosition(actorId);
+    if (!actorPos) return [];
+
+    if (prompt.filter === 'enemy' || prompt.filter === 'any') {
+      const monsterPos = this.battleGrid.getPosition(this.monsterEntity.id);
+      if (monsterPos && this.monsterEntity.isAlive()) {
+        const distance = this.battleGrid.getDistance(actorId, this.monsterEntity.id);
+        if (!prompt.range || distance <= prompt.range) {
+          targets.push(this.monsterEntity.id);
+        }
+      }
+    }
+
+    if (prompt.filter === 'ally' || prompt.filter === 'any') {
+      for (const char of this.characters) {
+        if (char.id !== actorId && char.isAlive()) {
+          const distance = this.battleGrid.getDistance(actorId, char.id);
+          if (!prompt.range || distance <= prompt.range) {
+            targets.push(char.id);
+          }
+        }
+      }
+    }
+
+    return targets;
+  }
+
+  private highlightEntityTargetsWithHalos(
+    actorId: string,
+    targetIds: string[],
+    range: number
+  ): { highlights: Phaser.GameObjects.Graphics[]; targetHalos: Map<string, Phaser.GameObjects.Graphics> } {
+    const highlights: Phaser.GameObjects.Graphics[] = [];
+    const targetHalos = new Map<string, Phaser.GameObjects.Graphics>();
+    const actorPos = this.battleGrid.getPosition(actorId);
+    if (!actorPos) return { highlights, targetHalos };
+
+    // 1. Get all tiles in range (green highlight)
+    const tilesInRange: Position[] = [];
+    const { width, height } = this.arena;
+    for (let x = 0; x < width; x++) {
+      for (let y = 0; y < height; y++) {
+        const distance = Math.max(Math.abs(x - actorPos.x), Math.abs(y - actorPos.y));
+        if (distance > 0 && distance <= range) {
+          tilesInRange.push({ x, y });
+        }
+      }
+    }
+
+    // Highlight all tiles in range with green
+    if (tilesInRange.length > 0) {
+      const rangeHighlight = this.gridVisual.highlightTiles(tilesInRange, 0x00ff00);
+      highlights.push(rangeHighlight);
+    }
+
+    // 2. Add red halos around valid targets (stored separately for hover effects)
+    for (const targetId of targetIds) {
+      const pos = this.battleGrid.getPosition(targetId);
+      if (pos) {
+        const worldX = this.gridSystem.gridToWorld(pos.x);
+        const worldY = this.gridSystem.gridToWorld(pos.y);
+        const graphics = this.add.graphics();
+        graphics.lineStyle(4, 0xff0000, 0.9);
+        graphics.strokeCircle(worldX, worldY, this.GRID_SIZE / 2 + 4);
+        targetHalos.set(targetId, graphics);
+      }
+    }
+
+    return { highlights, targetHalos };
   }
 
   async animate(events: AnimationEvent[]): Promise<void> {
@@ -404,6 +623,10 @@ export class BattleScene extends Phaser.Scene implements BattleAdapter {
 
   delay(ms: number): Promise<void> {
     return new Promise((resolve) => this.time.delayedCall(ms, resolve));
+  }
+
+  notifyBeadsChanged(heroId: string, counts: import('@src/types/Beads').BeadCounts): void {
+    this.stateObserver.emitHeroBeadsChanged(heroId, counts);
   }
 
   shutdown(): void {

@@ -20,6 +20,8 @@ interface DefensiveReactionsWorld extends QuickPickleWorld {
   playerGuardAfter?: number;
   playerEvasionAfter?: number;
   promptIssuedCount?: number;
+  lastAttackPower?: number;
+  lastAttackAgility?: number;
 }
 
 // Background steps (unique to this feature)
@@ -150,6 +152,7 @@ function createMockBattleAdapter(world: DefensiveReactionsWorld): BattleAdapter 
 
   return {
     promptTile: vi.fn(async () => null),
+    promptEntity: vi.fn(async () => null),
     promptOptions: vi.fn(async (prompt: OptionPrompt) => {
       world.capturedPrompts!.push(prompt);
       world.promptIssuedCount!++;
@@ -161,10 +164,15 @@ function createMockBattleAdapter(world: DefensiveReactionsWorld): BattleAdapter 
     awaitPlayerAction: vi.fn(async () => 'attack'),
     transition: vi.fn(),
     delay: vi.fn(async () => {}),
+    notifyBeadsChanged: vi.fn(),
   };
 }
 
-function createDefensivePrompt(handCounts: { red: number; green: number }): OptionPrompt {
+function createDefensivePrompt(
+  handCounts: { red: number; green: number },
+  power?: number,
+  agility?: number
+): OptionPrompt {
   const options: OptionChoice[] = [];
   for (let i = 1; i <= handCounts.red; i++) {
     options.push({
@@ -183,14 +191,21 @@ function createDefensivePrompt(handCounts: { red: number; green: number }): Opti
     label: 'Pass',
   });
 
-  return {
+  // Use subtitle for attack stats (matching production code format)
+  const result: OptionPrompt = {
     type: 'option',
     key: 'defensiveReaction',
-    prompt: 'Boost your defenses against this attack?',
+    prompt: 'Incoming Attack! Boost your defenses?',
     optional: true,
     multiSelect: false,
     options,
   };
+
+  if (power !== undefined && agility !== undefined) {
+    result.subtitle = `⚔ Power ${power}    💨 Agility ${agility}`;
+  }
+
+  return result;
 }
 
 // Attack steps
@@ -210,8 +225,10 @@ When('the monster attacks the player', function (world: DefensiveReactionsWorld)
 
 When(
   'the monster attacks with power {int}, agility {int}',
-  function (world: DefensiveReactionsWorld, _power: number, _agility: number) {
+  function (world: DefensiveReactionsWorld, power: number, agility: number) {
     world.battleAdapter = createMockBattleAdapter(world);
+    world.lastAttackPower = power;
+    world.lastAttackAgility = agility;
     const player = world.defEntities?.get('hero-0') as Character;
 
     if (player && world.playerBeadSystem) {
@@ -220,7 +237,7 @@ When(
 
       const handCounts = world.playerBeadSystem.getHandCounts();
       if (handCounts.red > 0 || handCounts.green > 0) {
-        const prompt = createDefensivePrompt(handCounts);
+        const prompt = createDefensivePrompt(handCounts, power, agility);
         world.battleAdapter!.promptOptions(prompt);
       }
     }

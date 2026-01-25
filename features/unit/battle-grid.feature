@@ -60,15 +60,15 @@ Feature: Battle Grid
 
   # Distance Calculations
 
-  Scenario: Calculate Manhattan distance between adjacent entities
+  Scenario: Calculate Chebyshev distance between adjacent entities
     Given entity "hero-0" is registered at position 3,3
     And entity "monster" is registered at position 4,3
     Then the distance between "hero-0" and "monster" should be 1
 
-  Scenario: Calculate Manhattan distance between diagonal entities
+  Scenario: Calculate Chebyshev distance between diagonal entities
     Given entity "hero-0" is registered at position 3,3
     And entity "monster" is registered at position 5,5
-    Then the distance between "hero-0" and "monster" should be 4
+    Then the distance between "hero-0" and "monster" should be 2
 
   Scenario: Calculate distance to self is zero
     Given entity "hero-0" is registered at position 3,3
@@ -86,9 +86,14 @@ Feature: Battle Grid
     And entity "monster" is registered at position 3,4
     Then "hero-0" and "monster" should be adjacent
 
-  Scenario: Diagonal entities are not adjacent
+  Scenario: Diagonally adjacent entities are adjacent
     Given entity "hero-0" is registered at position 3,3
     And entity "monster" is registered at position 4,4
+    Then "hero-0" and "monster" should be adjacent
+
+  Scenario: Diagonally far entities are not adjacent
+    Given entity "hero-0" is registered at position 3,3
+    And entity "monster" is registered at position 5,5
     Then "hero-0" and "monster" should not be adjacent
 
   Scenario: Entities 2 tiles apart are not adjacent
@@ -105,8 +110,11 @@ Feature: Battle Grid
     And the valid moves should contain position 4,3
     And the valid moves should contain position 3,2
     And the valid moves should contain position 2,3
+    And the valid moves should contain position 4,4
+    And the valid moves should contain position 2,2
+    And the valid moves should contain position 2,4
+    And the valid moves should contain position 4,2
     And the valid moves should not contain position 3,3
-    And the valid moves should not contain position 4,4
 
   Scenario: Valid moves exclude occupied positions
     Given entity "hero-0" is registered at position 3,3
@@ -129,7 +137,7 @@ Feature: Battle Grid
     Then the valid moves should contain position 5,3
     And the valid moves should contain position 4,4
     And the valid moves should contain position 3,5
-    And the valid moves should not contain position 5,5
+    And the valid moves should contain position 5,5
 
   # Bounds Checking
 

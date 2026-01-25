@@ -41,6 +41,12 @@ Given('a mock BattleAdapter', function (world: ActionResolutionExecuteWorld) {
     promptOptions: vi.fn(),
     animate: vi.fn(async () => {}),
     log: vi.fn(),
+    promptEntity: vi.fn(),
+    showPlayerTurn: vi.fn(),
+    awaitPlayerAction: vi.fn(),
+    transition: vi.fn(),
+    delay: vi.fn(),
+    notifyBeadsChanged: vi.fn(),
   } as unknown as BattleAdapter;
 });
 

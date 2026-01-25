@@ -5,6 +5,7 @@ import type { ActionCost } from '@src/types/ActionCost';
 import { canAfford, beadCountsToActionCost } from '@src/utils/affordability';
 import type { BattleStateObserver } from '@src/systems/BattleStateObserver';
 import type { BattleState } from '@src/state/BattleState';
+import type { BattleGrid } from '@src/state/BattleGrid';
 
 /**
  * Action button state for E2E testing
@@ -75,6 +76,7 @@ export class SelectedHeroPanel {
   private currentActions: ActionDefinition[] = [];
   private activeTab: ActionCategory = 'movement';
   private tabBackgrounds: Map<ActionCategory, Phaser.GameObjects.Rectangle> = new Map();
+  private allActionAffordability: Map<string, boolean> = new Map();
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -216,6 +218,12 @@ export class SelectedHeroPanel {
       this.actionButtons.push(button);
       this.container.add(button.container);
     });
+
+    // Apply affordability state to newly created buttons
+    for (const button of this.actionButtons) {
+      const isAffordable = this.allActionAffordability.get(button.getName()) ?? false;
+      button.setAffordable(isAffordable);
+    }
   }
 
   /**
@@ -250,14 +258,46 @@ export class SelectedHeroPanel {
   }
 
   /**
-   * Update affordability based on beads in hand and available time
+   * Update affordability based on beads in hand and available time.
+   * Optionally checks range constraints for attack actions.
+   * @param beadCounts Current bead counts in hand
+   * @param availableTime Time remaining in turn
+   * @param heroId Optional hero ID for range checking
+   * @param grid Optional battle grid for range checking
    */
-  updateAffordability(beadCounts: BeadCounts, availableTime: number): void {
+  updateAffordability(
+    beadCounts: BeadCounts,
+    availableTime: number,
+    heroId?: string,
+    grid?: BattleGrid
+  ): void {
     const available = beadCountsToActionCost(beadCounts, availableTime);
 
-    for (const button of this.actionButtons) {
-      button.setAffordable(canAfford(available, button.getActionCost()));
+    // Calculate affordability for ALL actions (not just visible buttons)
+    for (const action of this.currentActions) {
+      let isAffordable = canAfford(available, action.cost);
+
+      // For attack actions, also check range
+      if (isAffordable && heroId && grid && action.category === 'attack') {
+        isAffordable = this.hasAdjacentEnemy(heroId, grid);
+      }
+
+      this.allActionAffordability.set(action.name, isAffordable);
     }
+
+    // Also update visible buttons for immediate UI feedback
+    for (const button of this.actionButtons) {
+      const isAffordable = this.allActionAffordability.get(button.getName()) ?? false;
+      button.setAffordable(isAffordable);
+    }
+  }
+
+  /**
+   * Check if there's at least one adjacent enemy to the hero.
+   * Delegates to BattleGrid for spatial query.
+   */
+  private hasAdjacentEnemy(heroId: string, grid: BattleGrid): boolean {
+    return grid.hasEntityInRange(heroId, 1);
   }
 
   /**
@@ -265,12 +305,6 @@ export class SelectedHeroPanel {
    * Returns all available actions (from all tabs), not just visible ones.
    */
   getState(): SelectedHeroPanelState {
-    // Build affordability map from visible buttons
-    const affordabilityMap = new Map<string, boolean>();
-    for (const button of this.actionButtons) {
-      affordabilityMap.set(button.getName(), button.isAffordable());
-    }
-
     // Return all actions from currentActions for complete test coverage
     return {
       visible: this.container.visible,
@@ -279,7 +313,7 @@ export class SelectedHeroPanel {
       actionButtons: this.currentActions.map((action) => ({
         name: action.name,
         cost: action.cost.time,
-        affordable: affordabilityMap.get(action.name) ?? true,
+        affordable: this.allActionAffordability.get(action.name) ?? false,
       })),
     };
   }
@@ -311,7 +345,7 @@ export class SelectedHeroPanel {
           const position = state.wheel.getPosition(characterId);
           if (beads && position !== undefined) {
             const availableTime = 8 - position;
-            this.updateAffordability(beads, availableTime);
+            this.updateAffordability(beads, availableTime, characterId, state.grid);
           }
         } else {
           this.hidePanel();
@@ -321,7 +355,7 @@ export class SelectedHeroPanel {
         if (heroId === this.selectedHeroId) {
           const position = state.wheel.getPosition(heroId);
           const availableTime = position !== undefined ? 8 - position : 0;
-          this.updateAffordability(counts, availableTime);
+          this.updateAffordability(counts, availableTime, heroId, state.grid);
         }
       },
     });

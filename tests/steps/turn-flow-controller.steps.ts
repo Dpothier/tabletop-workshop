@@ -51,6 +51,7 @@ function createAliveMock(isAlive: boolean): AliveQueryable {
 function createBattleAdapterMock(): BattleAdapter {
   return {
     promptTile: async () => null,
+    promptEntity: async () => null,
     promptOptions: async () => null,
     animate: vi.fn(async () => {}),
     log: vi.fn(() => {}),
@@ -58,6 +59,7 @@ function createBattleAdapterMock(): BattleAdapter {
     awaitPlayerAction: vi.fn(async () => ''),
     transition: vi.fn(() => {}),
     delay: vi.fn(async () => {}),
+    notifyBeadsChanged: vi.fn(),
   };
 }
 

@@ -105,10 +105,10 @@ export class BattleGrid {
   }
 
   /**
-   * Calculate the Manhattan distance between two entities.
+   * Calculate the Chebyshev distance between two entities.
    * @param id1 First entity ID
    * @param id2 Second entity ID
-   * @returns Manhattan distance, or -1 if either entity is not found
+   * @returns Chebyshev distance, or -1 if either entity is not found
    */
   getDistance(id1: string, id2: string): number {
     const pos1 = this.positions.get(id1);
@@ -118,11 +118,11 @@ export class BattleGrid {
       return -1;
     }
 
-    return Math.abs(pos1.x - pos2.x) + Math.abs(pos1.y - pos2.y);
+    return Math.max(Math.abs(pos1.x - pos2.x), Math.abs(pos1.y - pos2.y));
   }
 
   /**
-   * Check if two entities are adjacent (Manhattan distance === 1).
+   * Check if two entities are adjacent (Chebyshev distance === 1).
    * @param id1 First entity ID
    * @param id2 Second entity ID
    * @returns True if adjacent, false otherwise
@@ -135,7 +135,7 @@ export class BattleGrid {
    * Get all valid move positions for an entity within a given range.
    * Excludes current position and occupied positions.
    * @param entityId Entity ID
-   * @param range Maximum Manhattan distance
+   * @param range Maximum Chebyshev distance
    * @returns Array of valid positions
    */
   getValidMoves(entityId: string, range: number): Position[] {
@@ -149,8 +149,8 @@ export class BattleGrid {
     // Check all positions within range
     for (let dx = -range; dx <= range; dx++) {
       for (let dy = -range; dy <= range; dy++) {
-        // Skip if exceeds Manhattan distance
-        if (Math.abs(dx) + Math.abs(dy) > range) {
+        // Skip if exceeds Chebyshev distance
+        if (Math.max(Math.abs(dx), Math.abs(dy)) > range) {
           continue;
         }
 
@@ -177,6 +177,37 @@ export class BattleGrid {
     }
 
     return validMoves;
+  }
+
+  /**
+   * Check if there's at least one entity within range (other than the source entity).
+   * Useful for UI affordability checks.
+   * @param entityId Entity to search from
+   * @param range Maximum Chebyshev distance (default 1 = adjacent)
+   * @returns True if at least one other entity is within range
+   */
+  hasEntityInRange(entityId: string, range: number = 1): boolean {
+    const entityPos = this.positions.get(entityId);
+    if (!entityPos) return false;
+
+    for (let dx = -range; dx <= range; dx++) {
+      for (let dy = -range; dy <= range; dy++) {
+        // Skip if outside Chebyshev distance
+        if (Math.max(Math.abs(dx), Math.abs(dy)) > range) continue;
+        // Skip self
+        if (dx === 0 && dy === 0) continue;
+
+        const x = entityPos.x + dx;
+        const y = entityPos.y + dy;
+
+        if (this.isInBounds(x, y)) {
+          const occupant = this.getEntityAt(x, y);
+          if (occupant !== null) return true;
+        }
+      }
+    }
+
+    return false;
   }
 
   /**

@@ -40,6 +40,8 @@ export interface OptionPrompt {
   type: 'option';
   key: string;
   prompt: string;
+  /** Optional subtitle shown below the prompt (e.g., attack stats) */
+  subtitle?: string;
   optional?: boolean;
   multiSelect?: boolean;
   options: OptionChoice[];

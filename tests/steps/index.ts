@@ -32,5 +32,8 @@ import './wheel-display.steps';
 import './combat-resolver.steps';
 import './battle-ui-defense-display.steps';
 import './defensive-reactions.steps';
+import './defensive-reaction-prompt.steps';
 import './option-selection-panel.steps';
 import './selected-hero-panel-tabs.steps';
+import './selected-hero-panel-range.steps';
+import './action-resolution-entity.steps';

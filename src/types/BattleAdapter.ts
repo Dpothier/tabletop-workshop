@@ -1,6 +1,7 @@
 import type { Position } from '@src/state/BattleGrid';
-import type { OptionPrompt } from '@src/types/ParameterPrompt';
+import type { OptionPrompt, EntityPrompt } from '@src/types/ParameterPrompt';
 import type { AnimationEvent } from '@src/types/AnimationEvent';
+import type { BeadCounts } from '@src/types/Beads';
 
 /**
  * BattleAdapter abstracts UI interactions for action execution.
@@ -20,6 +21,12 @@ export interface BattleAdapter {
    * @returns Selected option IDs or null if cancelled
    */
   promptOptions(prompt: OptionPrompt): Promise<string[] | null>;
+
+  /**
+   * Prompt user to select an entity within optional range.
+   * @returns Selected entity ID or null if cancelled
+   */
+  promptEntity(prompt: EntityPrompt): Promise<string | null>;
 
   /**
    * Animate a sequence of events.
@@ -54,4 +61,10 @@ export interface BattleAdapter {
    * Delay execution for a specified duration.
    */
   delay(ms: number): Promise<void>;
+
+  /**
+   * Notify the UI that a hero's bead counts have changed.
+   * Called after beads are spent (e.g., defensive reactions, special attacks).
+   */
+  notifyBeadsChanged(heroId: string, counts: BeadCounts): void;
 }
