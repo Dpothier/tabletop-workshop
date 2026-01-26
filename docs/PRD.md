@@ -4,7 +4,7 @@
 
 Product Requirements Document for the cooperative tabletop boss battle game prototype. This document describes the desired functionality organized by feature category.
 
-**Last Updated**: December 7, 2025
+**Last Updated**: January 25, 2026
 
 ---
 
@@ -50,16 +50,18 @@ The action wheel is an 8-segment circular display showing creature positions and
 
 ### Hero Selection Bar (Below Arena)
 A horizontal bar displaying all player heroes:
-- Each hero shown as a portrait/icon
-- Clicking a portrait selects that hero (only if it's their turn)
-- Current actor's portrait is highlighted
-- Under each portrait:
+- Each hero shown with their name and first letter as icon
+- Clicking a hero card selects that hero (only if it's their turn)
+- Current actor's card is highlighted
+- Each hero card displays:
+  - Character name
   - Colored bead icons showing beads currently in hand
-  - Current weapon icon (sword by default)
+  - Current weapon icon
   - HP indicator
 
 ### Selected Hero Panel
 When a hero is selected (and it's their turn):
+- Character name displayed at top
 - Inventory panel showing equipped items (empty slots for now)
 - Action menu with available actions:
   - Basic actions (Move, Run, Attack, Rest)
@@ -73,19 +75,55 @@ When a hero is selected (and it's their turn):
 
 ## Character Screens
 
-### Character Creation Screen
-- Name input field
-- Attribute point allocation with +/- controls (STR, DEX, MND, SPR)
-- Real-time derived stat calculation display
-- Weapon selection interface
-- Equipment selection (armor, shield, accessory)
-- Starting consumable selection
+### Character Creation Scene
+A dedicated scene for creating and editing characters.
 
-### Setup Screen
-- List of created characters with stat summaries
-- Character selection for battle participation
-- Create new character button
-- Validation preventing battle start without characters
+#### Input Fields
+- **Name**: Required, max 20 characters, must be unique among saved characters
+- **Attributes**: STR, DEX, MND, SPR with +/- controls
+  - 12 total points to distribute
+  - Minimum 1, Maximum 6 per attribute
+  - All points must be spent before saving
+- **Weapon Selection**: Required, choose one from available weapons
+
+#### Visual Feedback
+- Real-time bead bag preview showing composition based on attributes
+- First letter of name shown as token preview
+- Validation errors displayed inline
+
+#### Validation Rules
+- Name: required, max 20 characters, unique
+- Attributes: all 12 points must be allocated
+- Weapon: must select one
+
+### Menu Scene (Battle Setup)
+The main menu integrates character selection for battle:
+
+#### Monster & Arena Selection
+- Dropdown or list to select monster
+- Dropdown or list to select arena
+
+#### Party Selection (4 Slots)
+- 4 character slots displayed below monster/arena options
+- Click slot → opens character selection popup
+- Popup shows:
+  - List of saved characters (with name, attributes summary)
+  - "Create New Character" button → CharacterCreationScene
+  - Characters already in party are grayed out (no duplicates)
+- Minimum 1 character required to start battle
+
+#### Character Management
+- "Manage Characters" button opens character management view
+- View all saved characters
+- Edit character → CharacterCreationScene (pre-filled)
+- Delete character (with confirmation dialog)
+- Import/Export buttons for JSON backup
+
+### Default Characters
+4 pre-created characters available immediately:
+- Cannot be deleted
+- Cannot be modified (read-only)
+- Provide variety for quick-start gameplay
 
 ## Inventory UI
 - View equipped items (weapon, armor, shield, accessory)
@@ -274,8 +312,10 @@ Each bead color is linked to a character attribute and powers specific types of 
 Players can strategize around which beads they have in hand, choosing actions that match their available colors or saving specific beads for key moments.
 
 ### Bead Mechanics
-- Each player has a bag with 3 beads of each color (12 total)
-- At start of turn, player draws 3 beads to hand
+- Each player has a bag with beads determined by their attributes:
+  - Red beads = STR, Green beads = DEX, Blue beads = MND, White beads = SPR
+  - Total always equals 12 (sum of all attributes)
+- At start of combat, player draws 3 beads to hand
 - Actions may require spending beads from hand as cost
 - When bag is empty, discarded beads shuffle back in
 
@@ -435,36 +475,47 @@ Tiles can have multiple properties:
 
 ## Character Attributes
 
-Each character has 4 core attributes:
+Each character has 4 core attributes that determine their **bead bag composition**.
 
-| Attribute | Abbr | Effect |
-|-----------|------|--------|
-| Strength | STR | Increases Power of melee attacks |
-| Dexterity | DEX | Increases Evasion and Agility |
-| Mind | MND | Increases special ability effectiveness |
-| Spirit | SPR | Increases HP and bead draw efficiency |
+| Attribute | Abbr | Bead Color | Theme |
+|-----------|------|------------|-------|
+| Strength | STR | Red | Powerful attacks, defense boosts |
+| Dexterity | DEX | Green | Evasion, quick actions, repositioning |
+| Mind | MND | Blue | Tactical abilities, debuffs |
+| Spirit | SPR | White | Healing, support, protection |
+
+### Attributes → Bead Bag
+**The only effect of attributes is determining bead bag composition:**
+- Red beads in bag = STR value
+- Green beads in bag = DEX value
+- Blue beads in bag = MND value
+- White beads in bag = SPR value
+- **Total beads = 12** (always equals total attribute points)
+
+A character with STR 5, DEX 2, MND 2, SPR 3 has a bag of: 5 red, 2 green, 2 blue, 3 white beads.
+
+**No passive bonuses.** Attributes don't provide automatic stat increases. A high-STR character has more red beads, making them more likely to have red beads available for powerful effects, but this requires actively spending those beads.
 
 ### Point Buy System
 - Total Points: 12 points to distribute
 - Minimum per Attribute: 1
 - Maximum per Attribute: 6
-- Starting Values: All attributes start at 1 (4 points pre-allocated)
-- Distributable Points: 8 additional points to assign
+- All 12 points must be allocated (no saving points)
 
-### Derived Stats
-| Derived Stat | Formula |
-|--------------|---------|
-| HP | 2 + (SPR ÷ 2, rounded down) |
-| Base Evasion | DEX |
-| Base Power Bonus | STR ÷ 2, rounded down |
-| Base Agility Bonus | DEX ÷ 2, rounded down |
-| Starting Beads in Hand | 2 + (SPR ÷ 3, rounded down) |
+### Fixed Stats (No Derived Stats)
+| Stat | Value | Source |
+|------|-------|--------|
+| HP | 4 | Fixed for all heroes |
+| Base Armor | 0 | Equipment only |
+| Base Guard | 0 | Effects/reactions only |
+| Base Evasion | 0 | Effects/reactions only |
+| Starting Beads in Hand | 3 | Fixed draw at combat start |
 
-## Simplified HP Values
+## HP Values
 
 | Entity | HP |
 |--------|-----|
-| Heroes | 3 |
+| Heroes | 4 |
 | Bosses | 10 |
 
 ## Weapon System
@@ -472,17 +523,30 @@ Each character has 4 core attributes:
 ### Weapon Categories
 | Category | Example Weapons | Playstyle |
 |----------|-----------------|-----------|
-| Light Melee | Dagger, Short Sword | Fast attacks, high agility |
+| Light Melee | Dagger, Short Sword | Fast attacks, high agility, lower damage |
+| Standard Melee | Sword, Axe, Mace, Spear | Balanced stats |
 | Heavy Melee | Greatsword, Maul | Slow but powerful, armor piercing |
-| Defensive | Sword & Shield, Spear | High guard, counter-attacks |
+| Defensive | Sword & Shield | High guard, counter-attacks |
 | Ranged | Bow, Crossbow | Distance attacks, positioning |
 | Magical | Staff, Wand | Bead-powered special effects |
+
+### Starting Weapons (Step 8)
+4 standard melee weapons available at character creation:
+
+| Weapon | Category | Power | Agility | Range | Special |
+|--------|----------|-------|---------|-------|---------|
+| Sword | Standard | 1 | 1 | 1 | Balanced |
+| Axe | Standard | 2 | 0 | 1 | High damage |
+| Mace | Standard | 1 | 0 | 1 | Armor piercing potential |
+| Spear | Standard | 1 | 1 | 1-2 | Reach |
+
+*Additional weapons (Light, Heavy, Ranged, Magical) added in Step 9.*
 
 ### Weapon Properties
 - Base Power: Damage modifier
 - Base Agility: Hit modifier
 - Range: Attack distance (1 = adjacent, 2+ = ranged)
-- Special Actions: Unique abilities requiring bead costs
+- Special Actions: Unique abilities requiring bead costs (future)
 
 ## Armor System
 
@@ -572,24 +636,61 @@ After each battle, players can:
 | Beads in hand | No | Reset each battle |
 
 ## Character Persistence
-- Save created characters
-- Character list management (view, edit, delete)
-- Character portrait/icon selection (optional)
+
+### Storage
+- **Primary**: localStorage (JSON format)
+- **Backup**: Import/Export to JSON files
+
+### Character Data Structure
+```json
+{
+  "id": "uuid",
+  "name": "Character Name",
+  "attributes": { "str": 3, "dex": 3, "mnd": 3, "spr": 3 },
+  "weapon": "sword",
+  "isDefault": false,
+  "createdAt": "timestamp",
+  "updatedAt": "timestamp"
+}
+```
+
+### Limits & Rules
+| Rule | Value |
+|------|-------|
+| Max custom characters | 10 |
+| Default characters | 4 (read-only, non-deletable) |
+| Name max length | 20 characters |
+| Name uniqueness | Required |
+
+### Operations
+- **Create**: Add new character (if under limit)
+- **Edit**: Modify name, attributes, weapon (custom characters only)
+- **Delete**: Remove character with confirmation (custom characters only)
+- **Export**: Download all characters as JSON file
+- **Import**: Load characters from JSON file (merges with existing)
+
+### Character Identification
+- First letter of name displayed on battle grid token
+- Full name shown in Hero Selection Bar and Selected Hero Panel
 
 ---
 
 # DEPRECATED FEATURES
 
-The following features from previous iterations are replaced by the new combat system:
+The following features from previous iterations are replaced by the new systems:
 
 | Old Feature | Replacement |
 |-------------|-------------|
 | Turn-based phases | Action Wheel |
 | TurnManager system | ActionWheel system |
 | Random monster attack selection | Bead-based state machine |
-| Complex HP/damage numbers | Simplified HP (3/10) |
+| Complex HP/damage numbers | Simplified HP (4/10) |
 | Cooldown-based abilities | Bead-cost abilities |
 | Speed stat for turn order | Wheel cost per action |
+| Character classes (Knight, Ranger, etc.) | Attribute-based customization |
+| Derived stats (HP from SPR, Evasion from DEX) | Fixed stats, attributes affect bead bag only |
+| Fixed bead bag (3 of each color) | Attribute-based bead composition |
+| Party size selector | 4 character slots with individual selection |
 
 ---
 

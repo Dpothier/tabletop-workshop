@@ -4,7 +4,9 @@ import type { Page } from '@playwright/test';
 import {
   waitForGameReady,
   clickGameCoords,
+  clickGridTile,
   getGameState,
+  getMonsterPosition,
   captureActionState,
   expectWheelAdvanced,
   UI_PANEL_COORDS,
@@ -106,6 +108,13 @@ When('I click the Attack button', async ({ page }) => {
   // Click Attacks tab then Attack button (left column, first row)
   await clickTab(page, 'attacks');
   await clickActionButton(page, 0, 0);
+
+  // Attack now requires target selection - click on the monster
+  await page.waitForTimeout(300); // Wait for targeting mode to activate
+  const monsterPos = await getMonsterPosition(page);
+  expect(monsterPos, 'Monster should have a position').toBeDefined();
+  await clickGridTile(page, monsterPos!.x, monsterPos!.y);
+
   // Wait for async animation to complete (combat resolution + damage flash)
   await page.waitForTimeout(2000);
 });

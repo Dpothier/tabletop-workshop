@@ -95,11 +95,14 @@ export interface GameState {
   currentActor?: string;
   wheelPositions?: Record<string, number>;
   playerBeadCount?: number;
+  playerBeadsByColor?: { red: number; blue: number; green: number; white: number };
   actionButtons?: string[];
   battleLog?: string[];
   selectedTokenIndex?: number;
   heroBar?: HeroBarState;
   selectedHeroPanel?: SelectedHeroPanelState;
+  entityTargetingActive?: boolean;
+  highlightedEntityTargets?: string[];
 }
 
 /**
@@ -185,6 +188,10 @@ export async function getGameState(page: Page): Promise<GameState> {
           actionButtons: { name: string; cost: number; affordable: boolean }[];
         };
       };
+
+      // Entity targeting state
+      entityTargetingActive?: boolean;
+      highlightedEntityTargets?: string[];
     };
 
     // Monster state - prefer new architecture
@@ -233,6 +240,7 @@ export async function getGameState(page: Page): Promise<GameState> {
             const counts = selected.getHandCounts();
             if (counts) {
               state.playerBeadCount = counts.red + counts.blue + counts.green + counts.white;
+              state.playerBeadsByColor = counts;
             }
           }
         }
@@ -245,6 +253,7 @@ export async function getGameState(page: Page): Promise<GameState> {
             const counts = char.getHandCounts();
             if (counts) {
               state.playerBeadCount = counts.red + counts.blue + counts.green + counts.white;
+              state.playerBeadsByColor = counts;
               break;
             }
           }
@@ -279,6 +288,14 @@ export async function getGameState(page: Page): Promise<GameState> {
     // Get selected hero panel state
     if (battle.selectedHeroPanel) {
       state.selectedHeroPanel = battle.selectedHeroPanel.getState();
+    }
+
+    // Get entity targeting state
+    if (battle.entityTargetingActive !== undefined) {
+      state.entityTargetingActive = battle.entityTargetingActive;
+    }
+    if (battle.highlightedEntityTargets) {
+      state.highlightedEntityTargets = battle.highlightedEntityTargets;
     }
 
     return state;
@@ -726,4 +743,57 @@ export async function getSelectedCharacterPosition(
 
     return null;
   });
+}
+
+// =============================================================================
+// Bead Hand Setup (Test Setup)
+// =============================================================================
+
+/**
+ * Set a hero's bead hand to specific counts for deterministic testing.
+ *
+ * This is a **test setup helper** that directly manipulates game state
+ * to give a hero a specific bead configuration without needing to
+ * draw or spend beads through normal game flow.
+ *
+ * Use this to set up test scenarios with predictable bead availability.
+ * For example, to test an action that costs red beads, give the hero
+ * exactly the beads they need using this function.
+ *
+ * @param page Playwright page
+ * @param heroId Hero ID (e.g., 'hero-0', 'hero-1')
+ * @param counts Desired bead counts by color
+ * @returns true if setup succeeded, false if hero not found or scene not ready
+ *
+ * @example
+ * ```typescript
+ * // Give hero-0 exactly 2 red and 1 blue bead for testing
+ * await setHeroBeadHand(page, 'hero-0', { red: 2, blue: 1, green: 0, white: 0 });
+ * ```
+ */
+export async function setHeroBeadHand(
+  page: Page,
+  heroId: string,
+  counts: { red: number; blue: number; green: number; white: number }
+): Promise<boolean> {
+  return await page.evaluate(
+    ({ id, beadCounts }) => {
+      const game = window.__PHASER_GAME__;
+      if (!game) return false;
+
+      const activeScene = game.scene.scenes.find((s) => s.sys.isActive());
+      if (!activeScene) return false;
+
+      const battle = activeScene as {
+        setHeroBeadHand?: (heroId: string, counts: { red: number; blue: number; green: number; white: number }) => void;
+      };
+
+      if (battle.setHeroBeadHand) {
+        battle.setHeroBeadHand(id, beadCounts);
+        return true;
+      }
+      return false;
+    },
+    { id: heroId, beadCounts: counts }
+  );
 }

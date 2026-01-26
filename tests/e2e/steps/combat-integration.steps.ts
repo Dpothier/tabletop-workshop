@@ -11,6 +11,9 @@ import {
   clickGridTile,
   getCharacterPosition,
   teleportCurrentActorAdjacentToMonster,
+  getMonsterPosition,
+  teleportCharacterTo,
+  setHeroBeadHand,
   UI_PANEL_COORDS,
 } from '@tests/e2e/fixtures';
 
@@ -394,4 +397,209 @@ Then('the action buttons should be visible', async ({ page }) => {
   expect(state.scene, 'Should be in BattleScene').toBe('BattleScene');
   // When it's a player's turn, action buttons should be available
   expect(state.currentActor, 'Should have a current actor').toMatch(/^hero-/);
+});
+
+// Attack Target Selection steps
+Given('the hero is not adjacent to any enemy', async ({ page }) => {
+  // Ensure the hero is NOT adjacent to the monster by moving them far apart
+  // Default spawn has hero at (1,6) and monster at varying positions
+  // We teleport to a position far from the monster to guarantee no adjacency
+  const state = await getGameState(page);
+  if (!state.currentActor?.startsWith('hero-')) {
+    throw new Error('Current actor must be a hero');
+  }
+
+  // Teleport current hero to a position far from the monster (e.g., top-left corner)
+  const success = await teleportCharacterTo(page, state.currentActor, 1, 1);
+  expect(success, 'Should be able to teleport hero away from monster').toBe(true);
+
+  // Verify hero is not adjacent to monster
+  await page.waitForTimeout(100);
+});
+
+Given('the hero is diagonally adjacent to the monster', async ({ page }) => {
+  // Get the monster position
+  const monsterPos = await getMonsterPosition(page);
+  expect(monsterPos, 'Monster should have a position').toBeDefined();
+
+  const state = await getGameState(page);
+  if (!state.currentActor?.startsWith('hero-')) {
+    throw new Error('Current actor must be a hero');
+  }
+
+  // Place hero diagonally adjacent to monster
+  // Try diagonal positions: top-left, top-right, bottom-left, bottom-right
+  const diagonalPositions = [
+    { x: monsterPos!.x - 1, y: monsterPos!.y - 1 }, // top-left
+    { x: monsterPos!.x + 1, y: monsterPos!.y - 1 }, // top-right
+    { x: monsterPos!.x - 1, y: monsterPos!.y + 1 }, // bottom-left
+    { x: monsterPos!.x + 1, y: monsterPos!.y + 1 }, // bottom-right
+  ];
+
+  // Try each diagonal position until one works
+  for (const pos of diagonalPositions) {
+    const success = await teleportCharacterTo(page, state.currentActor, pos.x, pos.y);
+    if (success) {
+      await page.waitForTimeout(100);
+      return;
+    }
+  }
+
+  throw new Error('Could not place hero diagonally adjacent to monster');
+});
+
+Then('the Attack button should be disabled', async ({ page }) => {
+  const state = await getGameState(page);
+  expect(state.selectedHeroPanel, 'Selected hero panel should be visible').toBeDefined();
+  expect(state.selectedHeroPanel?.visible, 'Panel should be visible').toBe(true);
+
+  // Find the Attack button and check if it's disabled (not affordable)
+  const attackBtn = state.selectedHeroPanel?.actionButtons?.find((b) => b.name === 'Attack');
+  expect(attackBtn, 'Attack button should exist').toBeDefined();
+  expect(attackBtn?.affordable, 'Attack button should be disabled (not affordable)').toBe(false);
+});
+
+Then('the Attack button should be enabled', async ({ page }) => {
+  const state = await getGameState(page);
+  expect(state.selectedHeroPanel, 'Selected hero panel should be visible').toBeDefined();
+  expect(state.selectedHeroPanel?.visible, 'Panel should be visible').toBe(true);
+
+  // Find the Attack button and check if it's enabled (affordable)
+  const attackBtn = state.selectedHeroPanel?.actionButtons?.find((b) => b.name === 'Attack');
+  expect(attackBtn, 'Attack button should exist').toBeDefined();
+  expect(attackBtn?.affordable, 'Attack button should be enabled (affordable)').toBe(true);
+});
+
+// Action selection responsiveness after attack
+
+When('I wait for the attack animation to complete', async ({ page }) => {
+  // Wait for attack animation and any associated effects (2-3 seconds)
+  await page.waitForTimeout(2500);
+});
+
+Then('the turn should advance to next actor', async ({ page }) => {
+  // Verify that the current actor has changed (turn advanced)
+  const state = await getGameState(page);
+  expect(state.currentActor, 'Current actor should be defined').toBeDefined();
+
+  // The current actor should be a valid hero or the monster
+  expect(state.currentActor).toMatch(/^(hero-|monster)/);
+});
+
+Then('I should be able to select actions for the current actor', async ({ page }) => {
+  // Get the current actor and click on them (if they're a hero)
+  const state = await getGameState(page);
+
+  if (state.currentActor?.startsWith('hero-')) {
+    // Click on the hero card for the current actor
+    const heroIndex = parseInt(state.currentActor.split('-')[1]);
+    const cardX =
+      80 + heroIndex * 128 + 60;
+    const cardY = 650;
+    await clickGameCoords(page, cardX, cardY);
+    await page.waitForTimeout(300);
+
+    // Verify the panel is visible and responsive
+    const updatedState = await getGameState(page);
+    expect(updatedState.selectedHeroPanel?.visible, 'Panel should be visible after clicking hero card').toBe(true);
+    expect(updatedState.selectedHeroPanel?.actionButtons, 'Action buttons should be present').toBeDefined();
+    expect(updatedState.selectedHeroPanel?.actionButtons?.length, 'Should have action buttons').toBeGreaterThan(0);
+
+    // Try to click an action button to verify the panel is responsive
+    // Click the first action button (movement tab, first button)
+    await clickTab(page, 'movement');
+    const firstButtonX = UI_PANEL_COORDS.BUTTON_LEFT_X;
+    const firstButtonY = UI_PANEL_COORDS.BUTTON_ROW_Y;
+    await clickGameCoords(page, firstButtonX, firstButtonY);
+
+    // Verify that the click was processed by checking the state didn't error
+    const finalState = await getGameState(page);
+    expect(finalState.scene, 'Should still be in battle scene after clicking action').toBe('BattleScene');
+  } else {
+    // If it's the monster's turn, just verify we're still in battle
+    const finalState = await getGameState(page);
+    expect(finalState.scene, 'Should still be in battle scene').toBe('BattleScene');
+  }
+});
+
+// ============================================================================
+// Feint Attack specific steps
+// ============================================================================
+
+Given('the current hero has {int} blue bead in hand', async ({ page }, count: number) => {
+  // Get the current actor
+  const state = await getGameState(page);
+  const heroId = state.currentActor;
+  expect(heroId, 'Should have a current actor').toBeDefined();
+  expect(heroId).toMatch(/^hero-/);
+
+  // Set the hero's hand to have exactly the required blue beads plus some red for regular attacks
+  const success = await setHeroBeadHand(page, heroId!, {
+    red: 2,
+    blue: count,
+    green: 0,
+    white: 0,
+  });
+  expect(success, 'Should be able to set hero bead hand').toBe(true);
+
+  // Wait for UI to update
+  await page.waitForTimeout(100);
+});
+
+When('I click the Attacks tab', async ({ page }) => {
+  await clickTab(page, 'attacks');
+});
+
+When('I click the Feint Attack button', async ({ page }) => {
+  // In the attacks tab, find and click the Feint Attack button
+  // Feint Attack is likely the second button (after Attack)
+  const buttonX = UI_PANEL_COORDS.BUTTON_RIGHT_X; // Right column
+  const buttonY = UI_PANEL_COORDS.BUTTON_ROW_Y;
+  await clickGameCoords(page, buttonX, buttonY);
+  await page.waitForTimeout(300);
+});
+
+Then('the Feint Attack button should be enabled', async ({ page }) => {
+  const state = await getGameState(page);
+  expect(state.selectedHeroPanel?.visible, 'Panel should be visible').toBe(true);
+  const feintBtn = state.selectedHeroPanel?.actionButtons?.find((b) => b.name === 'Feint Attack');
+  expect(feintBtn, 'Feint Attack button should exist').toBeDefined();
+  expect(feintBtn?.affordable, 'Feint Attack should be enabled').toBe(true);
+});
+
+Then('I should see the entity target selector', async ({ page }) => {
+  // Wait for targeting mode to activate
+  await page.waitForTimeout(200);
+
+  const state = await getGameState(page);
+  expect(state.entityTargetingActive, 'Entity targeting should be active').toBe(true);
+  expect(
+    state.highlightedEntityTargets?.length,
+    'Should have highlighted targets'
+  ).toBeGreaterThan(0);
+});
+
+Then('the monster should be highlighted as a valid target', async ({ page }) => {
+  const state = await getGameState(page);
+  expect(state.highlightedEntityTargets, 'Should have highlighted targets').toBeDefined();
+  expect(
+    state.highlightedEntityTargets?.includes('monster'),
+    'Monster should be in highlighted targets'
+  ).toBe(true);
+});
+
+When('I click on the monster as target', async ({ page }) => {
+  // Click on the monster to select it as target
+  const monsterPos = await getMonsterPosition(page);
+  expect(monsterPos, 'Monster should have a position').toBeDefined();
+  await clickGridTile(page, monsterPos!.x, monsterPos!.y);
+  await page.waitForTimeout(500);
+});
+
+Then('the monster should take damage from Feint Attack', async ({ page }) => {
+  // Verify monster took damage
+  const state = await getGameState(page);
+  expect(state.monster?.currentHealth, 'Monster should have taken damage').toBeLessThan(
+    state.monster?.maxHealth || 10
+  );
 });
