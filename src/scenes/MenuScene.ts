@@ -83,7 +83,7 @@ export class MenuScene extends Phaser.Scene {
       2
     );
 
-    // Start Button
+    // Start Button (keep at original position for E2E tests)
     const startButton = this.add
       .rectangle(centerX, 580, 200, 60, 0x44aa44)
       .setInteractive({ useHandCursor: true });
@@ -100,9 +100,25 @@ export class MenuScene extends Phaser.Scene {
     startButton.on('pointerout', () => startButton.setFillStyle(0x44aa44));
     startButton.on('pointerdown', () => this.startBattle());
 
+    // Create Character Button (below Start Battle)
+    const createCharButton = this.add
+      .rectangle(centerX, 650, 180, 40, 0x4488ff)
+      .setInteractive({ useHandCursor: true });
+
+    this.add
+      .text(centerX, 650, 'Create Character', {
+        fontSize: '16px',
+        color: '#ffffff',
+      })
+      .setOrigin(0.5);
+
+    createCharButton.on('pointerover', () => createCharButton.setFillStyle(0x5599cc));
+    createCharButton.on('pointerout', () => createCharButton.setFillStyle(0x4488ff));
+    createCharButton.on('pointerdown', () => this.createCharacter());
+
     // Instructions
     this.add
-      .text(centerX, 700, 'Click arrows to select, then START BATTLE', {
+      .text(centerX, 720, 'Click arrows to select, then START BATTLE', {
         fontSize: '16px',
         color: '#666666',
       })
@@ -152,6 +168,10 @@ export class MenuScene extends Phaser.Scene {
       displayText.setText(options[currentIndex]);
       onChange(currentIndex);
     });
+  }
+
+  private createCharacter(): void {
+    this.scene.start('CharacterCreationScene');
   }
 
   private startBattle(): void {

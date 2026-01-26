@@ -37,3 +37,5 @@ import './option-selection-panel.steps';
 import './selected-hero-panel-tabs.steps';
 import './selected-hero-panel-range.steps';
 import './action-resolution-entity.steps';
+import './weapon-data.steps';
+import './character-storage.steps';

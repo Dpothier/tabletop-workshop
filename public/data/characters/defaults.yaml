@@ -1,0 +1,17 @@
+characters:
+  - id: default-warrior
+    name: Warrior
+    attributes: { str: 5, dex: 2, mnd: 1, spr: 1 }
+    weapon: sword
+  - id: default-mage
+    name: Mage
+    attributes: { str: 1, dex: 1, mnd: 5, spr: 2 }
+    weapon: staff
+  - id: default-rogue
+    name: Rogue
+    attributes: { str: 2, dex: 5, mnd: 2, spr: 1 }
+    weapon: dagger
+  - id: default-cleric
+    name: Cleric
+    attributes: { str: 2, dex: 2, mnd: 3, spr: 3 }
+    weapon: mace

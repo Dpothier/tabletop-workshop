@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { MenuScene } from '@src/scenes/MenuScene';
 import { BattleScene } from '@src/scenes/BattleScene';
 import { VictoryScene } from '@src/scenes/VictoryScene';
+import { CharacterCreationScene } from '@src/scenes/CharacterCreationScene';
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -9,7 +10,10 @@ const config: Phaser.Types.Core.GameConfig = {
   height: 768,
   parent: 'game-container',
   backgroundColor: '#2d2d44',
-  scene: [MenuScene, BattleScene, VictoryScene],
+  dom: {
+    createContainer: true,
+  },
+  scene: [MenuScene, CharacterCreationScene, BattleScene, VictoryScene],
   physics: {
     default: 'arcade',
     arcade: {

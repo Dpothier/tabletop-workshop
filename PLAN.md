@@ -143,13 +143,266 @@ Following PRD v4 implementation order.
 
 ---
 
-## Step 8: Character Creation ⏳ PENDING
+## Step 8: Character Creation ⏳ IN PROGRESS
 
-- [ ] Create `CharacterCreation` scene
-- [ ] Implement attribute point allocation (STR, DEX, MND, SPR)
-- [ ] Implement derived stat calculation
-- [ ] Create character persistence layer
-- [ ] Update setup screen for character selection
+### 8.1: Character Data Model & Storage Service ✅ COMPLETE
+
+**Objectif**: Créer le modèle de données et le service de persistance localStorage.
+
+**Fichiers créés**:
+- `src/types/CharacterData.ts` - Interface du modèle
+- `src/services/CharacterStorageService.ts` - CRUD localStorage
+- `public/data/characters/defaults.yaml` - 4 personnages par défaut
+- `features/unit/character-storage.feature` - Tests unitaires (17 scénarios)
+- `tests/steps/character-storage.steps.ts` - Step definitions
+
+**Critères d'acceptation**:
+- [x] Interface `CharacterData` avec: id, name, attributes (str/dex/mnd/spr), weapon, isDefault, createdAt, updatedAt
+- [x] `CharacterStorageService.getAll()` retourne tous les personnages (défauts + créés)
+- [x] `CharacterStorageService.save(character)` sauvegarde dans localStorage
+- [x] `CharacterStorageService.delete(id)` supprime (refuse si isDefault=true)
+- [x] `CharacterStorageService.getById(id)` retourne un personnage
+- [x] `CharacterStorageService.isNameUnique(name, excludeId?)` vérifie unicité
+- [x] 4 personnages par défaut chargés au démarrage (isDefault=true)
+- [x] Maximum 10 personnages custom (erreur si dépassé)
+- [x] Tests unitaires passent (17 scénarios)
+
+---
+
+### 8.2: Starting Weapons Data ✅ COMPLETE
+
+**Objectif**: Définir les 4 armes de départ dans les données YAML.
+
+**Fichiers créés/modifiés**:
+- `public/data/weapons/core.yaml` - Définitions des armes
+- `src/types/WeaponDefinition.ts` - Interface TypeScript
+- `src/systems/DataLoader.ts` - Ajout loadWeapons()
+- `features/unit/weapon-data.feature` - Tests de chargement (7 scénarios)
+- `tests/steps/weapon-data.steps.ts` - Step definitions
+
+**Critères d'acceptation**:
+- [x] 4 armes définies: Sword, Axe, Mace, Spear
+- [x] Chaque arme a: id, name, category, power, agility, range
+- [x] Sword: power=1, agility=1, range=1
+- [x] Axe: power=2, agility=0, range=1
+- [x] Mace: power=1, agility=0, range=1
+- [x] Spear: power=1, agility=1, range=1-2
+- [x] DataLoader charge les armes correctement
+- [x] Tests unitaires passent (7 scénarios)
+
+---
+
+### 8.3: Character Creation Scene - Layout & Name ✅ COMPLETE
+
+**Objectif**: Créer la scène de création avec champ nom et validation.
+
+**Fichiers créés/modifiés**:
+- `src/scenes/CharacterCreationScene.ts` - Scène Phaser avec input DOM
+- `src/main.ts` - Ajout DOM support et enregistrement scène
+- `src/scenes/MenuScene.ts` - Bouton "Create Character"
+- `features/e2e/character-creation.feature` - Tests E2E (10 scénarios, 4 passent, 6 @wip)
+- `tests/e2e/steps/character-creation.steps.ts` - Step definitions
+
+**Critères d'acceptation**:
+- [x] Scène accessible depuis MenuScene
+- [x] Champ de saisie pour le nom du personnage (DOM input via Phaser)
+- [x] Validation en temps réel: max 20 caractères
+- [x] Message d'erreur si nom vide (affiché dans Phaser)
+- [x] Message d'erreur si nom déjà pris (affiché dans Phaser)
+- [x] Prévisualisation de la première lettre comme icône du token
+- [x] Bouton "Annuler" retourne au MenuScene
+- [x] Tests E2E passent (4 scénarios, 6 @wip pour tests DOM/Phaser sync)
+
+---
+
+### 8.4: Character Creation Scene - Attributes ⏳ PENDING
+
+**Objectif**: Ajouter l'allocation des points d'attributs avec prévisualisation des beads.
+
+**Fichiers à modifier**:
+- `src/scenes/CharacterCreationScene.ts` - Ajout UI attributs
+
+**Critères d'acceptation**:
+- [ ] 4 attributs affichés: STR, DEX, MND, SPR
+- [ ] Boutons +/- pour chaque attribut
+- [ ] Valeurs min=1, max=6 par attribut
+- [ ] Compteur de points restants (démarre à 8, car 4 pré-alloués)
+- [ ] Bouton + désactivé si points=0 ou attribut=6
+- [ ] Bouton - désactivé si attribut=1
+- [ ] Prévisualisation du sac de beads en temps réel (cercles colorés)
+- [ ] Couleurs: Rouge=STR, Vert=DEX, Bleu=MND, Blanc=SPR
+- [ ] Tests E2E passent (minimum 5 scénarios)
+
+---
+
+### 8.5: Character Creation Scene - Weapon & Save ⏳ PENDING
+
+**Objectif**: Ajouter sélection d'arme et sauvegarde du personnage.
+
+**Fichiers à modifier**:
+- `src/scenes/CharacterCreationScene.ts` - Ajout sélection arme + sauvegarde
+
+**Critères d'acceptation**:
+- [ ] Liste des 4 armes avec stats affichées
+- [ ] Sélection visuelle (highlight) de l'arme choisie
+- [ ] Bouton "Sauvegarder"
+- [ ] Bouton désactivé si: nom invalide OU points non dépensés OU pas d'arme
+- [ ] Sauvegarde appelle CharacterStorageService.save()
+- [ ] Après sauvegarde, retour au MenuScene
+- [ ] Mode édition: pré-remplit les champs si character passé en paramètre
+- [ ] Tests E2E passent (minimum 4 scénarios)
+
+---
+
+### 8.6: Menu Scene - Character Slots UI ⏳ PENDING
+
+**Objectif**: Remplacer le sélecteur de taille d'équipe par 4 slots de personnages.
+
+**Fichiers à modifier**:
+- `src/scenes/MenuScene.ts` - Refonte UI party selection
+
+**Critères d'acceptation**:
+- [ ] Suppression du sélecteur "Party Size"
+- [ ] 4 slots visuels affichés horizontalement
+- [ ] Slot vide: affiche "+" ou "Empty"
+- [ ] Slot rempli: affiche nom + première lettre + résumé attributs
+- [ ] Clic sur slot vide → ouvre popup de sélection
+- [ ] Clic sur slot rempli → ouvre popup (pour changer ou retirer)
+- [ ] Bouton "Start Battle" désactivé si aucun personnage sélectionné
+- [ ] Tests E2E passent (minimum 4 scénarios)
+
+---
+
+### 8.7: Menu Scene - Character Selection Popup ⏳ PENDING
+
+**Objectif**: Créer le popup de sélection de personnage pour les slots.
+
+**Fichiers à créer/modifier**:
+- `src/ui/CharacterSelectionPopup.ts` - Composant popup
+- `src/scenes/MenuScene.ts` - Intégration popup
+
+**Critères d'acceptation**:
+- [ ] Popup modal affiche liste des personnages sauvegardés
+- [ ] Chaque entrée: nom, attributs résumés (STR/DEX/MND/SPR), arme
+- [ ] Personnages par défaut marqués visuellement (ex: icône verrou)
+- [ ] Personnages déjà dans l'équipe grisés (non sélectionnables)
+- [ ] Bouton "Créer nouveau" → CharacterCreationScene
+- [ ] Bouton "Retirer" si slot déjà occupé
+- [ ] Sélection d'un personnage → ferme popup, remplit le slot
+- [ ] Clic hors popup ou bouton X → ferme sans changement
+- [ ] Tests E2E passent (minimum 5 scénarios)
+
+---
+
+### 8.8: Character Management View ⏳ PENDING
+
+**Objectif**: Permettre la gestion des personnages (édition, suppression, import/export).
+
+**Fichiers à créer/modifier**:
+- `src/ui/CharacterManagementPanel.ts` - Panel de gestion
+- `src/scenes/MenuScene.ts` - Bouton "Gérer les personnages"
+
+**Critères d'acceptation**:
+- [ ] Bouton "Manage Characters" dans MenuScene
+- [ ] Panel affiche tous les personnages avec détails
+- [ ] Bouton "Edit" pour chaque personnage custom → CharacterCreationScene (mode édition)
+- [ ] Bouton "Delete" pour chaque personnage custom (grisé si dans équipe actuelle)
+- [ ] Confirmation avant suppression ("Supprimer X ?")
+- [ ] Personnages par défaut: pas de boutons Edit/Delete
+- [ ] Bouton "Export All" → télécharge JSON
+- [ ] Bouton "Import" → charge fichier JSON, merge avec existants
+- [ ] Tests E2E passent (minimum 5 scénarios)
+
+---
+
+### 8.9: Battle Integration - Bead Bag from Attributes ⏳ PENDING
+
+**Objectif**: Modifier BattleBuilder pour créer les personnages avec bead bags basés sur attributs.
+
+**Fichiers à modifier**:
+- `src/builders/BattleBuilder.ts` - Utiliser personnages sélectionnés
+- `src/systems/PlayerBeadSystem.ts` - Accepter composition custom
+- `src/entities/Character.ts` - Stocker attributs et arme
+
+**Critères d'acceptation**:
+- [ ] BattleBuilder reçoit liste de CharacterData au lieu de partySize
+- [ ] Character entity stocke: name, attributes, weaponId
+- [ ] PlayerBeadSystem initialisé avec composition basée sur attributs
+- [ ] Personnage STR=5,DEX=2,MND=2,SPR=3 → sac de 5R,2G,2B,3W
+- [ ] 3 beads tirés au début du combat (inchangé)
+- [ ] Tests unitaires passent (minimum 6 scénarios)
+
+---
+
+### 8.10: Battle UI - Character Names Display ⏳ PENDING
+
+**Objectif**: Afficher les noms des personnages dans l'UI de combat.
+
+**Fichiers à modifier**:
+- `src/ui/HeroSelectionBar.ts` - Afficher nom dans chaque carte
+- `src/ui/SelectedHeroPanel.ts` - Afficher nom en haut du panel
+- `src/visuals/CharacterVisual.ts` - Token affiche première lettre du nom
+
+**Critères d'acceptation**:
+- [ ] HeroSelectionBar: nom du personnage visible sur chaque carte
+- [ ] SelectedHeroPanel: nom affiché en haut quand héros sélectionné
+- [ ] Token sur la grille: première lettre du nom (au lieu de "P1", "P2", etc.)
+- [ ] Couleurs des joueurs (P1-P4) conservées pour distinction visuelle
+- [ ] Tests E2E passent (minimum 3 scénarios)
+
+---
+
+### 8.11: Final Integration & Polish ⏳ PENDING
+
+**Objectif**: Intégration finale, tests complets, corrections de bugs.
+
+**Critères d'acceptation**:
+- [ ] Flow complet fonctionne: Menu → Créer perso → Sélectionner → Combat
+- [ ] Personnages par défaut utilisables immédiatement
+- [ ] Import/Export fonctionne correctement
+- [ ] Tous les tests unitaires passent
+- [ ] Tous les tests E2E passent
+- [ ] Pas de régression sur fonctionnalités existantes
+- [ ] `npm run check` passe sans erreur
+
+---
+
+### Step 8 - Ordre d'Exécution Recommandé
+
+| Phase | Sous-tâches | Notes |
+|-------|-------------|-------|
+| 1 | **8.1** + **8.2** | Parallélisables (pas de dépendances) |
+| 2 | **8.3** | Requiert 8.1 |
+| 3 | **8.4** | Requiert 8.3 |
+| 4 | **8.5** | Requiert 8.2 + 8.4 |
+| 5 | **8.6** | Requiert 8.5 |
+| 6 | **8.7** | Requiert 8.6 |
+| 7 | **8.8** | Requiert 8.7 |
+| 8 | **8.9** | Requiert 8.8 |
+| 9 | **8.10** | Requiert 8.9 |
+| 10 | **8.11** | Requiert tous les précédents |
+
+### Step 8 - Diagramme des Dépendances
+
+```
+8.1 Character Data Model ──┬──→ 8.3 Creation Scene (Name)
+                           │
+8.2 Weapons Data ──────────┴──→ 8.5 Creation Scene (Weapon)
+                                        │
+8.3 ──→ 8.4 (Attributes) ──→ 8.5 ──────┤
+                                        │
+                                        ▼
+                              8.6 Menu Slots ──→ 8.7 Selection Popup
+                                        │
+                                        ▼
+                              8.8 Character Management
+                                        │
+                                        ▼
+                              8.9 Battle Integration ──→ 8.10 UI Names
+                                        │
+                                        ▼
+                                   8.11 Final Polish
+```
 
 ---
 
@@ -211,9 +464,9 @@ Following PRD v4 implementation order.
 ## Test Results
 
 ```
-Unit/Integration Tests: 418 passed
-E2E Tests: 39 passed
-Total: 457 tests passing
+Unit/Integration Tests: 469 passed
+E2E Tests: 53 passed (+ 6 @wip)
+Total: 522 tests passing
 ```
 
 ---
