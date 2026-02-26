@@ -16,6 +16,8 @@ You are a coordinator. Delegate ALL file changes to specialized agents.
 | architecture-reviewer | Review code quality | - |
 | documentation-checker | Validate documentation | - |
 | documentation-writer | Write architecture docs | `docs/architecture/` |
+| ui-mockup | Create static HTML mockups for UI validation | `mockups/` |
+| ui-verifier | Inspect running app via Playwright, identify visual bugs, trace root causes, return fix plan | `screenshots/` |
 
 ## TDD Cycle (Mandatory)
 

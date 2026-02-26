@@ -215,23 +215,25 @@ Following PRD v4 implementation order.
 
 ---
 
-### 8.4: Character Creation Scene - Attributes ⏳ PENDING
+### 8.4: Character Creation Scene - Attributes ✅ COMPLETE
 
 **Objectif**: Ajouter l'allocation des points d'attributs avec prévisualisation des beads.
 
-**Fichiers à modifier**:
+**Fichiers modifiés**:
 - `src/scenes/CharacterCreationScene.ts` - Ajout UI attributs
+- `features/e2e/character-creation.feature` - Tests E2E (8 scénarios)
+- `tests/e2e/steps/character-creation.steps.ts` - Step definitions
 
 **Critères d'acceptation**:
-- [ ] 4 attributs affichés: STR, DEX, MND, SPR
-- [ ] Boutons +/- pour chaque attribut
-- [ ] Valeurs min=1, max=6 par attribut
-- [ ] Compteur de points restants (démarre à 8, car 4 pré-alloués)
-- [ ] Bouton + désactivé si points=0 ou attribut=6
-- [ ] Bouton - désactivé si attribut=1
-- [ ] Prévisualisation du sac de beads en temps réel (cercles colorés)
-- [ ] Couleurs: Rouge=STR, Vert=DEX, Bleu=MND, Blanc=SPR
-- [ ] Tests E2E passent (minimum 5 scénarios)
+- [x] 4 attributs affichés: STR, DEX, MND, SPR
+- [x] Boutons +/- pour chaque attribut
+- [x] Valeurs min=1, max=6 par attribut
+- [x] Compteur de points restants (démarre à 8, car 4 pré-alloués)
+- [x] Bouton + désactivé si points=0 ou attribut=6
+- [x] Bouton - désactivé si attribut=1
+- [x] Prévisualisation du sac de beads en temps réel (cercles colorés)
+- [x] Couleurs: Rouge=STR, Vert=DEX, Bleu=MND, Blanc=SPR
+- [x] Tests E2E passent (8 scénarios)
 
 ---
 
@@ -465,8 +467,8 @@ Following PRD v4 implementation order.
 
 ```
 Unit/Integration Tests: 469 passed
-E2E Tests: 53 passed (+ 6 @wip)
-Total: 522 tests passing
+E2E Tests: 66 passed (+ 2 @wip)
+Total: 535 tests passing
 ```
 
 ---
