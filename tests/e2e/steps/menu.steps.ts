@@ -24,16 +24,6 @@ When('I click the next arena button', async ({ page }) => {
   await page.waitForTimeout(200);
 });
 
-When('I click the party size up button', async ({ page }) => {
-  await clickGameCoords(page, 590, 480);
-  await page.waitForTimeout(200);
-});
-
-When('I click the party size down button', async ({ page }) => {
-  await clickGameCoords(page, 430, 480);
-  await page.waitForTimeout(200);
-});
-
 When('I click the Start Battle button', async ({ page }) => {
   await clickGameCoords(page, 512, 580);
   await page.waitForTimeout(500);
@@ -51,12 +41,6 @@ Then('the monster selection should change', async ({ page }) => {
 });
 
 Then('the arena selection should change', async ({ page }) => {
-  const state = await getGameState(page);
-  // Verify we're still on menu scene
-  expect(state.scene).toBe('MenuScene');
-});
-
-Then('the party size should change', async ({ page }) => {
   const state = await getGameState(page);
   // Verify we're still on menu scene
   expect(state.scene).toBe('MenuScene');

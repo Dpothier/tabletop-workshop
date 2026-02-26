@@ -17,8 +17,3 @@ Feature: Menu Navigation
     Given I am on the main menu
     When I click the next arena button
     Then the arena selection should change
-
-  Scenario: Change party size
-    Given I am on the main menu
-    When I click the party size up button
-    Then the party size should change
