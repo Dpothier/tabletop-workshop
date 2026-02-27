@@ -282,24 +282,29 @@ Following PRD v4 implementation order.
 
 ---
 
-### 8.7: Menu Scene - Character Selection Popup ⏳ PENDING
+### 8.7: Menu Scene - Character Selection Popup ✅ COMPLETE
 
 **Objectif**: Créer le popup de sélection de personnage pour les slots.
 
-**Fichiers à créer/modifier**:
-- `src/ui/CharacterSelectionPopup.ts` - Composant popup
-- `src/scenes/MenuScene.ts` - Intégration popup
+**Fichiers créés/modifiés**:
+- `src/ui/CharacterSelectionPopup.ts` - Composant popup (Phaser container)
+- `src/scenes/MenuScene.ts` - Intégration popup, remplacement du placeholder
+- `features/e2e/character-selection-popup.feature` - Tests E2E (8 scénarios)
+- `tests/e2e/steps/character-selection-popup.steps.ts` - Step definitions
+- `features/e2e/character-slots.feature` - Tests mis à jour pour utiliser le popup
 
 **Critères d'acceptation**:
-- [ ] Popup modal affiche liste des personnages sauvegardés
-- [ ] Chaque entrée: nom, attributs résumés (STR/DEX/MND/SPR), arme
-- [ ] Personnages par défaut marqués visuellement (ex: icône verrou)
-- [ ] Personnages déjà dans l'équipe grisés (non sélectionnables)
-- [ ] Bouton "Créer nouveau" → CharacterCreationScene
-- [ ] Bouton "Retirer" si slot déjà occupé
-- [ ] Sélection d'un personnage → ferme popup, remplit le slot
-- [ ] Clic hors popup ou bouton X → ferme sans changement
-- [ ] Tests E2E passent (minimum 5 scénarios)
+- [x] Popup modal affiche liste des personnages sauvegardés
+- [x] Chaque entrée: nom, attributs résumés (STR/DEX/MND/SPR), arme
+- [x] Personnages par défaut marqués visuellement (icône 🔒)
+- [x] Personnages déjà dans l'équipe grisés (non sélectionnables, 40% alpha)
+- [x] Bouton "Créer nouveau" → CharacterCreationScene
+- [x] Bouton "Retirer" si slot déjà occupé
+- [x] Sélection d'un personnage → ferme popup, remplit le slot
+- [x] Clic hors popup ou bouton X → ferme sans changement
+- [x] Tests E2E passent (8 scénarios popup + 6 slots)
+- [x] Pagination (4 items/page) avec contrôles Prev/Next quand > 4 personnages
+- [x] Tests E2E pagination passent (6 scénarios supplémentaires)
 
 ---
 
@@ -474,8 +479,8 @@ Following PRD v4 implementation order.
 
 ```
 Unit/Integration Tests: 469 passed
-E2E Tests: 84 passed (+ 1 @wip edit mode)
-Total: 553 tests passing
+E2E Tests: 97 passed (+ 1 @wip edit mode)
+Total: 566 tests passing
 ```
 
 ---
