@@ -308,24 +308,26 @@ Following PRD v4 implementation order.
 
 ---
 
-### 8.8: Character Management View ⏳ PENDING
+### 8.8: Character Management View ✅ COMPLETE
 
 **Objectif**: Permettre la gestion des personnages (édition, suppression, import/export).
 
-**Fichiers à créer/modifier**:
-- `src/ui/CharacterManagementPanel.ts` - Panel de gestion
-- `src/scenes/MenuScene.ts` - Bouton "Gérer les personnages"
+**Fichiers créés/modifiés**:
+- `src/ui/CharacterManagementPanel.ts` - Panel de gestion (411 lignes)
+- `src/scenes/MenuScene.ts` - Bouton "Manage Characters" + intégration panel
+- `features/e2e/character-management.feature` - Tests E2E (9 scénarios)
+- `tests/e2e/steps/character-management.steps.ts` - Step definitions
 
 **Critères d'acceptation**:
-- [ ] Bouton "Manage Characters" dans MenuScene
-- [ ] Panel affiche tous les personnages avec détails
-- [ ] Bouton "Edit" pour chaque personnage custom → CharacterCreationScene (mode édition)
-- [ ] Bouton "Delete" pour chaque personnage custom (grisé si dans équipe actuelle)
-- [ ] Confirmation avant suppression ("Supprimer X ?")
-- [ ] Personnages par défaut: pas de boutons Edit/Delete
-- [ ] Bouton "Export All" → télécharge JSON
-- [ ] Bouton "Import" → charge fichier JSON, merge avec existants
-- [ ] Tests E2E passent (minimum 5 scénarios)
+- [x] Bouton "Manage Characters" dans MenuScene
+- [x] Panel affiche tous les personnages avec détails
+- [x] Bouton "Edit" pour chaque personnage custom → CharacterCreationScene (mode édition)
+- [x] Bouton "Delete" pour chaque personnage custom (grisé si dans équipe actuelle)
+- [x] Confirmation avant suppression ("Supprimer X ?")
+- [x] Personnages par défaut: pas de boutons Edit/Delete
+- [x] Bouton "Export All" → télécharge JSON
+- [x] Bouton "Import" → charge fichier JSON, merge avec existants
+- [x] Tests E2E passent (9 scénarios - dépasse le minimum de 5)
 
 ---
 
@@ -479,14 +481,21 @@ Following PRD v4 implementation order.
 
 ```
 Unit/Integration Tests: 469 passed
-E2E Tests: 107 passed (0 failures, 8 workers)
+E2E Tests: 107 passed
 Total: 576 tests passing
 ```
 
 ### E2E Flaky Test Fixes (Feb 2025)
-- **Attack wheel test**: Replaced `waitForTimeout` with `waitForFunction` polling for `entityTargetingActive` and wheel position change
-- **Monster turn test**: Replaced rigid 4-iteration rest loop with goal-oriented loop; root cause was FIFO tie-breaking blocking monster when a hero rest click failed under parallel load
-- **Edit mode test**: Updated @wip scenario to navigate 3-step flow (name → attributes → weapon)
+- **Round 1** (3 tests): Replaced `waitForTimeout` with `waitForFunction` polling for `entityTargetingActive` and wheel position change; replaced rigid rest loop with goal-oriented loop
+- **Round 2** (12 tests): Systematic elimination of `waitForTimeout` across 6 files:
+  - `fixtures.ts`: `waitForGameReady` polls active scene; new `waitForEntityTargeting`/`waitForWheelAdvanced` helpers; `clickValidMovementTile` polls for valid moves
+  - `character-selection-popup.steps.ts`: `waitForPopupVisible` before state reads; `expect().toPass()` on visibility assertions
+  - `character-slots.steps.ts`: `expect().toPass()` on slot letter assertion
+  - `character-management.steps.ts`: `waitForManagementPanelVisible` before state reads
+  - `battle.steps.ts`: Use shared `waitForEntityTargeting`/`waitForWheelAdvanced` helpers (10s timeout, up from 5s)
+  - `combat-integration.steps.ts`: `clickValidMovementTile` self-polls; `expect().toPass()` on monster discards; hero rest retry loop with `expect().toPass()`
+  - `playwright.config.ts`: Test timeout 30s → 60s for multi-turn battle tests
+  - `.claude/agents/e2e-test-writer.md`: Added rule: never use `waitForTimeout`, always use event-driven polling
 
 ---
 

@@ -122,6 +122,21 @@ async function getCharacterSlotsState(page: Page) {
 }
 
 /**
+ * Poll until the character popup becomes visible.
+ */
+async function waitForPopupVisible(page: Page): Promise<void> {
+  await page.waitForFunction(
+    () => {
+      const game = (window as any).__PHASER_GAME__;
+      const scene = game?.scene?.scenes?.find((s: any) => s.sys.isActive());
+      return (scene as any)?.characterPopupState?.visible === true;
+    },
+    undefined,
+    { timeout: 5000 }
+  );
+}
+
+/**
  * Helper: Get popup row Y coordinate by character name
  */
 function getCharacterRowY(characterName: string): number {
@@ -173,6 +188,7 @@ Given('there are {int} custom characters in storage', async ({ page }, count: nu
 // ============================================================================
 
 When('I click the {string} character in the popup', async ({ page }, characterName: string) => {
+  await waitForPopupVisible(page);
   const popupState = await getCharacterPopupState(page);
   expect(popupState).not.toBeNull();
   expect(popupState?.visible).toBe(true);
@@ -185,6 +201,7 @@ When('I click the {string} character in the popup', async ({ page }, characterNa
 });
 
 When('I click the Remove button in the popup', async ({ page }) => {
+  await waitForPopupVisible(page);
   const popupState = await getCharacterPopupState(page);
   expect(popupState).not.toBeNull();
   expect(popupState?.visible).toBe(true);
@@ -195,6 +212,7 @@ When('I click the Remove button in the popup', async ({ page }) => {
 });
 
 When('I click the close button in the popup', async ({ page }) => {
+  await waitForPopupVisible(page);
   const popupState = await getCharacterPopupState(page);
   expect(popupState).not.toBeNull();
   expect(popupState?.visible).toBe(true);
@@ -204,6 +222,7 @@ When('I click the close button in the popup', async ({ page }) => {
 });
 
 When('I click outside the popup', async ({ page }) => {
+  await waitForPopupVisible(page);
   const popupState = await getCharacterPopupState(page);
   expect(popupState).not.toBeNull();
   expect(popupState?.visible).toBe(true);
@@ -213,6 +232,7 @@ When('I click outside the popup', async ({ page }) => {
 });
 
 When('I click the {string} button in the popup', async ({ page }, buttonName: string) => {
+  await waitForPopupVisible(page);
   const popupState = await getCharacterPopupState(page);
   expect(popupState).not.toBeNull();
   expect(popupState?.visible).toBe(true);
@@ -247,15 +267,19 @@ When('I click the first character on the current page', async ({ page }) => {
 // ============================================================================
 
 Then('the character selection popup should be visible', async ({ page }) => {
-  const popupState = await getCharacterPopupState(page);
-  expect(popupState).not.toBeNull();
-  expect(popupState?.visible).toBe(true);
+  await expect(async () => {
+    const popupState = await getCharacterPopupState(page);
+    expect(popupState).not.toBeNull();
+    expect(popupState?.visible).toBe(true);
+  }).toPass({ timeout: 5000 });
 });
 
 Then('the popup should be visible', async ({ page }) => {
-  const popupState = await getCharacterPopupState(page);
-  expect(popupState).not.toBeNull();
-  expect(popupState?.visible).toBe(true);
+  await expect(async () => {
+    const popupState = await getCharacterPopupState(page);
+    expect(popupState).not.toBeNull();
+    expect(popupState?.visible).toBe(true);
+  }).toPass({ timeout: 5000 });
 });
 
 Then('the popup should close', async ({ page }) => {

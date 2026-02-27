@@ -91,16 +91,18 @@ Then('slot {int} should display {string}', async ({ page }, slotNumber: number, 
 });
 
 Then('slot {int} should show the letter {string}', async ({ page }, slotNumber: number, expectedLetter: string) => {
-  const slotsState = await getCharacterSlotsState(page);
-  expect(slotsState).not.toBeNull();
+  await expect(async () => {
+    const slotsState = await getCharacterSlotsState(page);
+    expect(slotsState).not.toBeNull();
 
-  const slotIndex = slotNumber - 1;
-  expect(slotIndex).toBeGreaterThanOrEqual(0);
-  expect(slotIndex).toBeLessThan(4);
+    const slotIndex = slotNumber - 1;
+    expect(slotIndex).toBeGreaterThanOrEqual(0);
+    expect(slotIndex).toBeLessThan(4);
 
-  const slot = slotsState!.slots[slotIndex];
-  expect(slot).not.toBeNull();
-  expect(slot?.name?.[0]).toBe(expectedLetter);
+    const slot = slotsState!.slots[slotIndex];
+    expect(slot).not.toBeNull();
+    expect(slot?.name?.[0]).toBe(expectedLetter);
+  }).toPass({ timeout: 5000 });
 });
 
 Then(

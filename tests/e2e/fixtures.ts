@@ -443,8 +443,51 @@ export async function clickGameCoords(page: Page, gameX: number, gameY: number):
  */
 export async function waitForGameReady(page: Page) {
   await page.waitForSelector('canvas', { timeout: 10000 });
-  // Give Phaser time to initialize
-  await page.waitForTimeout(500);
+  await page.waitForFunction(
+    () => {
+      const game = (window as any).__PHASER_GAME__;
+      return game?.scene?.scenes?.some((s: any) => s.sys.isActive());
+    },
+    undefined,
+    { timeout: 10000 }
+  );
+}
+
+/**
+ * Wait for entity targeting mode to become active.
+ * Replaces inline waitForFunction calls in battle steps.
+ */
+export async function waitForEntityTargeting(page: Page): Promise<void> {
+  await page.waitForFunction(
+    () => {
+      const game = (window as any).__PHASER_GAME__;
+      const scene = game?.scene?.scenes?.find((s: any) => s.sys.isActive());
+      return (scene as any)?.entityTargetingActive === true;
+    },
+    undefined,
+    { timeout: 10000 }
+  );
+}
+
+/**
+ * Wait for an entity's wheel position to change from a known prior value.
+ * Replaces inline waitForFunction calls in battle steps.
+ */
+export async function waitForWheelAdvanced(
+  page: Page,
+  actorId: string,
+  priorPosition: number
+): Promise<void> {
+  await page.waitForFunction(
+    (args: { actorId: string; prior: number }) => {
+      const game = (window as any).__PHASER_GAME__;
+      const scene = game?.scene?.scenes?.find((s: any) => s.sys.isActive());
+      const pos = (scene as any)?.actionWheel?.getPosition(args.actorId);
+      return pos !== undefined && pos !== args.prior;
+    },
+    { actorId, prior: priorPosition },
+    { timeout: 10000 }
+  );
 }
 
 /**
@@ -484,6 +527,20 @@ export async function getValidMovementTiles(page: Page): Promise<{ x: number; y:
  * Returns true if a tile was clicked, false if no valid tiles
  */
 export async function clickValidMovementTile(page: Page): Promise<boolean> {
+  try {
+    await page.waitForFunction(
+      () => {
+        const game = (window as any).__PHASER_GAME__;
+        const scene = game?.scene?.scenes?.find((s: any) => s.sys.isActive());
+        return ((scene as any)?.currentValidMoves?.length ?? 0) > 0;
+      },
+      undefined,
+      { timeout: 5000 }
+    );
+  } catch {
+    return false;
+  }
+
   const validTiles = await getValidMovementTiles(page);
   if (validTiles.length === 0) return false;
 

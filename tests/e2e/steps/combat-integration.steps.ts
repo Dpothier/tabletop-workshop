@@ -14,6 +14,8 @@ import {
   getMonsterPosition,
   teleportCharacterTo,
   setHeroBeadHand,
+  captureActionState,
+  waitForWheelAdvanced,
   UI_PANEL_COORDS,
 } from '@tests/e2e/fixtures';
 
@@ -112,9 +114,7 @@ Given('I am adjacent to the monster', async ({ page }) => {
 // Note: Run and Rest button steps are defined in battle.steps.ts with position tracking
 
 When('I click a valid movement tile', async ({ page }) => {
-  // Wait for movement highlighting to appear
-  await page.waitForTimeout(300);
-  // Use dynamic tile selection from game state
+  // clickValidMovementTile polls for valid moves internally
   const clicked = await clickValidMovementTile(page);
   expect(clicked, 'Should find a valid movement tile to click').toBe(true);
   await page.waitForTimeout(500);
@@ -145,13 +145,12 @@ Then('there is no End Turn button', async ({ page }) => {
 // Monster turn steps
 Given('all players have higher wheel positions than the monster', async ({ page }) => {
   // Strategy: Make all heroes rest to advance their wheel positions.
-  // After all heroes have acted once, the monster will be at the lowest position
+  // After all heroes have acted, the monster will be at the lowest position
   // and will automatically take its turn.
+  //
+  // Each hero rest is wrapped in expect().toPass() to retry the full
+  // click sequence if the Rest button click doesn't register under load.
 
-  // Goal-oriented loop: keep resting heroes until the monster's position advances.
-  // Under parallel load, the monster may complete its turn between iterations,
-  // so we check the goal (monster moved) at every step rather than assuming
-  // exactly 4 hero rests are needed.
   for (let attempt = 0; attempt < 8; attempt++) {
     const state = await getGameState(page);
 
@@ -160,16 +159,38 @@ Given('all players have higher wheel positions than the monster', async ({ page 
 
     // If current actor is a hero, make them rest
     if (state.currentActor?.startsWith('hero-')) {
-      const heroPos = await getCharacterPosition(page, state.currentActor);
-      if (heroPos) {
-        await clickGridTile(page, heroPos.x, heroPos.y);
-        await page.waitForTimeout(300);
-      }
-      await clickRestButton(page);
-      await page.waitForTimeout(1000);
+      const heroId = state.currentActor;
+      const priorWheelPos = state.wheelPositions?.[heroId] ?? 0;
+
+      // Retry click sequence until wheel actually advances
+      await expect(async () => {
+        const currentState = await getGameState(page);
+        // Already advanced? Done.
+        if ((currentState.wheelPositions?.[heroId] ?? 0) > priorWheelPos) return;
+
+        // Select hero, click Rest
+        const heroPos = await getCharacterPosition(page, heroId);
+        if (heroPos) {
+          await clickGridTile(page, heroPos.x, heroPos.y);
+        }
+        await clickRestButton(page);
+
+        // Check wheel advanced
+        const afterState = await getGameState(page);
+        expect(afterState.wheelPositions?.[heroId] ?? 0).toBeGreaterThan(priorWheelPos);
+      }).toPass({ timeout: 10000 });
     } else {
-      // Monster is acting, wait for it to complete
-      await page.waitForTimeout(1000);
+      // Monster is acting — poll until a hero becomes current actor again
+      await page.waitForFunction(
+        () => {
+          const game = (window as any).__PHASER_GAME__;
+          const scene = game?.scene?.scenes?.find((s: any) => s.sys.isActive());
+          const actor = (scene as any)?.currentActorId;
+          return actor && actor.startsWith('hero-');
+        },
+        undefined,
+        { timeout: 15000 }
+      );
     }
   }
 
@@ -289,8 +310,10 @@ Given('the monster has taken several turns', async ({ page }) => {
 });
 
 Then('I should see the monster discard counts', async ({ page }) => {
-  const state = await getGameState(page);
-  expect(state.monster?.discards, 'Monster should have discard counts').toBeDefined();
+  await expect(async () => {
+    const state = await getGameState(page);
+    expect(state.monster?.discards, 'Monster should have discard counts').toBeDefined();
+  }).toPass({ timeout: 5000 });
 });
 
 Then('the discard shows counts by color', async ({ page }) => {

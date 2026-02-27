@@ -9,6 +9,8 @@ import {
   getMonsterPosition,
   captureActionState,
   expectWheelAdvanced,
+  waitForEntityTargeting,
+  waitForWheelAdvanced,
   UI_PANEL_COORDS,
   HERO_BAR_COORDS,
   ActionState,
@@ -110,26 +112,13 @@ When('I click the Attack button', async ({ page }) => {
   await clickActionButton(page, 0, 0);
 
   // Attack now requires target selection - click on the monster
-  await page.waitForFunction(() => {
-    const game = (window as any).__PHASER_GAME__;
-    const scene = game?.scene.scenes.find((s: any) => s.sys.isActive());
-    return (scene as any)?.entityTargetingActive === true;
-  }, undefined, { timeout: 5000 });
+  await waitForEntityTargeting(page);
   const monsterPos = await getMonsterPosition(page);
   expect(monsterPos, 'Monster should have a position').toBeDefined();
   await clickGridTile(page, monsterPos!.x, monsterPos!.y);
 
   // Wait for async animation to complete (combat resolution + damage flash)
-  await page.waitForFunction(
-    (args: { actorId: string; prior: number }) => {
-      const game = (window as any).__PHASER_GAME__;
-      const scene = game?.scene.scenes.find((s: any) => s.sys.isActive());
-      const pos = (scene as any)?.actionWheel?.getPosition(args.actorId);
-      return pos !== undefined && pos !== args.prior;
-    },
-    { actorId: lastActionState.actorId, prior: lastActionState.wheelPosition },
-    { timeout: 5000 }
-  );
+  await waitForWheelAdvanced(page, lastActionState.actorId, lastActionState.wheelPosition);
 });
 
 When('I click the Move button', async ({ page }) => {

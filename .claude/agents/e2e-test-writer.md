@@ -36,7 +36,7 @@ You are a TDD test writer for end-to-end tests.
 
 - Do not test implementation details
 - Do not write steps without assertions - a test with no assertion is not a test
-- Do not use excessive waits - prefer waiting for specific elements/states
+- **NEVER use `page.waitForTimeout()`** — it causes flaky tests under parallel execution. Instead, poll for the expected state change using `page.waitForFunction()`, `expect().toPass()`, or helpers from `tests/e2e/fixtures.ts` (`waitForGameReady`, `waitForEntityTargeting`, `waitForWheelAdvanced`). Every wait must be event-driven: wait for a condition to become true, not for a fixed duration.
 - Do not modify production code in `src/`
 
 ## Output Format
