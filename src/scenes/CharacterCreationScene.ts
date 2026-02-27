@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { CharacterStorageService } from '@src/services/CharacterStorageService';
+import type { CharacterData } from '@src/types/CharacterData';
 
 // Attribute allocation constants
 export const ATTRIBUTE_COLORS = {
@@ -18,6 +19,7 @@ export const BEAD_COLOR_HEX = {
 
 export class CharacterCreationScene extends Phaser.Scene {
   private characterStorageService!: CharacterStorageService;
+  private editCharacter: CharacterData | null = null;
   private characterName: string = '';
   private characterCountText!: Phaser.GameObjects.Text;
   private errorText!: Phaser.GameObjects.Text;
@@ -60,6 +62,10 @@ export class CharacterCreationScene extends Phaser.Scene {
     super({ key: 'CharacterCreationScene' });
   }
 
+  init(data?: { editCharacter?: CharacterData }): void {
+    this.editCharacter = data?.editCharacter ?? null;
+  }
+
   create(): void {
     this.characterStorageService = new CharacterStorageService();
 
@@ -68,7 +74,7 @@ export class CharacterCreationScene extends Phaser.Scene {
 
     // Title
     this.add
-      .text(centerX, 60, 'CREATE CHARACTER', {
+      .text(centerX, 60, this.editCharacter ? 'EDIT CHARACTER' : 'CREATE CHARACTER', {
         fontSize: '48px',
         color: '#e0e0e0',
         fontStyle: 'bold',
@@ -161,6 +167,17 @@ export class CharacterCreationScene extends Phaser.Scene {
       });
     }
 
+    // Pre-fill name in edit mode
+    if (this.editCharacter && characterNameInput) {
+      characterNameInput.value = this.editCharacter.name;
+      this.characterName = this.editCharacter.name;
+      const charCount = this.characterName.length;
+      this.characterCountText.setText(`${charCount}/20`);
+      const firstLetter = this.characterName.charAt(0).toUpperCase();
+      this.previewText.setText(firstLetter);
+      this.previewDomElement.textContent = firstLetter;
+    }
+
     // Continue Button
     this.continueButtonRect = this.add
       .rectangle(centerX - 120, centerY + 100, 150, 60, 0x4488ff)
@@ -240,7 +257,7 @@ export class CharacterCreationScene extends Phaser.Scene {
     }
 
     // Validate name is unique
-    if (!this.characterStorageService.isNameUnique(trimmedName)) {
+    if (!this.characterStorageService.isNameUnique(trimmedName, this.editCharacter?.id)) {
       const errorMsg = 'Name already taken';
       this.errorText.setText(errorMsg);
       this.errorDomElement.textContent = errorMsg;
@@ -259,6 +276,14 @@ export class CharacterCreationScene extends Phaser.Scene {
 
   private showAttributeAllocationUI(): void {
     this.showAttributeAllocation = true;
+
+    // Pre-fill attributes in edit mode
+    if (this.editCharacter) {
+      this.attributes = { ...this.editCharacter.attributes };
+      // Recalculate points remaining (total = 12, base = 4*1=4, so remaining = 12 - sum)
+      const sum = this.attributes.str + this.attributes.dex + this.attributes.mnd + this.attributes.spr;
+      this.pointsRemaining = 12 - sum;
+    }
 
     const centerX = this.cameras.main.width / 2;
 
@@ -610,6 +635,11 @@ export class CharacterCreationScene extends Phaser.Scene {
     this.showWeaponSelection = true;
     this.loadWeapons();
 
+    // Pre-select weapon in edit mode
+    if (this.editCharacter) {
+      this.selectedWeaponId = this.editCharacter.weapon;
+    }
+
     const centerX = this.cameras.main.width / 2;
 
     // Hide attribute allocation UI
@@ -677,6 +707,11 @@ export class CharacterCreationScene extends Phaser.Scene {
       const y = startY + index * rowHeight;
       this.createWeaponRow(weapon, y, centerX);
     });
+
+    // Highlight pre-selected weapon in edit mode
+    if (this.selectedWeaponId) {
+      this.selectWeapon(this.selectedWeaponId);
+    }
 
     // Calculate button position below the last weapon row
     const buttonY = startY + (this.weapons.length - 1) * rowHeight + 100;
@@ -814,18 +849,32 @@ export class CharacterCreationScene extends Phaser.Scene {
       return;
     }
 
-    // Build character data and save
-    this.characterStorageService.save({
-      name: this.characterName,
-      attributes: {
-        str: this.attributes.str,
-        dex: this.attributes.dex,
-        mnd: this.attributes.mnd,
-        spr: this.attributes.spr,
-      },
-      weapon: this.selectedWeaponId,
-      isDefault: false,
-    });
+    if (this.editCharacter) {
+      // Update existing character
+      this.characterStorageService.update(this.editCharacter.id, {
+        name: this.characterName,
+        attributes: {
+          str: this.attributes.str,
+          dex: this.attributes.dex,
+          mnd: this.attributes.mnd,
+          spr: this.attributes.spr,
+        },
+        weapon: this.selectedWeaponId,
+      });
+    } else {
+      // Save new character
+      this.characterStorageService.save({
+        name: this.characterName,
+        attributes: {
+          str: this.attributes.str,
+          dex: this.attributes.dex,
+          mnd: this.attributes.mnd,
+          spr: this.attributes.spr,
+        },
+        weapon: this.selectedWeaponId,
+        isDefault: false,
+      });
+    }
 
     // Clean up and navigate back
     this.cleanupDomElements();

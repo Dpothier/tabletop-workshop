@@ -17,27 +17,37 @@ Feature: Character Slots
     And slot 1 should display "Warrior"
     And slot 1 should show attributes "S:5 D:2 M:1 R:1"
 
-  Scenario: Click filled slot removes character
+  Scenario: Click filled slot opens popup to remove character
     Given I am on the main menu
     When I click character slot 1
-    Then slot 1 should be empty
+    Then the character selection popup should be visible
+    When I click the Remove button in the popup
+    Then the popup should close
+    And slot 1 should be empty
 
   Scenario: Start Battle disabled when no characters
     Given I am on the main menu
     When I click character slot 1
+    And I click the Remove button in the popup
     And I click character slot 2
+    And I click the Remove button in the popup
     And I click character slot 3
+    And I click the Remove button in the popup
     And I click character slot 4
+    And I click the Remove button in the popup
     Then the Start Battle button should be disabled
 
   Scenario: Start Battle enabled with at least 1 character
     Given I am on the main menu
     When I click character slot 1
+    And I click the Remove button in the popup
     Then the Start Battle button should be enabled
 
-  Scenario: Click empty slot assigns next available character
+  Scenario: Click empty slot to select available character
     Given I am on the main menu
-    When I click character slot 1
-    Then slot 1 should be empty
-    When I click character slot 1
-    Then slot 1 should display "Warrior"
+    When I click character slot 3
+    And I click the Remove button in the popup
+    When I click character slot 3
+    And I click the "Rogue" character in the popup
+    Then the popup should close
+    And slot 3 should display "Rogue"

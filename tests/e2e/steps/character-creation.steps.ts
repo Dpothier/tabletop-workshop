@@ -809,18 +809,23 @@ Given(
 Given(
   'I am on the character creation scene in edit mode for {string}',
   async ({ page }, characterName: string) => {
-    // Navigate to character creation - edit mode will be implemented via scene data
-    // For now, navigate to the page and start character creation scene
     const state = await getGameState(page);
     if (state.scene !== 'CharacterCreationScene') {
       await page.goto('/');
       await waitForGameReady(page);
 
-      // Click Create Character button with edit data
+      // Find the character in storage and start scene in edit mode
       await page.evaluate((name) => {
         const game = window.__PHASER_GAME__;
-        if (game) {
-          game.scene.start('CharacterCreationScene', { editCharacterName: name });
+        if (!game) return;
+        const stored = localStorage.getItem('tabletop_characters');
+        if (!stored) return;
+        const characters = JSON.parse(stored);
+        const character = characters.find((c: { name: string }) => c.name === name);
+        if (!character) return;
+        const activeScene = game.scene.scenes.find((s: { sys: { isActive: () => boolean } }) => s.sys.isActive());
+        if (activeScene) {
+          activeScene.scene.start('CharacterCreationScene', { editCharacter: character });
         }
       }, characterName);
       await page.waitForTimeout(500);

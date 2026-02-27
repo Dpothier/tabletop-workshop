@@ -2,6 +2,8 @@ import Phaser from 'phaser';
 import { loadGameData, GameData } from '@src/systems/DataLoader';
 import { BattleBuilder } from '@src/builders/BattleBuilder';
 import { CharacterStorageService } from '@src/services/CharacterStorageService';
+import { CharacterSelectionPopup } from '@src/ui/CharacterSelectionPopup';
+import { CharacterManagementPanel } from '@src/ui/CharacterManagementPanel';
 import type { CharacterData } from '@src/types/CharacterData';
 
 export class MenuScene extends Phaser.Scene {
@@ -11,12 +13,18 @@ export class MenuScene extends Phaser.Scene {
   private selectedCharacters: (CharacterData | null)[] = [null, null, null, null];
   private slotContainers: Phaser.GameObjects.Container[] = [];
   private startButton!: Phaser.GameObjects.Rectangle;
+  private characterSelectionPopup!: CharacterSelectionPopup;
+  private characterManagementPanel!: CharacterManagementPanel;
 
   constructor() {
     super({ key: 'MenuScene' });
   }
 
   async create(): Promise<void> {
+    // Reset state for scene restart
+    this.slotContainers = [];
+    this.selectedCharacters = [null, null, null, null];
+
     this.gameData = await loadGameData();
 
     // Initialize builder with defaults
@@ -116,13 +124,35 @@ export class MenuScene extends Phaser.Scene {
     createCharButton.on('pointerout', () => createCharButton.setFillStyle(0x4488ff));
     createCharButton.on('pointerdown', () => this.createCharacter());
 
+    // Manage Characters Button
+    const manageCharButton = this.add
+      .rectangle(centerX, 700, 180, 40, 0x668899)
+      .setInteractive({ useHandCursor: true });
+
+    this.add
+      .text(centerX, 700, 'Manage Characters', {
+        fontSize: '16px',
+        color: '#ffffff',
+      })
+      .setOrigin(0.5);
+
+    manageCharButton.on('pointerover', () => manageCharButton.setFillStyle(0x7799aa));
+    manageCharButton.on('pointerout', () => manageCharButton.setFillStyle(0x668899));
+    manageCharButton.on('pointerdown', () => this.manageCharacters());
+
     // Instructions
     this.add
-      .text(centerX, 720, 'Click arrows to select, then START BATTLE', {
+      .text(centerX, 740, 'Click arrows to select, then START BATTLE', {
         fontSize: '16px',
         color: '#666666',
       })
       .setOrigin(0.5);
+
+    // Character Selection Popup
+    this.characterSelectionPopup = new CharacterSelectionPopup(this);
+
+    // Character Management Panel
+    this.characterManagementPanel = new CharacterManagementPanel(this);
   }
 
   private createSelector(
@@ -290,27 +320,28 @@ export class MenuScene extends Phaser.Scene {
   }
 
   private handleSlotClick(index: number): void {
-    const character = this.selectedCharacters[index];
+    const allCharacters = this.characterStorage.getAll();
+    const selectedIds = this.selectedCharacters.map((c) => c?.id ?? null);
 
-    if (character !== null) {
-      // Remove character if filled
-      this.selectedCharacters[index] = null;
-    } else {
-      // Find first character not already in selectedCharacters
-      const allCharacters = this.characterStorage.getAll();
-      const selectedIds = this.selectedCharacters
-        .filter((c): c is CharacterData => c !== null)
-        .map((c) => c.id);
-      for (const char of allCharacters) {
-        if (!selectedIds.includes(char.id)) {
-          this.selectedCharacters[index] = char;
-          break;
-        }
-      }
-    }
-
-    this.renderSlot(index);
-    this.updateStartButtonState();
+    this.characterSelectionPopup.show(index, allCharacters, selectedIds, {
+      onSelect: (character: CharacterData) => {
+        this.selectedCharacters[index] = character;
+        this.renderSlot(index);
+        this.updateStartButtonState();
+      },
+      onRemove: () => {
+        this.selectedCharacters[index] = null;
+        this.renderSlot(index);
+        this.updateStartButtonState();
+      },
+      onCreateNew: () => {
+        this.characterSelectionPopup.hide();
+        this.scene.start('CharacterCreationScene');
+      },
+      onClose: () => {
+        // No changes needed
+      },
+    });
   }
 
   private updateStartButtonState(): void {
@@ -351,8 +382,103 @@ export class MenuScene extends Phaser.Scene {
     };
   }
 
+  public get characterPopupState() {
+    return this.characterSelectionPopup?.getState() ?? null;
+  }
+
+  public get hasManageCharactersButton(): boolean {
+    return true;
+  }
+
+  public get characterManagementState() {
+    return this.characterManagementPanel?.getState() ?? null;
+  }
+
   private createCharacter(): void {
     this.scene.start('CharacterCreationScene');
+  }
+
+  private manageCharacters(): void {
+    const allCharacters = this.characterStorage.getAll();
+    const partyIds = this.selectedCharacters
+      .filter((c): c is CharacterData => c !== null)
+      .map((c) => c.id);
+
+    this.characterManagementPanel.show(allCharacters, partyIds, {
+      onEdit: (character) => {
+        this.characterManagementPanel.hide();
+        this.scene.start('CharacterCreationScene', { editCharacter: character });
+      },
+      onDelete: (characterId) => {
+        this.characterStorage.delete(characterId);
+        // Remove from party if present
+        this.selectedCharacters = this.selectedCharacters.map((c) =>
+          c?.id === characterId ? null : c
+        );
+        this.slotContainers.forEach((_, i) => this.renderSlot(i));
+        this.updateStartButtonState();
+      },
+      onExport: () => {
+        this.exportCharacters();
+      },
+      onImport: () => {
+        this.importCharacters();
+      },
+      onClose: () => {
+        // No changes needed
+      },
+    });
+  }
+
+  private exportCharacters(): void {
+    const allCharacters = this.characterStorage.getAll();
+    const customCharacters = allCharacters.filter((c) => !c.isDefault);
+    const json = JSON.stringify(customCharacters, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'characters.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  private importCharacters(): void {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = () => {
+      const file = input.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const imported = JSON.parse(reader.result as string);
+          if (!Array.isArray(imported)) return;
+          for (const char of imported) {
+            if (char.name && char.attributes && char.weapon) {
+              try {
+                this.characterStorage.save({
+                  name: char.name,
+                  attributes: char.attributes,
+                  weapon: char.weapon,
+                  isDefault: false,
+                });
+              } catch {
+                // Skip duplicates or limit exceeded
+              }
+            }
+          }
+          // Refresh the management panel
+          this.characterManagementPanel.hide();
+          this.manageCharacters();
+        } catch {
+          // Invalid JSON, ignore
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
   }
 
   private startBattle(): void {

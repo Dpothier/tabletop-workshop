@@ -27,6 +27,7 @@ dist-ssr
 .features-gen/
 test-results/
 .playwright-mcp/
+mockups/
 
 # MCP config (local)
 .mcp.json
