@@ -220,7 +220,13 @@ Feature: Character Creation Scene
     Given there is a character named "EditMe" in storage with weapon "sword" and attributes STR=3 DEX=2 MND=4 SPR=3
     And I am on the character creation scene in edit mode for "EditMe"
     Then the name field should contain "EditMe"
-    And the weapon selection should show "Sword" as selected
+    When I progress to the attribute allocation section
+    Then the STR attribute value should be 3
+    And the DEX attribute value should be 2
+    And the MND attribute value should be 4
+    And the SPR attribute value should be 3
+    When I progress to the weapon selection section
+    Then the weapon selection should show "Sword" as selected
 
   # Bug Fix: Visual Overlap and Layout Issues
   @bug-fix

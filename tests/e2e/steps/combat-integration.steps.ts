@@ -148,37 +148,37 @@ Given('all players have higher wheel positions than the monster', async ({ page 
   // After all heroes have acted once, the monster will be at the lowest position
   // and will automatically take its turn.
 
-  // First, make all 4 heroes rest in sequence
-  for (let i = 0; i < 4; i++) {
-    // Wait for a hero to be current actor
-    await expect(async () => {
-      const state = await getGameState(page);
-      expect(state.currentActor).toMatch(/^hero-/);
-    }).toPass({ timeout: 5000 });
-
-    // Get current actor and click on them to open the panel
+  // Goal-oriented loop: keep resting heroes until the monster's position advances.
+  // Under parallel load, the monster may complete its turn between iterations,
+  // so we check the goal (monster moved) at every step rather than assuming
+  // exactly 4 hero rests are needed.
+  for (let attempt = 0; attempt < 8; attempt++) {
     const state = await getGameState(page);
-    const heroPos = await getCharacterPosition(page, state.currentActor!);
-    if (heroPos) {
-      await clickGridTile(page, heroPos.x, heroPos.y);
-      await page.waitForTimeout(300);
+
+    // Goal achieved: monster has taken its turn
+    if ((state.wheelPositions?.['monster'] ?? 0) > 0) break;
+
+    // If current actor is a hero, make them rest
+    if (state.currentActor?.startsWith('hero-')) {
+      const heroPos = await getCharacterPosition(page, state.currentActor);
+      if (heroPos) {
+        await clickGridTile(page, heroPos.x, heroPos.y);
+        await page.waitForTimeout(300);
+      }
+      await clickRestButton(page);
+      await page.waitForTimeout(1000);
+    } else {
+      // Monster is acting, wait for it to complete
+      await page.waitForTimeout(1000);
     }
-
-    // Click Rest button (in SelectedHeroPanel)
-    await clickRestButton(page);
-
-    // Wait for rest animation and turn processing
-    await page.waitForTimeout(1000);
   }
 
-  // Wait for the monster to take its turn (it auto-executes after 500ms)
-  // Give extra time for all turns to process
-  await page.waitForTimeout(2000);
-
-  // Verify the monster took its turn by checking the battle log
-  const state = await getGameState(page);
-  const hasMonsterTurn = state.battleLog?.some((msg) => msg.includes('Monster Turn'));
-  expect(hasMonsterTurn, 'Battle log should show Monster Turn').toBe(true);
+  // Verify the monster acted
+  await expect(async () => {
+    const state = await getGameState(page);
+    const monsterWheelPos = state.wheelPositions?.['monster'];
+    expect(monsterWheelPos, 'Monster wheel position should have advanced').toBeGreaterThan(0);
+  }).toPass({ timeout: 10000 });
 });
 
 Given('the monster is the current actor', async ({ page }) => {

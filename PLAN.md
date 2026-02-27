@@ -251,8 +251,8 @@ Following PRD v4 implementation order.
 - [x] Bouton désactivé si: nom invalide OU points non dépensés OU pas d'arme
 - [x] Sauvegarde appelle CharacterStorageService.save()
 - [x] Après sauvegarde, retour au MenuScene
-- [ ] Mode édition: pré-remplit les champs si character passé en paramètre (@wip)
-- [x] Tests E2E passent (5 scénarios + 1 @wip)
+- [x] Mode édition: pré-remplit les champs si character passé en paramètre
+- [x] Tests E2E passent (6 scénarios)
 
 ---
 
@@ -479,9 +479,14 @@ Following PRD v4 implementation order.
 
 ```
 Unit/Integration Tests: 469 passed
-E2E Tests: 97 passed (+ 1 @wip edit mode)
-Total: 566 tests passing
+E2E Tests: 107 passed (0 failures, 8 workers)
+Total: 576 tests passing
 ```
+
+### E2E Flaky Test Fixes (Feb 2025)
+- **Attack wheel test**: Replaced `waitForTimeout` with `waitForFunction` polling for `entityTargetingActive` and wheel position change
+- **Monster turn test**: Replaced rigid 4-iteration rest loop with goal-oriented loop; root cause was FIFO tie-breaking blocking monster when a hero rest click failed under parallel load
+- **Edit mode test**: Updated @wip scenario to navigate 3-step flow (name → attributes → weapon)
 
 ---
 
