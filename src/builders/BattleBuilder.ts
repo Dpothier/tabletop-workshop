@@ -3,6 +3,7 @@ import type { ActionDefinition } from '@src/types/ActionDefinition';
 import type { BattleState } from '@src/state/BattleState';
 import type { Entity } from '@src/entities/Entity';
 import type { GameContext } from '@src/types/Effect';
+import type { CharacterData } from '@src/types/CharacterData';
 import { BattleGrid } from '@src/state/BattleGrid';
 import { ActionWheel } from '@src/systems/ActionWheel';
 import { Character } from '@src/entities/Character';
@@ -25,6 +26,7 @@ export class BattleBuilder {
   private partySize = 4;
   private classes: CharacterClass[] = [];
   private actions: ActionDefinition[] = [];
+  private characterData?: CharacterData[];
 
   /**
    * Set the monster for this battle
@@ -63,6 +65,16 @@ export class BattleBuilder {
    */
   withActions(actions: ActionDefinition[]): this {
     this.actions = actions;
+    return this;
+  }
+
+  /**
+   * Set character data for the party.
+   * Automatically sets partySize from array length.
+   */
+  withCharacterData(characters: CharacterData[]): this {
+    this.characterData = characters;
+    this.partySize = characters.length;
     return this;
   }
 
@@ -161,6 +173,12 @@ export class BattleBuilder {
       // Create Character entity
       const character = new Character(characterId, charClass.stats.health, grid, entityMap);
 
+      // Apply character data if available
+      if (this.characterData && this.characterData[i]) {
+        const data = this.characterData[i];
+        character.setCharacterData(data.name, data.attributes, data.weapon);
+      }
+
       characters.push(character);
       entityMap.set(characterId, character);
     }
@@ -215,8 +233,22 @@ export class BattleBuilder {
   }
 
   private initializeBeadHands(characters: Character[]): void {
-    for (const character of characters) {
-      character.initializeBeadHand();
+    for (let i = 0; i < characters.length; i++) {
+      const character = characters[i];
+      const attrs = this.characterData?.[i]?.attributes;
+
+      if (attrs) {
+        // Map attributes to bead colors: STR→red, DEX→green, MND→blue, SPR→white
+        character.initializeBeadHand({
+          red: attrs.str,
+          green: attrs.dex,
+          blue: attrs.mnd,
+          white: attrs.spr,
+        });
+      } else {
+        character.initializeBeadHand();
+      }
+
       // Draw starting beads (3)
       if (character.hasBeadHand()) {
         character.drawBeadsToHand(3);

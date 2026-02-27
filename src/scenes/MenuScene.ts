@@ -483,8 +483,8 @@ export class MenuScene extends Phaser.Scene {
 
   private startBattle(): void {
     if (!this.selectedCharacters.some((c) => c !== null)) return;
-    const partySize = this.selectedCharacters.filter(Boolean).length;
-    this.builder.withPartySize(partySize);
+    const party = this.selectedCharacters.filter((c): c is CharacterData => c !== null);
+    this.builder.withCharacterData(party);
     const state = this.builder.build();
     this.scene.start('BattleScene', { state });
   }

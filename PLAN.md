@@ -331,22 +331,24 @@ Following PRD v4 implementation order.
 
 ---
 
-### 8.9: Battle Integration - Bead Bag from Attributes ⏳ PENDING
+### 8.9: Battle Integration - Bead Bag from Attributes ✅ COMPLETE
 
 **Objectif**: Modifier BattleBuilder pour créer les personnages avec bead bags basés sur attributs.
 
-**Fichiers à modifier**:
-- `src/builders/BattleBuilder.ts` - Utiliser personnages sélectionnés
-- `src/systems/PlayerBeadSystem.ts` - Accepter composition custom
-- `src/entities/Character.ts` - Stocker attributs et arme
+**Fichiers créés/modifiés**:
+- `src/entities/Character.ts` - Ajout name, attributes, weaponId + initializeBeadHand(initial?)
+- `src/builders/BattleBuilder.ts` - Ajout withCharacterData() + mapping attributs→beads
+- `src/scenes/MenuScene.ts` - startBattle() passe CharacterData[] au builder
+- `features/unit/battle-builder-beads.feature` - Tests unitaires (6 scénarios)
+- `tests/steps/battle-builder-beads.steps.ts` - Step definitions
 
 **Critères d'acceptation**:
-- [ ] BattleBuilder reçoit liste de CharacterData au lieu de partySize
-- [ ] Character entity stocke: name, attributes, weaponId
-- [ ] PlayerBeadSystem initialisé avec composition basée sur attributs
-- [ ] Personnage STR=5,DEX=2,MND=2,SPR=3 → sac de 5R,2G,2B,3W
-- [ ] 3 beads tirés au début du combat (inchangé)
-- [ ] Tests unitaires passent (minimum 6 scénarios)
+- [x] BattleBuilder reçoit liste de CharacterData au lieu de partySize
+- [x] Character entity stocke: name, attributes, weaponId
+- [x] PlayerBeadSystem initialisé avec composition basée sur attributs
+- [x] Personnage STR=5,DEX=2,MND=2,SPR=3 → sac de 5R,2G,2B,3W
+- [x] 3 beads tirés au début du combat (inchangé)
+- [x] Tests unitaires passent (6 scénarios)
 
 ---
 
@@ -480,9 +482,9 @@ Following PRD v4 implementation order.
 ## Test Results
 
 ```
-Unit/Integration Tests: 469 passed
+Unit/Integration Tests: 475 passed
 E2E Tests: 107 passed
-Total: 576 tests passing
+Total: 582 tests passing
 ```
 
 ### E2E Flaky Test Fixes (Feb 2025)

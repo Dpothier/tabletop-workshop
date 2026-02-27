@@ -39,3 +39,4 @@ import './selected-hero-panel-range.steps';
 import './action-resolution-entity.steps';
 import './weapon-data.steps';
 import './character-storage.steps';
+import './battle-builder-beads.steps';

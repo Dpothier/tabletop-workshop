@@ -5,6 +5,8 @@ import type { IEntityRegistry } from '@src/types/EntityRegistry';
 import type { ActionDefinition } from '@src/types/ActionDefinition';
 import type { EquipmentDefinition, EquipmentSlot } from '@src/types/Equipment';
 import type { ActionRegistry } from '@src/systems/ActionRegistry';
+import type { CharacterAttributes } from '@src/types/CharacterData';
+import type { BeadCounts } from '@src/types/Beads';
 
 /**
  * Character represents a player-controlled entity.
@@ -17,6 +19,15 @@ export class Character extends Entity {
 
   /** Equipment currently worn by this character */
   private equipment: Map<EquipmentSlot, EquipmentDefinition> = new Map();
+
+  /** Character's name */
+  private characterName?: string;
+
+  /** Character's attributes (STR, DEX, CON, etc.) */
+  private characterAttributes?: CharacterAttributes;
+
+  /** ID of the equipped weapon */
+  private weaponId?: string;
 
   /** Action IDs that are always available (base actions any character can do) */
   private innateActions: string[] = ['move', 'run', 'attack', 'rest'];
@@ -104,10 +115,41 @@ export class Character extends Entity {
   }
 
   /**
+   * Set character data including name, attributes, and weapon.
+   */
+  setCharacterData(name: string, attributes: CharacterAttributes, weaponId?: string): void {
+    this.characterName = name;
+    this.characterAttributes = attributes;
+    this.weaponId = weaponId;
+  }
+
+  /**
+   * Get the character's name.
+   * Falls back to ID if name is not set.
+   */
+  getName(): string {
+    return this.characterName ?? this.id;
+  }
+
+  /**
+   * Get the character's attributes.
+   */
+  getAttributes(): CharacterAttributes | undefined {
+    return this.characterAttributes;
+  }
+
+  /**
+   * Get the equipped weapon ID.
+   */
+  getWeaponId(): string | undefined {
+    return this.weaponId;
+  }
+
+  /**
    * Initialize the player bead hand system.
    */
-  initializeBeadHand(): void {
-    this.beadHand = new PlayerBeadSystem();
+  initializeBeadHand(initial?: BeadCounts): void {
+    this.beadHand = new PlayerBeadSystem(initial);
   }
 
   /**
