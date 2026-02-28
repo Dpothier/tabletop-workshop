@@ -52,8 +52,8 @@ actions:
         type: attack
         params:
           targetEntity: $target
-          power: 3
-          agility: 3
+          power: 1
+          agility: 1
 
   - id: rest
     name: Rest

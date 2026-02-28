@@ -425,6 +425,12 @@ Knockback pushes a creature in a straight line directly away from the source.
 
 **Zero distance:** If the knockback distance is 0 or less, no knockback occurs.
 
+### Round
+A **round** is one full rotation of the action wheel. A round begins when the wheel's active position passes the starting segment (segment 0) and ends when it returns to segment 0. All creatures on the wheel act at least once per round (possibly more, depending on wheel costs). Effects that trigger "at the end of each round" resolve when the active position crosses segment 0.
+
+### Bleed
+A creature that is **bleeding** loses 1 HP at the end of each round (when the action wheel crosses segment 0). Bleed stacks — a creature with 2 bleed effects loses 2 HP per round. Bleed lasts indefinitely until cured (by healing effects, consumables, or other abilities). Bleed is applied when an attack that inflicts bleed deals damage.
+
 ## Inventory Actions
 
 | Action | Wheel Cost | Effect |
@@ -630,6 +636,58 @@ Each weapon grants unique special actions. These are either **attack modifiers**
 **Intercept** is a reaction triggered when any creature moves into a tile at range 2 from the spear wielder. The attack is resolved immediately during the creature's movement. If damage is dealt, the movement stops — the creature remains at range 2. The creature can still resolve any remaining actions on its turn, but its movement is over. Intercept cannot be combined with Extend (the reaction only triggers at range 2, not beyond).
 
 **Range 2 only:** The spear can only attack at range 2 — it **cannot** attack adjacent enemies (range 1). This is an intentional weakness that encourages tactical positioning and makes the spear distinct from other standard weapons.
+
+### Light Melee Weapons (Step 9)
+
+All light melee weapons share:
+- **Base stats:** Power 1, Agility 1, Range 1
+- **Light Attack** (common to all light weapons): Wheel cost 1, Power 1, Agility 1. Cannot be enhanced with any attack modifiers. This makes light weapons efficient at dealing damage to undefended targets.
+- **2 special actions** per weapon (instead of 3 for standard weapons)
+
+| Weapon | Category | Power | Agility | Range | Special |
+|--------|----------|-------|---------|-------|---------|
+| Rondel Dagger | Light | 1 | 1 | 1 | Defensive piercing |
+| Throwing Dagger | Light | 1 | 1 | 1 | Ranged option |
+| Slicing Dagger | Light | 1 | 1 | 1 | Bleed damage |
+| Hatchet | Light | 1 | 1 | 1 | Ranged + control |
+
+#### Rondel Dagger — Special Actions
+
+| Action | Type | Bead Cost | Condition | Effect |
+|--------|------|-----------|-----------|--------|
+| Percer | Attack Modifier | 1 Green | Target has Guard=0 AND Evasion=0 | Attack ignores Armor |
+| Parade | Defensive Reaction | 1 Red | When attacked | +1 Guard against current attack |
+
+Shares Percer and Parade with the Sword. Combined with Light Attack, the Rondel Dagger excels at pressuring unarmored targets with fast, cheap attacks.
+
+#### Throwing Dagger — Special Actions
+
+| Action | Type | Bead Cost | Wheel Cost | Condition | Effect |
+|--------|------|-----------|------------|-----------|--------|
+| Throw | Action | 1 Green | 2 | — | Ranged attack (range 1-6, Power 1, Agility 1). On hit: the weapon is dropped on the target's tile. On dodge: the weapon lands at the end of its maximum trajectory (6 tiles in the thrown direction). The wielder loses access to the weapon until it is recovered. |
+| Parade | Defensive Reaction | 1 Red | When attacked | +1 Guard against current attack |
+
+**Throw** is a full action (not a modifier). After throwing, the character has no equipped weapon — no standard attack, no light attack, no Parade — until they pick up the dagger (move to its tile) or swap to another weapon from inventory.
+
+#### Slicing Dagger — Special Actions
+
+| Action | Type | Bead Cost | Condition | Effect |
+|--------|------|-----------|-----------|--------|
+| Deep Cut | Attack Modifier | 1 Green | Attack deals damage | Target gains Bleed (see Standard Terms). Stacks with existing Bleed. |
+| Parade | Defensive Reaction | 1 Red | When attacked | +1 Guard against current attack |
+
+**Deep Cut** only applies Bleed if the attack actually deals damage (hits and overcomes defense). Multiple Deep Cuts on the same target stack — each adds a separate Bleed effect.
+
+#### Hatchet — Special Actions
+
+| Action | Type | Bead Cost | Wheel Cost | Condition | Effect |
+|--------|------|-----------|------------|-----------|--------|
+| Throw | Action | 1 Green | 2 | — | Ranged attack (range 1-6, Power 1, Agility 1). On hit: weapon dropped on target's tile. On dodge: weapon lands at end of trajectory. Wielder loses weapon until recovered. |
+| Hook | Action | 1 Green | 1 | — | Reduce target's Guard to 0 until its next turn |
+
+**Throw** is identical to the Throwing Dagger's Throw.
+
+**Hook** is identical to the Axe's Hook — a standalone action that strips the target's Guard, enabling follow-up attacks.
 
 ## Armor System
 
