@@ -404,6 +404,27 @@ When successfully dodging (Evasion ≥ Attack Agility):
 
 *Swift attacks prevent dodge reactions.*
 
+## Standard Terms & Effects
+
+### Hit
+An attack **hits** when the attacker's Agility is strictly greater than the target's Evasion (Agility > Evasion). If Evasion ≥ Agility, the target **dodges** and the attack has no effect (unless otherwise specified).
+
+### Guarded
+An attack is **guarded** when the target's Guard alone is greater than or equal to the attack's Power (Guard ≥ Power). This is distinct from the attack being blocked by Armor — only Guard counts for effects that trigger on a guarded attack (e.g., Sword's Riposte).
+
+### Knockback (Forced Movement)
+Knockback pushes a creature in a straight line directly away from the source.
+
+**Distance:** The knockback distance is determined by the effect that causes it (e.g., Power - Guard for Mace's Knockback action).
+
+**Collision with terrain:** If a creature cannot move the full knockback distance because of impassable terrain or the edge of the arena, it takes a collision attack with Power = remaining distance that could not be traveled. This collision attack has Agility 0 (cannot dodge) and ignores Guard (compared against Armor only).
+
+**Collision with another creature:** If a knocked-back creature collides with another creature, both creatures are affected:
+- The knocked-back creature takes collision damage as above (Power = remaining distance, Agility 0, ignores Guard).
+- The blocking creature takes a collision attack with the same Power and Agility 0, but **can dodge** if it has any Evasion (Evasion > 0). If it doesn't dodge, damage is compared against its Armor (Guard ignored).
+
+**Zero distance:** If the knockback distance is 0 or less, no knockback occurs.
+
 ## Inventory Actions
 
 | Action | Wheel Cost | Effect |
@@ -536,9 +557,9 @@ A character with STR 5, DEX 2, MND 2, SPR 3 has a bag of: 5 red, 2 green, 2 blue
 | Weapon | Category | Power | Agility | Range | Special |
 |--------|----------|-------|---------|-------|---------|
 | Sword | Standard | 1 | 1 | 1 | Balanced |
-| Axe | Standard | 2 | 0 | 1 | High damage |
+| Axe | Standard | 1 | 0 | 1 | Cleave potential |
 | Mace | Standard | 1 | 0 | 1 | Armor piercing potential |
-| Spear | Standard | 1 | 1 | 1-2 | Reach |
+| Spear | Standard | 1 | 1 | 2 | Reach |
 
 *Additional weapons (Light, Heavy, Ranged, Magical) added in Step 9.*
 
@@ -546,7 +567,69 @@ A character with STR 5, DEX 2, MND 2, SPR 3 has a bag of: 5 red, 2 green, 2 blue
 - Base Power: Damage modifier
 - Base Agility: Hit modifier
 - Range: Attack distance (1 = adjacent, 2+ = ranged)
-- Special Actions: Unique abilities requiring bead costs (future)
+- Special Actions: Unique abilities requiring bead costs
+
+### Weapon Special Actions (Step 9)
+
+Each weapon grants unique special actions. These are either **attack modifiers** (enhance the basic Attack action) or **defensive reactions** (triggered when the character is attacked).
+
+#### Sword — Special Actions
+
+| Action | Type | Bead Cost | Condition | Effect |
+|--------|------|-----------|-----------|--------|
+| Parade | Defensive Reaction | 1 Red | When attacked | +1 Guard against current attack |
+| Riposte | Defensive Reaction | 1 Green | Attack is guarded (Guard alone ≥ Power) | Deal 1 direct damage to attacker |
+| Percer | Attack Modifier | 1 Green | Target has Guard=0 AND Evasion=0 | Attack ignores Armor |
+
+**Parade** stacks with the base defensive reaction (discard red bead → +1 Guard). A sword-wielding character can spend up to 2 red beads for +2 Guard total against a single attack.
+
+**Riposte** triggers only when Guard alone is sufficient to block the attack (Guard ≥ Attack Power). Armor and Evasion contributions do not count — the attack must be fully stopped by Guard.
+
+**Percer** can only be chosen when the target currently has 0 Guard and 0 Evasion. It modifies the basic Attack action (same wheel cost of 2).
+
+#### Axe — Special Actions
+
+| Action | Type | Bead Cost | Wheel Cost | Condition | Effect |
+|--------|------|-----------|------------|-----------|--------|
+| Cleave | Attack Modifier | 1 Red | (base attack: 2) | — | Attack targets two adjacent tiles. Each enemy on those tiles is resolved separately. If a large enemy occupies both tiles, the attack affects it twice (two separate resolutions). |
+| Hack | Attack Modifier | 1 Red | (base attack: 2) | — | +1 Power to the attack |
+| Hook | Action | 1 Green | 1 | — | Reduce target's Guard to 0 until its next turn |
+
+**Cleave** targets two tiles that must both be adjacent to the attacker AND adjacent to each other. Against two different enemies: two independent attack resolutions. Against one large enemy spanning both tiles: two resolutions against the same defense stats — if the attack hits, damage is dealt twice.
+
+**Hack** simply adds 1 to the attack's Power. Stacks with the axe's base Power of 1 for a total of 2.
+
+**Hook** is a standalone action (not an attack modifier). It does no damage but removes the target's Guard, enabling follow-up attacks from allies. Guard returns when the target takes its next turn.
+
+#### Mace — Special Actions
+
+| Action | Type | Bead Cost | Wheel Cost | Condition | Effect |
+|--------|------|-----------|------------|-----------|--------|
+| Crush | Attack Modifier | 1 Red | (base attack: 2) | — | Attack ignores Armor |
+| Knockback | Attack Modifier | 1 Red | +1 (total: 3) | Attack hits (not dodged) AND Power > Guard | Push target back X spaces, where X = Power - Guard. Collision rules apply (see Standard Terms). |
+| Bash | Attack Modifier | 1 Red | (base attack: 2) | — | +1 Power to the attack |
+
+**Crush** makes the attack bypass Armor entirely — only Guard can prevent damage. This is the "Heavy" modifier applied via bead cost.
+
+**Knockback** adds +1 to the base attack's wheel cost (total 3). The knockback only occurs if the attack hits (Agility > Evasion) and Power exceeds Guard. Distance = Power - Guard. See "Knockback (Forced Movement)" in Standard Terms for collision rules.
+
+**Bash** simply adds 1 to the attack's Power. Stacks with the mace's base Power of 1 for a total of 2.
+
+#### Spear — Special Actions
+
+| Action | Type | Bead Cost | Wheel Cost | Condition | Effect |
+|--------|------|-----------|------------|-----------|--------|
+| Percer | Attack Modifier | 1 Green | (base attack: 2) | Target has Guard=0 AND Evasion=0 | Attack ignores Armor |
+| Extend | Attack Modifier | 1 Green | (base attack: 2) | — | +1 Range to the attack |
+| Intercept | Defensive Reaction | 1 Green | — | A creature enters range 2 of the spear wielder | Make an attack (Power 1, Agility 1) against the moving creature. Can be enhanced with other attack modifiers (e.g., Percer) but not Extend. If the attack deals damage, the creature's movement is interrupted and it stops on the tile where it entered range 2. |
+
+**Percer** is identical to the Sword's Percer — ignores Armor when the target has no Guard and no Evasion.
+
+**Extend** increases the attack's range by 1 (e.g., base range 2 becomes 3). Only applies to the single attack it modifies.
+
+**Intercept** is a reaction triggered when any creature moves into a tile at range 2 from the spear wielder. The attack is resolved immediately during the creature's movement. If damage is dealt, the movement stops — the creature remains at range 2. The creature can still resolve any remaining actions on its turn, but its movement is over. Intercept cannot be combined with Extend (the reaction only triggers at range 2, not beyond).
+
+**Range 2 only:** The spear can only attack at range 2 — it **cannot** attack adjacent enemies (range 1). This is an intentional weakness that encourages tactical positioning and makes the spear distinct from other standard weapons.
 
 ## Armor System
 

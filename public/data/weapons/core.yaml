@@ -8,7 +8,7 @@ weapons:
   - id: axe
     name: Axe
     category: melee
-    power: 2
+    power: 1
     agility: 0
     range: 1
   - id: mace
@@ -22,4 +22,4 @@ weapons:
     category: melee
     power: 1
     agility: 1
-    range: "1-2"
+    range: 2
