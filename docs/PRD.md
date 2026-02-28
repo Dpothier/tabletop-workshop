@@ -555,6 +555,7 @@ A character with STR 5, DEX 2, MND 2, SPR 3 has a bag of: 5 red, 2 green, 2 blue
 | Heavy Melee | Greatsword, Maul | Slow but powerful, armor piercing |
 | Defensive | Sword & Shield | High guard, counter-attacks |
 | Ranged | Bow, Crossbow | Distance attacks, positioning |
+| Support | Banner, Horn | Ally buffs, resource sharing, wheel manipulation (blue/white beads) |
 | Magical | Staff, Wand | Bead-powered special effects |
 
 ### Starting Weapons (Step 8)
@@ -567,7 +568,7 @@ A character with STR 5, DEX 2, MND 2, SPR 3 has a bag of: 5 red, 2 green, 2 blue
 | Mace | Standard | 1 | 0 | 1 | Armor piercing potential |
 | Spear | Standard | 1 | 1 | 2 | Reach |
 
-*Additional weapons (Light, Heavy, Ranged, Magical) added in Step 9.*
+*Additional weapons (Light, Heavy, Defensive, Ranged, Support, Magical) added in Step 9.*
 
 ### Weapon Properties
 - Base Power: Damage modifier
@@ -637,6 +638,16 @@ Each weapon grants unique special actions. These are either **attack modifiers**
 
 **Range 2 only:** The spear can only attack at range 2 — it **cannot** attack adjacent enemies (range 1). This is an intentional weakness that encourages tactical positioning and makes the spear distinct from other standard weapons.
 
+### Action Types by Weapon Category
+
+| Action | Light | Standard | Heavy | Wheel | Power | Agility | Enhanceable |
+|--------|-------|----------|-------|-------|-------|---------|-------------|
+| Light Attack | Yes | No | No | 1 | 1 | 1 | No |
+| Attack | Yes | Yes | Yes | 2 | 1 (L/S) or 2 (H) | 1 | Yes |
+| Heavy Attack | No | Yes | Yes | 3 | 2 (S) or 3 (H) | 1 | Yes |
+
+Heavy weapons add +1 Power to all attacks compared to standard weapons. Light weapons trade Heavy Attack for the faster Light Attack.
+
 ### Light Melee Weapons (Step 9)
 
 All light melee weapons share:
@@ -688,6 +699,65 @@ Shares Percer and Parade with the Sword. Combined with Light Attack, the Rondel 
 **Throw** is identical to the Throwing Dagger's Throw.
 
 **Hook** is identical to the Axe's Hook — a standalone action that strips the target's Guard, enabling follow-up attacks.
+
+### Heavy Melee Weapons (Step 9)
+
+All heavy melee weapons share:
+- **Two-handed:** Cannot equip a shield or off-hand weapon
+- **Base stats:** Power 2, Agility 1, Range 1 (except Halberd: Range 2)
+- **+1 Power** on all attacks compared to standard weapons (Attack: P2, Heavy Attack: P3)
+- **No Light Attack**
+- **Hack** (common to all heavy weapons): Attack Modifier, 1 Red, +1 Power to the attack
+- **3 special actions** per weapon (in addition to Hack)
+
+| Weapon | Category | Power | Agility | Range | Special |
+|--------|----------|-------|---------|-------|---------|
+| Greatsword | Heavy | 2 | 1 | 1 | Versatile swordplay |
+| Greataxe | Heavy | 2 | 1 | 1 | Multi-target specialist |
+| Warhammer | Heavy | 2 | 1 | 1 | Armor breaking + knockback |
+| Halberd | Heavy | 2 | 1 | 2 | Reach control |
+
+#### Greatsword — Special Actions
+
+| Action | Type | Bead Cost | Condition | Effect |
+|--------|------|-----------|-----------|--------|
+| Parade | Defensive Reaction | 1 Red | When attacked | +1 Guard against current attack |
+| Percer | Attack Modifier | 1 Green | Target has Guard=0 AND Evasion=0 | Attack ignores Armor |
+| Cleave | Attack Modifier | 1 Red | — | Attack targets two adjacent tiles (see Axe's Cleave) |
+
+The Greatsword combines the Sword's defensive and piercing capabilities with the Axe's cleave, all at +1 Power.
+
+#### Greataxe — Special Actions
+
+| Action | Type | Bead Cost | Wheel Cost | Condition | Effect |
+|--------|------|-----------|------------|-----------|--------|
+| Cleave | Attack Modifier | 1 Red | (base attack) | — | Attack targets two adjacent tiles (see Axe's Cleave) |
+| Hook | Action | 1 Green | 1 | — | Reduce target's Guard to 0 until its next turn |
+| Whirlwind | Action | 1 Red | 3 | — | Attack (Power 1, Agility 1) hitting all adjacent tiles — including allies. Each target resolved independently. Can be enhanced with attack modifiers. |
+
+**Whirlwind** is a more intense version of Cleave — it hits every adjacent tile (up to 8 tiles around the wielder). Allies in range are targeted too. The base Power is 1 (not the weapon's base of 2), but it can be enhanced (e.g., Hack for +1 Power).
+
+#### Warhammer — Special Actions
+
+| Action | Type | Bead Cost | Wheel Cost | Condition | Effect |
+|--------|------|-----------|------------|-----------|--------|
+| Crush | Attack Modifier | 1 Red | (base attack) | — | Attack ignores Armor |
+| Knockback | Attack Modifier | 1 Red | +1 (total: 3) | Attack hits AND Power > Guard | Push target back X spaces (X = Power - Guard). Collision rules apply (see Standard Terms). |
+| Bash | Attack Modifier | 1 Red | (base attack) | — | +1 Power to the attack |
+
+Identical to the Mace's actions, but with the heavy weapon's +1 base Power. A Warhammer Bash attack has Power 3 (base 2 + Bash 1), or Power 4 with Hack + Bash.
+
+#### Halberd — Special Actions
+
+| Action | Type | Bead Cost | Wheel Cost | Condition | Effect |
+|--------|------|-----------|------------|-----------|--------|
+| Percer | Attack Modifier | 1 Green | (base attack) | Target has Guard=0 AND Evasion=0 | Attack ignores Armor |
+| Extend | Attack Modifier | 1 Green | (base attack) | — | +1 Range to the attack |
+| Intercept | Defensive Reaction | 1 Green | — | A creature enters range 2 | Attack (Power 1, Agility 1). If damage dealt, movement interrupted. Cannot combine with Extend. |
+
+Identical to the Spear's actions, but with the heavy weapon's +1 base Power on standard and heavy attacks.
+
+**Range 2 only:** Like the Spear, the Halberd cannot attack adjacent enemies (range 1).
 
 ## Armor System
 
