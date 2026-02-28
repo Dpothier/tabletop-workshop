@@ -412,6 +412,16 @@ An attack **hits** when the attacker's Agility is strictly greater than the targ
 ### Guarded
 An attack is **guarded** when the target's Guard alone is greater than or equal to the attack's Power (Guard ≥ Power). This is distinct from the attack being blocked by Armor — only Guard counts for effects that trigger on a guarded attack (e.g., Sword's Riposte).
 
+### Any-Color Bead Cost
+Some actions cost "1 any color" — the player may spend any single bead from their hand, regardless of color.
+
+### Defensive Reaction Flow
+When a character is attacked, reactions are resolved in this order before the attack resolves:
+
+1. **Target** chooses their own defensive reactions (Parade, Block, etc.)
+2. **Allies** are solicited in order of proximity to the active position on the action wheel. Each ally with applicable reactions (e.g., Shield Wall) may choose to use them.
+3. All Guard/Evasion bonuses are totaled, then the attack resolves (Agility vs Evasion, then Power vs Defense).
+
 ### Knockback (Forced Movement)
 Knockback pushes a creature in a straight line directly away from the source.
 
@@ -759,55 +769,130 @@ Identical to the Spear's actions, but with the heavy weapon's +1 base Power on s
 
 **Range 2 only:** Like the Spear, the Halberd cannot attack adjacent enemies (range 1).
 
+## Equipment Slot System
+
+Each character has **8 equipment slots**. All equipped items consume slots. The total number of slots used determines the character's **encumbrance class**, which affects movement and evasion actions.
+
+### Encumbrance Classes
+
+| Class | Slots Used | Effect |
+|-------|-----------|--------|
+| Light | 1-4 | Improved movement and dodge reactions |
+| Normal | 5-6 | Standard movement and dodge reactions |
+| Heavy | 7-8 | Reduced movement and dodge reactions |
+
+*Exact movement/dodge values per encumbrance class to be defined.*
+
+### Equipment Slot Costs
+
+| Item Type | Slots |
+|-----------|-------|
+| Light weapon | 1 |
+| Standard weapon | 2 |
+| Heavy weapon (two-handed) | 3 |
+| Buckler | 1 |
+| Shield | 2 |
+| Great Shield | 3 |
+| Light armor | 1 |
+| Medium armor | 2 |
+| Heavy armor | 3 |
+| Accessory | 1 |
+| Consumable | 1 |
+
+**Two-handed restriction:** Heavy weapons require both hands and cannot be combined with shields or off-hand weapons. Light, Standard, Defensive, Support, and Magical weapons can be wielded alongside a shield or off-hand weapon.
+
+### Defensive Weapons — Shields (Step 9)
+
+Shields are off-hand equipment that provide defensive capabilities. They can be combined with any one-handed weapon.
+
+All shields share:
+- **Block** (common to all shields): Defensive Reaction, 1 any-color bead, +1 Guard against current attack.
+
+| Shield | Slots | Passive Guard | Can Attack | Special |
+|--------|-------|---------------|------------|---------|
+| Buckler | 1 | 0 | Yes | Lightweight defense |
+| Shield | 2 | +1 | Yes | Balanced defense |
+| Great Shield | 3 | +1 | No | Maximum protection |
+
+Maximum Guard from reactions per shield type:
+- **Buckler**: Block (1 any) = +1 Guard → total +1
+- **Shield**: passive +1, Block (1 any) = +1 → total +2
+- **Great Shield**: passive +1, Block (1 any) + Great Guard (1 red) = +2 → total +3
+
+#### Buckler — Special Actions
+
+| Action | Type | Bead Cost | Condition | Effect |
+|--------|------|-----------|-----------|--------|
+| Block | Defensive Reaction | 1 any | When attacked | +1 Guard against current attack |
+| Riposte | Defensive Reaction | 1 Green | Attack is guarded (Guard ≥ Power) | Deal 1 direct damage to attacker |
+
+**Riposte** is identical to the Sword's Riposte. The Buckler trades passive defense for counter-attack potential — lightweight and aggressive.
+
+#### Shield — Special Actions
+
+| Action | Type | Bead Cost | Condition | Effect |
+|--------|------|-----------|-----------|--------|
+| Block | Defensive Reaction | 1 any | When attacked | +1 Guard against current attack |
+| Rebuke | Defensive Reaction | 1 Red | Attack is guarded (Guard ≥ Power) | Push attacker back X spaces, where X = Guard - Power. Collision rules apply (see Knockback in Standard Terms). |
+
+**Rebuke** triggers after a guarded attack — the shield bash pushes the attacker away. Distance = Guard - Power. Collision with terrain and creatures follows the same rules as Knockback.
+
+#### Great Shield — Special Actions
+
+| Action | Type | Bead Cost | Condition | Effect |
+|--------|------|-----------|-----------|--------|
+| Block | Defensive Reaction | 1 any | When attacked | +1 Guard against current attack |
+| Great Guard | Defensive Reaction | 1 Red | When attacked | +1 Guard against current attack |
+| Rebuke | Defensive Reaction | 1 Red | Attack is guarded (Guard ≥ Power) | Push attacker back X spaces (X = Guard - Power). Collision rules apply. |
+| Shield Wall | Allied Reaction | 1 Red | Adjacent ally is attacked | +1 Guard to the attacked ally |
+
+**Great Guard** stacks with Block — spend 1 any-color bead (Block) + 1 red bead (Great Guard) for +2 Guard from reactions alone, +3 total with passive Guard.
+
+**Shield Wall** is an allied reaction (see Defensive Reaction Flow in Standard Terms). When an adjacent ally is attacked, the Great Shield wielder can spend 1 red bead to grant that ally +1 Guard. This stacks with the ally's own defensive reactions.
+
+The Great Shield **cannot be used to attack** — its wielder must rely entirely on their main-hand weapon for offense.
+
 ## Armor System
 
-| Type | Armor Bonus | Penalty | Description |
-|------|-------------|---------|-------------|
-| None | 0 | None | Unarmored |
-| Light | 1 | None | Leather, padded |
-| Medium | 2 | None | Chain, scale |
-| Heavy | 3 | -1 Evasion | Plate, full armor |
-
-## Shield System
-
-| Type | Guard Bonus | Effect |
-|------|-------------|--------|
-| Buckler | +1 | Can still use off-hand weapon |
-| Round Shield | +2 | Standard shield |
-| Tower Shield | +3 | -1 Evasion, provides Cover |
+| Type | Armor Bonus | Slots | Description |
+|------|-------------|-------|-------------|
+| None | 0 | 0 | Unarmored |
+| Light | 1 | 1 | Leather, padded |
+| Medium | 2 | 2 | Chain, scale |
+| Heavy | 3 | 3 | Plate, full armor |
 
 ## Accessory System
 
-| Type | Effect |
-|------|--------|
-| Ring of Speed | +1 Evasion |
-| Amulet of Might | +1 Power |
-| Charm of Focus | +1 starting bead |
+| Type | Slots | Effect |
+|------|-------|--------|
+| Ring of Speed | 1 | +1 Evasion |
+| Amulet of Might | 1 | +1 Power |
+| Charm of Focus | 1 | +1 starting bead |
 
 ## Consumable Items
 
-| Item | Effect | Uses |
-|------|--------|------|
-| Health Potion | Restore 2 HP | 1 |
-| Antidote | Remove poison/burning | 1 |
-| Smoke Bomb | Create Obscuring terrain (radius 1) | 1 |
-| Oil Flask | Create Damaging terrain (radius 1) | 1 |
+| Item | Slots | Effect | Uses |
+|------|-------|--------|------|
+| Health Potion | 1 | Restore 2 HP | 1 |
+| Antidote | 1 | Remove poison/burning | 1 |
+| Smoke Bomb | 1 | Create Obscuring terrain (radius 1) | 1 |
+| Oil Flask | 1 | Create Damaging terrain (radius 1) | 1 |
 
 ## Inventory Structure
 
+Characters equip items into 8 slots. There are no separate "equipped" vs "backpack" zones — all items share the same 8 slots. Encumbrance is determined by total slots used.
+
 ```
-CHARACTER INVENTORY
-├── Equipped
-│   ├── Main Hand: [Weapon]
-│   ├── Off Hand: [Shield/Weapon/Empty]
-│   ├── Armor: [Armor]
-│   └── Accessory: [Ring/Amulet/etc.]
-│
-└── Backpack (4 slots)
-    ├── Slot 1: [Weapon/Consumable/Item]
-    ├── Slot 2: [Weapon/Consumable/Item]
-    ├── Slot 3: [Weapon/Consumable/Item]
-    └── Slot 4: [Weapon/Consumable/Item]
+CHARACTER EQUIPMENT (8 slots)
+├── Slot 1: [e.g., Sword - 2 slots]
+├── Slot 2: [continued]
+├── Slot 3: [e.g., Shield - 2 slots]
+├── Slot 4: [continued]
+├── Slot 5: [e.g., Light Armor - 1 slot]
+├── Slot 6: [e.g., Health Potion - 1 slot]
+├── Slot 7: [e.g., Accessory - 1 slot]
+└── Slot 8: [empty]
+→ Encumbrance: Normal (7 slots used)
 ```
 
 ## Campaign Progression
