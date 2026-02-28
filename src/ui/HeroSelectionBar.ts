@@ -16,6 +16,7 @@ export interface HeroCardData {
   currentHp: number;
   maxHp: number;
   beadCounts: BeadCounts;
+  name: string;
 }
 
 /**
@@ -32,6 +33,7 @@ export interface HeroCardState {
   hasBeadDisplay: boolean;
   highlighted: boolean;
   dimmed: boolean;
+  name: string;
 }
 
 // Layout constants
@@ -86,6 +88,7 @@ export class HeroSelectionBar {
         currentHp: character.currentHealth,
         maxHp: character.maxHealth,
         beadCounts,
+        name: character.getName(),
       };
     });
 
@@ -186,6 +189,7 @@ export class HeroSelectionBar {
         hasBeadDisplay: true,
         highlighted: card.isHighlighted(),
         dimmed: card.isDimmed(),
+        name: card.getName(),
       });
     }
 
@@ -264,20 +268,10 @@ class HeroCardContainer {
     this.highlightBorder.setFillStyle(0, 0);
     this.highlightBorder.setVisible(false);
 
-    // Player number and class icon
-    const playerLabel = scene.add.text(-50, -35, `P${this.getPlayerIndex() + 1}`, {
-      fontSize: '10px',
-      color: '#ffffff',
-      backgroundColor: '#000000',
-    });
-
-    // Hero background circle (colored by hero color)
-    const heroBackground = scene.add.circle(0, -30, 20, heroData.color);
-    heroBackground.setStrokeStyle(2, 0x6a6a8a);
-
-    const heroIcon = scene.add
-      .text(0, -30, heroData.classIcon || heroData.className[0], {
-        fontSize: '24px',
+    // Character name
+    const heroNameLabel = scene.add
+      .text(0, -30, heroData.name, {
+        fontSize: '11px',
         color: '#ffffff',
         fontStyle: 'bold',
       })
@@ -305,22 +299,12 @@ class HeroCardContainer {
     this.container.add([
       this.background,
       this.highlightBorder,
-      playerLabel,
-      heroBackground,
-      heroIcon,
+      heroNameLabel,
       hpBg,
       this.hpBar,
       this.beadContainer,
       weaponIcon,
     ]);
-  }
-
-  /**
-   * Get player index from hero ID
-   */
-  private getPlayerIndex(): number {
-    const match = this.heroData.heroId.match(/hero-(\d+)/);
-    return match ? parseInt(match[1], 10) : 0;
   }
 
   /**
@@ -420,5 +404,9 @@ class HeroCardContainer {
 
   isDimmed(): boolean {
     return this.dimmed;
+  }
+
+  getName(): string {
+    return this.heroData.name;
   }
 }

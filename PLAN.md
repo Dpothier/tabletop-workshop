@@ -352,21 +352,22 @@ Following PRD v4 implementation order.
 
 ---
 
-### 8.10: Battle UI - Character Names Display ⏳ PENDING
+### 8.10: Battle UI - Character Names Display ✅ COMPLETE
 
 **Objectif**: Afficher les noms des personnages dans l'UI de combat.
 
-**Fichiers à modifier**:
-- `src/ui/HeroSelectionBar.ts` - Afficher nom dans chaque carte
-- `src/ui/SelectedHeroPanel.ts` - Afficher nom en haut du panel
-- `src/visuals/CharacterVisual.ts` - Token affiche première lettre du nom
+**Fichiers modifiés**:
+- `src/ui/HeroSelectionBar.ts` - Nom complet sur chaque carte (remplace cercle coloré)
+- `src/ui/SelectedHeroPanel.ts` - Nom affiché en haut du panel
+- `src/visuals/CharacterVisual.ts` - Initiale du nom centrée sur le token
+- `src/scenes/BattleScene.ts` - Passe les noms au SelectedHeroPanel
 
 **Critères d'acceptation**:
-- [ ] HeroSelectionBar: nom du personnage visible sur chaque carte
-- [ ] SelectedHeroPanel: nom affiché en haut quand héros sélectionné
-- [ ] Token sur la grille: première lettre du nom (au lieu de "P1", "P2", etc.)
-- [ ] Couleurs des joueurs (P1-P4) conservées pour distinction visuelle
-- [ ] Tests E2E passent (minimum 3 scénarios)
+- [x] HeroSelectionBar: nom du personnage visible sur chaque carte
+- [x] SelectedHeroPanel: nom affiché en haut quand héros sélectionné
+- [x] Token sur la grille: première lettre du nom (au lieu de "P1", "P2", etc.)
+- [x] Couleurs des joueurs (P1-P4) conservées pour distinction visuelle
+- [x] Tests E2E passent (4 scénarios)
 
 ---
 

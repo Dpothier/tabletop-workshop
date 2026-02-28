@@ -307,6 +307,12 @@ export class BattleScene extends Phaser.Scene implements BattleAdapter {
     this.selectedHeroPanel = new SelectedHeroPanel(this);
     const actions = this.actionRegistry.getAll();
     this.selectedHeroPanel.create(actions, (actionId) => this.onActionSelected(actionId));
+
+    const nameMap = new Map<string, string>();
+    for (const character of this.characters) {
+      nameMap.set(character.id, character.getName());
+    }
+    this.selectedHeroPanel.setHeroNames(nameMap);
   }
 
   private onActionSelected(actionId: string): void {

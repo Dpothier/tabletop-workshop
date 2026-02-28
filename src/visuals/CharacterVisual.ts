@@ -14,6 +14,7 @@ export class CharacterVisual extends EntityVisual {
   private readonly characterClass: CharacterClass;
   private readonly color: number;
   private readonly index: number;
+  private readonly characterName?: string;
   private background!: Phaser.GameObjects.Arc;
   private selectionRing!: Phaser.GameObjects.Arc;
 
@@ -23,12 +24,14 @@ export class CharacterVisual extends EntityVisual {
     worldY: number,
     characterClass: CharacterClass,
     color: number,
-    index: number
+    index: number,
+    characterName?: string
   ) {
     super(scene, worldX, worldY, characterClass.stats.health);
     this.characterClass = characterClass;
     this.color = color;
     this.index = index;
+    this.characterName = characterName;
     this.createVisuals();
   }
 
@@ -49,7 +52,7 @@ export class CharacterVisual extends EntityVisual {
 
     const worldX = gridSystem.gridToWorld(pos.x);
     const worldY = gridSystem.gridToWorld(pos.y);
-    return new CharacterVisual(scene, worldX, worldY, charClass, color, index);
+    return new CharacterVisual(scene, worldX, worldY, charClass, color, index, character.getName());
   }
 
   /**
@@ -100,9 +103,10 @@ export class CharacterVisual extends EntityVisual {
     // Background circle
     this.background = this.scene.add.circle(0, 0, 24, this.color);
 
-    // Class icon (simple letter for now)
+    // Character name initial (centered on token)
+    const initial = this.characterName ? this.characterName[0].toUpperCase() : `P${this.index + 1}`;
     const icon = this.scene.add
-      .text(0, -2, this.characterClass.icon || this.characterClass.name[0], {
+      .text(0, -2, initial, {
         fontSize: '20px',
         color: '#ffffff',
         fontStyle: 'bold',
@@ -116,14 +120,7 @@ export class CharacterVisual extends EntityVisual {
     this.healthBar = this.scene.add.graphics();
     this.renderHealthBar(this.maxHealth, this.maxHealth);
 
-    // Player number
-    const number = this.scene.add.text(-20, -20, `P${this.index + 1}`, {
-      fontSize: '10px',
-      color: '#ffffff',
-      backgroundColor: '#000000',
-    });
-
-    this.container.add([this.selectionRing, this.background, icon, hpBg, this.healthBar, number]);
+    this.container.add([this.selectionRing, this.background, icon, hpBg, this.healthBar]);
 
     // Make interactive
     this.background.setInteractive({ useHandCursor: true });

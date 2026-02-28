@@ -57,6 +57,7 @@ export interface HeroCardState {
   hasBeadDisplay: boolean;
   highlighted: boolean;
   dimmed: boolean;
+  name: string;
 }
 
 /** Hero selection bar state */
@@ -72,6 +73,7 @@ export interface SelectedHeroPanelState {
   heroId: string | null;
   inventorySlots: number;
   actionButtons: { name: string; cost: number; affordable: boolean }[];
+  heroName: string | null;
 }
 
 /** State captured before an action for verifying wheel position advancement */
@@ -177,6 +179,7 @@ export async function getGameState(page: Page): Promise<GameState> {
             hasBeadDisplay: boolean;
             highlighted: boolean;
             dimmed: boolean;
+            name: string;
           }[];
         };
       };
@@ -186,6 +189,7 @@ export async function getGameState(page: Page): Promise<GameState> {
           heroId: string | null;
           inventorySlots: number;
           actionButtons: { name: string; cost: number; affordable: boolean }[];
+          heroName: string | null;
         };
       };
 

@@ -22,6 +22,7 @@ export interface ActionButtonState {
 export interface SelectedHeroPanelState {
   visible: boolean;
   heroId: string | null;
+  heroName: string | null;
   inventorySlots: number;
   actionButtons: ActionButtonState[];
 }
@@ -77,11 +78,20 @@ export class SelectedHeroPanel {
   private activeTab: ActionCategory = 'movement';
   private tabBackgrounds: Map<ActionCategory, Phaser.GameObjects.Rectangle> = new Map();
   private allActionAffordability: Map<string, boolean> = new Map();
+  private heroNames: Map<string, string> = new Map();
+  private nameText!: Phaser.GameObjects.Text;
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
     this.container = scene.add.container(PANEL_X, PANEL_Y);
     this.container.setVisible(false);
+  }
+
+  /**
+   * Set the hero names map for display
+   */
+  setHeroNames(names: Map<string, string>): void {
+    this.heroNames = names;
   }
 
   /**
@@ -101,6 +111,14 @@ export class SelectedHeroPanel {
     );
     bg.setStrokeStyle(2, PANEL_BORDER_COLOR);
     this.container.add(bg);
+
+    // Hero name display
+    this.nameText = this.scene.add.text(PANEL_WIDTH / 2, 8, '', {
+      fontSize: '14px',
+      color: '#ffffff',
+      fontStyle: 'bold',
+    }).setOrigin(0.5);
+    this.container.add(this.nameText);
 
     // Create category tabs
     this.createTabs();
@@ -244,6 +262,7 @@ export class SelectedHeroPanel {
       this.activeTab = 'movement';
     }
     this.selectedHeroId = heroId;
+    this.nameText?.setText(this.heroNames.get(heroId) ?? '');
     this.updateTabHighlights();
     this.rebuildActionButtons();
     this.container.setVisible(true);
@@ -309,6 +328,7 @@ export class SelectedHeroPanel {
     return {
       visible: this.container.visible,
       heroId: this.selectedHeroId,
+      heroName: this.selectedHeroId ? (this.heroNames.get(this.selectedHeroId) ?? null) : null,
       inventorySlots: 0, // No inventory slots currently
       actionButtons: this.currentActions.map((action) => ({
         name: action.name,

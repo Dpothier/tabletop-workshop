@@ -116,6 +116,10 @@ function createMockScene(): any {
             this.color = color;
             return this;
           },
+          setText: function (newText: string) {
+            this.text = newText;
+            return this;
+          },
           destroy: function (removeFromDisplay?: boolean) {
             // no-op
           },
