@@ -487,12 +487,17 @@ Modifiers can be combined on a single Aim action. Example: a Longbow wielder spe
 - **Guard:** Shield Guard bonus. A shield covers vulnerable spots, making them harder to target.
 - **Armor (reduced by Penetration):** max(Armor - Penetration, 0). Armor reduces the number of vulnerable spots on the target, but high-penetration weapons negate this.
 
+**Parallel with melee:** At sweet spot (band modifier 0), Shoot mirrors Attack:
+- Shoot (2w, Precision 1) = Attack (2w, Power 1) — both hit undefended targets
+- Aim (1w, +1 Precision) = Strength (1 Red ≈ 1w, +1 Power) — both overcome +1 defense
+- Aim+Shoot (3w, Precision 2) = Heavy Attack (3w, Power 2) — both overcome defense 1
+
 **Key differences from melee:**
 - No Evasion — you cannot dodge a projectile
 - Armor contributes to Difficulty (harder to find weak points) rather than damage reduction
 - Guard works the same way conceptually (shield covers weak spots)
 - Distance affects Precision (via range bands), not Difficulty
-- Precision is built over time (Aim stacks) rather than paid upfront
+- Aim is deterministic (+1 certain), Strength requires drawing the right bead color (stochastic)
 - Defensive reactions that grant Guard still apply (Block, Parade, etc.)
 - All ranged hits deal 1 damage (same as melee)
 
@@ -856,24 +861,24 @@ Ranged weapons use the Ranged Combat Resolution system (see Standard Terms). The
 
 | Weapon | 1-6 | 7-12 | 13+ |
 |--------|-----|------|-----|
-| Short Bow | +1 | 0 | -1 |
-| Longbow | 0 | +1 | +1 |
-| Crossbow | +1 | 0 | -1 |
-| Pistol | +1 | -1 | -2 |
-| Arquebus | 0 | +1 | +1 |
+| Short Bow | 0 | -1 | -2 |
+| Longbow | -1 | 0 | 0 |
+| Crossbow | 0 | -1 | -2 |
+| Pistol | 0 | -2 | -3 |
+| Arquebus | -1 | 0 | 0 |
 
-With Base Precision 1, at the sweet spot each weapon has Precision 2 before aiming. Examples:
-- Short Bow at range 3: Precision 1 + 1 = 2
-- Longbow at range 8: Precision 1 + 1 = 2
-- Pistol at range 5: Precision 1 + 1 = 2, but at range 10: Precision 1 - 1 = 0 (needs +1 aim minimum)
+With Base Precision 1, at the sweet spot each weapon has Precision 1 before aiming — identical to melee Attack (Power 1). This creates a fundamental parallel: **Aim (+1 Precision, 1 wheel) mirrors Strength (+1 Power, 1 Red bead ≈ 1 wheel of Rest)**. Examples:
+- Short Bow at range 3: Precision 1 + 0 = 1 (hits undefended targets, needs Aim for defended)
+- Longbow at range 8: Precision 1 + 0 = 1 (same baseline)
+- Pistol at range 5: Precision 1 + 0 = 1, but at range 10: Precision 1 - 2 = -1 (needs +2 aim minimum)
 
 | Weapon | Category | Slots | Hands | Penetration | Base Wheel | Special |
 |--------|----------|-------|-------|-------------|------------|---------|
 | Short Bow | Light Ranged | 1 | Two | 0 | 2 | Mobile shooter |
-| Longbow | Heavy Ranged | 3 | Two | 1 | 2 | Powerful at range |
-| Crossbow | Standard Ranged | 2 | Two | 2 | 1 (loaded) / 2 (unloaded) | Pre-loadable |
-| Pistol | Light Ranged | 1 | One | 2 | 2 | Close-range devastation |
-| Arquebus | Heavy Ranged | 3 | Two | 3 | 2 | Maximum penetration |
+| Longbow | Heavy Ranged | 3 | Two | 0 | 2 | Long-range sniper |
+| Crossbow | Standard Ranged | 2 | Two | 1 | 2 | Anti-armor |
+| Pistol | Light Ranged | 1 | One | 1 | 2 | Versatile sidearm |
+| Arquebus | Heavy Ranged | 3 | Two | 2 | 2 | Maximum penetration |
 
 **One-handed:** Only the Pistol can be wielded with one hand, allowing use alongside a shield or off-hand weapon.
 
@@ -881,16 +886,16 @@ With Base Precision 1, at the sweet spot each weapon has Precision 2 before aimi
 
 **Bows** (Short Bow, Longbow): No reload required. Can Aim and Shoot freely.
 
-**Crossbow** — Load & Fire:
+**Crossbow** — Load & Shoot:
 - **Load** (1 wheel): Prepares the crossbow. No attack. Can be done at any time. Does not break Aim stacks.
-- **Fire** (1 wheel): Shoots. Requires loaded state. Consumes Aim stacks.
-- **Quick Shoot** (2 wheel): Load and fire in a single action (for when not pre-loaded).
-- The tactical advantage: Load during a safe moment, then Fire for only 1 wheel cost when the opportunity arises.
+- **Shoot** (2 wheel): Fires the crossbow. Requires loaded state. Consumes Aim stacks.
+- Sustained cycle: Load (1w) + Shoot (2w) = **3w per shot**.
+- The tactical advantage: Load during a safe moment, then Shoot at full 2w cost when the opportunity arises (same as bows when pre-loaded).
 
 **Firearms** (Pistol, Arquebus): Start combat loaded. Must reload after each shot.
-- **Pistol Reload** (2 wheel): Prepares the pistol for the next shot.
-- **Arquebus Reload** (3 wheel): Prepares the arquebus for the next shot.
+- **Reload** (2 wheel): Prepares the firearm for the next shot. Same cost for both Pistol and Arquebus.
 - Cannot shoot while unloaded. Reloading does not break Aim stacks.
+- Sustained cycle: Shoot (2w) + Reload (2w) = **4w per shot** for both firearms.
 
 #### Aim Modifiers by Weapon
 
