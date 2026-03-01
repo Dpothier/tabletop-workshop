@@ -340,7 +340,7 @@ Weapons grant unique special actions requiring bead costs.
 
 | Action Example | Wheel Cost | Bead Cost | Effect |
 |----------------|------------|-----------|--------|
-| Power Attack | 3 | 1 Red | Deal 2 damage |
+| Power Attack | 3 | 1 Red | Attack with Power 2 |
 | Defensive Stance | 1 | 1 Blue | Reduce next damage by 1 |
 | Quick Step | 1 | 1 Green | Move 3 spaces |
 | Heal | 2 | 1 White | Restore 1 HP to adjacent ally |
@@ -369,7 +369,7 @@ Compare Attack Power vs Target Defense
 Power >   Defense ≥ Power
 Defense       ↓
    ↓      Attack GUARDED (no damage)
-DAMAGE DEALT
+DAMAGE DEALT (1 HP)
 ```
 
 ### Combat Stats
@@ -377,7 +377,7 @@ DAMAGE DEALT
 #### Offensive Stats
 | Stat | Description |
 |------|-------------|
-| Power | Raw damage potential of the attack |
+| Power | Penetration strength — compared against Defense to determine if the attack deals damage |
 | Agility | Speed/precision, compared against Evasion |
 
 #### Defensive Stats
@@ -406,11 +406,14 @@ When successfully dodging (Evasion ≥ Attack Agility):
 
 ## Standard Terms & Effects
 
-### Hit
-An attack **hits** when the attacker's Agility is strictly greater than the target's Evasion (Agility > Evasion). If Evasion ≥ Agility, the target **dodges** and the attack has no effect (unless otherwise specified).
+### Damage
+All attacks deal **1 damage** when they successfully hit and overcome defense, unless explicitly stated otherwise. Power is not a damage value — it determines whether the attack penetrates defense (Power > Defense, strictly greater — defender wins ties). Damage is always 1 HP lost. Since base Power is 1 and base Defense is 0, standard attacks always damage unmodified targets.
+
+### Hit (Melee)
+An attack **hits** when the attacker's Agility is strictly greater than the target's Evasion (Agility > Evasion). The defender wins ties. Since base Agility is 1 and base Evasion is 0, standard attacks hit unmodified targets (1 > 0).
 
 ### Guarded
-An attack is **guarded** when the target's Guard alone is greater than or equal to the attack's Power (Guard ≥ Power). This is distinct from the attack being blocked by Armor — only Guard counts for effects that trigger on a guarded attack (e.g., Sword's Riposte).
+An attack is **guarded** when the target's Guard alone is sufficient to block the attack (Guard ≥ Power). Since Power must be strictly greater than Defense to deal damage, Guard ≥ Power means the attack cannot penetrate Guard alone. Only Guard counts for effects that trigger on a guarded attack (e.g., Sword's Riposte, Shield's Rebuke).
 
 ### Any-Color Bead Cost
 Some actions cost "1 any color" — the player may spend any single bead from their hand, regardless of color.
@@ -437,6 +440,61 @@ Knockback pushes a creature in a straight line directly away from the source.
 
 ### Round
 A **round** is one full rotation of the action wheel. A round begins when the wheel's active position passes the starting segment (segment 0) and ends when it returns to segment 0. All creatures on the wheel act at least once per round (possibly more, depending on wheel costs). Effects that trigger "at the end of each round" resolve when the active position crosses segment 0.
+
+### Ranged Combat Resolution
+
+Ranged attacks use a single comparison: **Precision vs Difficulty**. This replaces the melee system's two-step resolution (Agility vs Evasion, then Power vs Defense).
+
+```
+      Aim (1 wheel) → +1 Precision stack (repeatable)
+           ↓ (when ready)
+      Shoot (2 wheel)
+           ↓
+Calculate Precision = Base (1) + Range Band Modifier + Aim Stacks
+Calculate Difficulty = Cover + Guard + max(Armor - Penetration, 0)
+           ↓
+       ┌───┴───┐
+       │       │
+  Precision  Difficulty ≥ Precision
+   > Diff.       ↓
+       ↓      Attack MISSES
+  HIT → 1 damage
+```
+
+**Aim Action** (1 wheel): Grants +1 Precision stack. Stacks are cumulative and persist until:
+- The creature takes any action other than Aim or Shoot
+- The creature uses a defensive reaction (Block, Parade, etc.)
+- The creature takes damage
+
+If none of these occur, Aim stacks are preserved — a well-protected shooter (behind cover, in armor) can aim undisturbed even while being shot at, as long as they don't react and aren't wounded.
+
+**Aim Modifiers:** Beads can be spent when taking the Aim action to gain additional Precision stacks:
+
+| Modifier | Bead Cost | Available To | Effect |
+|----------|-----------|-------------|--------|
+| Quick Aim | 1 Green | All ranged weapons | +1 additional Precision stack |
+| Strong Draw | 1 Red | Longbow only | +1 additional Precision stack |
+| Steady Aim | 1 Blue | Crossbow, Arquebus only | +1 additional Precision stack |
+
+Modifiers can be combined on a single Aim action. Example: a Longbow wielder spending 1 Green + 1 Red on one Aim action gains +3 Precision stacks (1 base + 1 Quick Aim + 1 Strong Draw).
+
+**Shoot Action** (2 wheel): Fires the weapon, consuming all Aim stacks. Precision = Base (1) + Range Band Modifier + accumulated Aim stacks.
+
+**Range Bands:** Each weapon defines a precision modifier at three distance bands: 1-6, 7-12, and 13+. All weapons can shoot at any distance — there are no "out of range" bands. Poor bands give negative modifiers, making shots harder but not impossible with sufficient aiming.
+
+**Difficulty components:**
+- **Cover:** +1 (partial cover) or +2 (full cover) from terrain.
+- **Guard:** Shield Guard bonus. A shield covers vulnerable spots, making them harder to target.
+- **Armor (reduced by Penetration):** max(Armor - Penetration, 0). Armor reduces the number of vulnerable spots on the target, but high-penetration weapons negate this.
+
+**Key differences from melee:**
+- No Evasion — you cannot dodge a projectile
+- Armor contributes to Difficulty (harder to find weak points) rather than damage reduction
+- Guard works the same way conceptually (shield covers weak spots)
+- Distance affects Precision (via range bands), not Difficulty
+- Precision is built over time (Aim stacks) rather than paid upfront
+- Defensive reactions that grant Guard still apply (Block, Parade, etc.)
+- All ranged hits deal 1 damage (same as melee)
 
 ### Bleed
 A creature that is **bleeding** loses 1 HP at the end of each round (when the action wheel crosses segment 0). Bleed stacks — a creature with 2 bleed effects loses 2 HP per round. Bleed lasts indefinitely until cured (by healing effects, consumables, or other abilities). Bleed is applied when an attack that inflicts bleed deals damage.
@@ -571,20 +629,21 @@ A character with STR 5, DEX 2, MND 2, SPR 3 has a bag of: 5 red, 2 green, 2 blue
 ### Starting Weapons (Step 8)
 4 standard melee weapons available at character creation:
 
-| Weapon | Category | Power | Agility | Range | Special |
-|--------|----------|-------|---------|-------|---------|
-| Sword | Standard | 1 | 1 | 1 | Balanced |
-| Axe | Standard | 1 | 0 | 1 | Cleave potential |
-| Mace | Standard | 1 | 0 | 1 | Armor piercing potential |
-| Spear | Standard | 1 | 1 | 2 | Reach |
+| Weapon | Category | Range | Slots | Special |
+|--------|----------|-------|-------|---------|
+| Sword | Standard | 1 | 2 | Balanced, defensive |
+| Axe | Standard | 1 | 2 | Multi-target, control |
+| Mace | Standard | 1 | 2 | Armor breaking, knockback |
+| Spear | Standard | 2 only | 2 | Reach, interception |
 
 *Additional weapons (Light, Heavy, Defensive, Ranged, Support, Magical) added in Step 9.*
 
 ### Weapon Properties
-- Base Power: Damage modifier
-- Base Agility: Hit modifier
-- Range: Attack distance (1 = adjacent, 2+ = ranged)
-- Special Actions: Unique abilities requiring bead costs
+- **Range:** Attack distance (1 = adjacent, 2 = two tiles away). Weapons can only attack at their listed range.
+- **Slots:** Equipment slot cost (determines encumbrance impact)
+- **Special Actions:** Unique abilities requiring bead costs
+
+**All melee attacks use Power 1, Agility 1 as base stats**, regardless of weapon. Weapons differentiate through their special actions, range, and access to attack tiers (Light/Standard/Heavy Attack).
 
 ### Weapon Special Actions (Step 9)
 
@@ -614,7 +673,7 @@ Each weapon grants unique special actions. These are either **attack modifiers**
 
 **Cleave** targets two tiles that must both be adjacent to the attacker AND adjacent to each other. Against two different enemies: two independent attack resolutions. Against one large enemy spanning both tiles: two resolutions against the same defense stats — if the attack hits, damage is dealt twice.
 
-**Hack** simply adds 1 to the attack's Power. Stacks with the axe's base Power of 1 for a total of 2.
+**Hack** adds 1 to the attack's Power (base 1 + Hack 1 = total 2).
 
 **Hook** is a standalone action (not an attack modifier). It does no damage but removes the target's Guard, enabling follow-up attacks from allies. Guard returns when the target takes its next turn.
 
@@ -630,7 +689,7 @@ Each weapon grants unique special actions. These are either **attack modifiers**
 
 **Knockback** adds +1 to the base attack's wheel cost (total 3). The knockback only occurs if the attack hits (Agility > Evasion) and Power exceeds Guard. Distance = Power - Guard. See "Knockback (Forced Movement)" in Standard Terms for collision rules.
 
-**Bash** simply adds 1 to the attack's Power. Stacks with the mace's base Power of 1 for a total of 2.
+**Bash** adds 1 to the attack's Power (base 1 + Bash 1 = total 2).
 
 #### Spear — Special Actions
 
@@ -653,10 +712,23 @@ Each weapon grants unique special actions. These are either **attack modifiers**
 | Action | Light | Standard | Heavy | Wheel | Power | Agility | Enhanceable |
 |--------|-------|----------|-------|-------|-------|---------|-------------|
 | Light Attack | Yes | No | No | 1 | 1 | 1 | No |
-| Attack | Yes | Yes | Yes | 2 | 1 (L/S) or 2 (H) | 1 | Yes |
-| Heavy Attack | No | Yes | Yes | 3 | 2 (S) or 3 (H) | 1 | Yes |
+| Attack | Yes | Yes | Yes | 2 | 1 | 1 | Yes |
+| Heavy Attack | No | Yes | Yes | 3 | 2 | 1 | Yes |
 
-Heavy weapons add +1 Power to all attacks compared to standard weapons. Light weapons trade Heavy Attack for the faster Light Attack.
+**All base attacks use Power 1, Agility 1** regardless of weapon. Heavy Attack always has Power 2, Agility 1. Weapons differentiate through special actions (modifiers that add Power, ignore Armor, etc.), not through base stats. Light weapons trade Heavy Attack for the faster Light Attack.
+
+### Universal Actions
+
+These actions are available to all characters regardless of equipment:
+
+| Action | Type | Bead Cost | Effect | Available To |
+|--------|------|-----------|--------|-------------|
+| Strength | Attack Modifier | 1 Red | +1 Power on this attack | All melee weapons |
+| Guard | Defensive Action | 1 Red | +1 Guard until next turn | All characters |
+
+**Strength** enhances any melee attack (Attack, Heavy Attack, or Light Attack). It is an attack modifier, meaning it is declared and paid for when the attack is made. This is the universal way to overcome Armor — any melee combatant with a Red bead can boost their Power.
+
+**Guard** is a standalone defensive action that can be used proactively (not as a reaction). It grants +1 Guard that persists until the character's next turn on the action wheel. This allows any character to invest in defense, making even unshielded characters able to block base attacks (Guard 1 ≥ Power 1).
 
 ### Light Melee Weapons (Step 9)
 
@@ -714,18 +786,16 @@ Shares Percer and Parade with the Sword. Combined with Light Attack, the Rondel 
 
 All heavy melee weapons share:
 - **Two-handed:** Cannot equip a shield or off-hand weapon
-- **Base stats:** Power 2, Agility 1, Range 1 (except Halberd: Range 2)
-- **+1 Power** on all attacks compared to standard weapons (Attack: P2, Heavy Attack: P3)
 - **No Light Attack**
 - **Hack** (common to all heavy weapons): Attack Modifier, 1 Red, +1 Power to the attack
 - **3 special actions** per weapon (in addition to Hack)
 
-| Weapon | Category | Power | Agility | Range | Special |
-|--------|----------|-------|---------|-------|---------|
-| Greatsword | Heavy | 2 | 1 | 1 | Versatile swordplay |
-| Greataxe | Heavy | 2 | 1 | 1 | Multi-target specialist |
-| Warhammer | Heavy | 2 | 1 | 1 | Armor breaking + knockback |
-| Halberd | Heavy | 2 | 1 | 2 | Reach control |
+| Weapon | Category | Range | Slots | Special |
+|--------|----------|-------|-------|---------|
+| Greatsword | Heavy | 1 | 3 | Versatile swordplay |
+| Greataxe | Heavy | 1 | 3 | Multi-target specialist |
+| Warhammer | Heavy | 1 | 3 | Armor breaking + knockback |
+| Halberd | Heavy | 2 only | 3 | Reach control |
 
 #### Greatsword — Special Actions
 
@@ -735,7 +805,7 @@ All heavy melee weapons share:
 | Percer | Attack Modifier | 1 Green | Target has Guard=0 AND Evasion=0 | Attack ignores Armor |
 | Cleave | Attack Modifier | 1 Red | — | Attack targets two adjacent tiles (see Axe's Cleave) |
 
-The Greatsword combines the Sword's defensive and piercing capabilities with the Axe's cleave, all at +1 Power.
+The Greatsword combines the Sword's defensive and piercing capabilities with the Axe's cleave. With Hack available, it can reach Power 2 on any attack.
 
 #### Greataxe — Special Actions
 
@@ -755,7 +825,7 @@ The Greatsword combines the Sword's defensive and piercing capabilities with the
 | Knockback | Attack Modifier | 1 Red | +1 (total: 3) | Attack hits AND Power > Guard | Push target back X spaces (X = Power - Guard). Collision rules apply (see Standard Terms). |
 | Bash | Attack Modifier | 1 Red | (base attack) | — | +1 Power to the attack |
 
-Identical to the Mace's actions, but with the heavy weapon's +1 base Power. A Warhammer Bash attack has Power 3 (base 2 + Bash 1), or Power 4 with Hack + Bash.
+Identical to the Mace's actions. With Hack + Bash, a Warhammer attack can reach Power 3 (base 1 + Hack 1 + Bash 1).
 
 #### Halberd — Special Actions
 
@@ -765,9 +835,84 @@ Identical to the Mace's actions, but with the heavy weapon's +1 base Power. A Wa
 | Extend | Attack Modifier | 1 Green | (base attack) | — | +1 Range to the attack |
 | Intercept | Defensive Reaction | 1 Green | — | A creature enters range 2 | Attack (Power 1, Agility 1). If damage dealt, movement interrupted. Cannot combine with Extend. |
 
-Identical to the Spear's actions, but with the heavy weapon's +1 base Power on standard and heavy attacks.
+Identical to the Spear's actions. With Hack available, the Halberd can boost any attack's Power.
 
 **Range 2 only:** Like the Spear, the Halberd cannot attack adjacent enemies (range 1).
+
+### Ranged Weapons (Step 9)
+
+Ranged weapons use the Ranged Combat Resolution system (see Standard Terms). They cannot make melee attacks (Attack, Heavy Attack, Light Attack). Instead, they have a **Shoot** action.
+
+**Shoot** (2 wheel): Fires the weapon, consuming all Aim stacks. See Ranged Combat Resolution in Standard Terms.
+
+**Aim** (1 wheel): Grants +1 Precision stack. See Standard Terms for full rules.
+
+**Common properties:**
+- **Precision Bands:** Each weapon has a modifier at 3 range bands (1-6, 7-12, 13+) that adjusts Precision based on distance
+- **Penetration:** Reduces Armor's contribution to Difficulty
+- **Two-handed:** All ranged weapons require both hands except the Pistol
+
+**Precision Bands:**
+
+| Weapon | 1-6 | 7-12 | 13+ |
+|--------|-----|------|-----|
+| Short Bow | +1 | 0 | -1 |
+| Longbow | 0 | +1 | +1 |
+| Crossbow | +1 | 0 | -1 |
+| Pistol | +1 | -1 | -2 |
+| Arquebus | 0 | +1 | +1 |
+
+With Base Precision 1, at the sweet spot each weapon has Precision 2 before aiming. Examples:
+- Short Bow at range 3: Precision 1 + 1 = 2
+- Longbow at range 8: Precision 1 + 1 = 2
+- Pistol at range 5: Precision 1 + 1 = 2, but at range 10: Precision 1 - 1 = 0 (needs +1 aim minimum)
+
+| Weapon | Category | Slots | Hands | Penetration | Base Wheel | Special |
+|--------|----------|-------|-------|-------------|------------|---------|
+| Short Bow | Light Ranged | 1 | Two | 0 | 2 | Mobile shooter |
+| Longbow | Heavy Ranged | 3 | Two | 1 | 2 | Powerful at range |
+| Crossbow | Standard Ranged | 2 | Two | 2 | 1 (loaded) / 2 (unloaded) | Pre-loadable |
+| Pistol | Light Ranged | 1 | One | 2 | 2 | Close-range devastation |
+| Arquebus | Heavy Ranged | 3 | Two | 3 | 2 | Maximum penetration |
+
+**One-handed:** Only the Pistol can be wielded with one hand, allowing use alongside a shield or off-hand weapon.
+
+#### Reload Mechanics
+
+**Bows** (Short Bow, Longbow): No reload required. Can Aim and Shoot freely.
+
+**Crossbow** — Load & Fire:
+- **Load** (1 wheel): Prepares the crossbow. No attack. Can be done at any time. Does not break Aim stacks.
+- **Fire** (1 wheel): Shoots. Requires loaded state. Consumes Aim stacks.
+- **Quick Shoot** (2 wheel): Load and fire in a single action (for when not pre-loaded).
+- The tactical advantage: Load during a safe moment, then Fire for only 1 wheel cost when the opportunity arises.
+
+**Firearms** (Pistol, Arquebus): Start combat loaded. Must reload after each shot.
+- **Pistol Reload** (2 wheel): Prepares the pistol for the next shot.
+- **Arquebus Reload** (3 wheel): Prepares the arquebus for the next shot.
+- Cannot shoot while unloaded. Reloading does not break Aim stacks.
+
+#### Aim Modifiers by Weapon
+
+All ranged weapons have access to **Quick Aim** (1 Green) on their Aim action. Some weapons have an additional modifier:
+
+| Weapon | Quick Aim (1G) | Additional Modifier | Max stacks per Aim |
+|--------|---------------|--------------------|--------------------|
+| Short Bow | Yes | — | +2 |
+| Longbow | Yes | Strong Draw (1 Red) | +3 |
+| Crossbow | Yes | Steady Aim (1 Blue) | +3 |
+| Pistol | Yes | — | +2 |
+| Arquebus | Yes | Steady Aim (1 Blue) | +3 |
+
+#### Movement Special: Run & Shoot
+
+Available to **Short Bow** and **Pistol** only.
+
+| Action | Type | Bead Cost | Effect |
+|--------|------|-----------|--------|
+| Run & Shoot | Movement Modifier | 1 Blue | This Move action does not break Aim stacks |
+
+**Run & Shoot** allows mobile shooters to reposition without losing their accumulated aim. The Short Bow and Pistol excel at hit-and-run tactics — aim, reposition, keep aiming, fire when ready.
 
 ## Equipment Slot System
 
@@ -785,12 +930,15 @@ Each character has **8 equipment slots**. All equipped items consume slots. The 
 
 ### Equipment Slot Costs
 
-| Item Type | Slots |
-|-----------|-------|
-| Light weapon | 1 |
-| Standard weapon | 2 |
-| Heavy weapon (two-handed) | 3 |
-| Buckler | 1 |
+| Item Type | Slots | Hands |
+|-----------|-------|-------|
+| Light melee weapon | 1 | One |
+| Standard melee weapon | 2 | One |
+| Heavy melee weapon | 3 | Two |
+| Light ranged weapon (Short Bow, Pistol) | 1 | Two (Pistol: One) |
+| Standard ranged weapon (Crossbow) | 2 | Two |
+| Heavy ranged weapon (Longbow, Arquebus) | 3 | Two |
+| Buckler | 1 | One (off-hand) |
 | Shield | 2 |
 | Great Shield | 3 |
 | Light armor | 1 |

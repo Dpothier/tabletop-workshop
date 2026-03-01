@@ -1,25 +1,17 @@
 weapons:
   - id: sword
     name: Sword
-    category: melee
-    power: 1
-    agility: 1
+    category: standard
     range: 1
   - id: axe
     name: Axe
-    category: melee
-    power: 1
-    agility: 0
+    category: standard
     range: 1
   - id: mace
     name: Mace
-    category: melee
-    power: 1
-    agility: 0
+    category: standard
     range: 1
   - id: spear
     name: Spear
-    category: melee
-    power: 1
-    agility: 1
+    category: standard
     range: 2
