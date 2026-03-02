@@ -769,6 +769,17 @@ The action wheel is fully visible, so the player can read upcoming enemy turns a
 
 **Coordinate** is a standalone support action (1w wheel cost + 1 White bead). Target an ally within range 1-6 and grant them 1 preparation stack of their choice (Windup or Aim). The ally decides which type based on their weapon and situation. Standard preparation interruption rules apply — if the ally takes damage, uses a reaction, or takes an unrelated action before consuming the stack, it is lost. This creates a cooperation dynamic: the coordinator prepares an ally, and the team must protect them until they can capitalize on the preparation. Range 1-6 ensures the coordinator doesn't need to be adjacent, making the 2:1 effective cost ratio (1w + 1W ≈ 2w for 1w of value) worthwhile.
 
+**Coordinate variants** (unlocked by support items, not available by default):
+
+| Variant | Base Cost | Effect | Unlocked By |
+|---------|-----------|--------|-------------|
+| Swiften | 1w + 1 White | Advance an ally 1 position toward the active position on the wheel | TBD (support item) |
+| Bless | 1w + 1 White | Grant the target a **Gold bead** (wildcard — counts as any color) | TBD (support item) |
+
+*Swiften* is the timing-manipulation version of Coordinate — instead of giving preparation, it gives action priority. More powerful than base Coordinate (direct wheel advancement), hence requiring a support item.
+
+*Bless* grants a Gold bead that can be spent as any single bead color. Unlike Coordinate (which gives a preparation stack usable only for Attack/Shoot), the Gold bead is fully flexible — it can pay for attack modifiers, defensive reactions, or any other bead cost. The Gold bead persists in the ally's hand until spent (not subject to preparation interruption rules). More powerful than base Coordinate, hence requiring a support item.
+
 ### Light Melee Weapons (Step 9)
 
 All light melee weapons share:
