@@ -743,17 +743,31 @@ The action wheel is fully visible, so the player can read upcoming enemy turns a
 
 ### Universal Actions
 
-| Action | Type | Cost | Effect | Available To |
-|--------|------|------|--------|-------------|
-| Strength | Attack Modifier | 1 Red or Windup | +1 Power on this attack | All melee weapons |
-| Guard | Defensive Action | 1 Red | +1 Guard until next turn | All characters |
-| Quick Strike | Attack Modifier | 1 Green or Windup | -1w on this Attack (2w → 1w) | Light melee weapons only |
+| Action | Type | Cost | Range | Effect | Available To |
+|--------|------|------|-------|--------|-------------|
+| Strength | Attack Modifier | 1 Red or Windup | — | +1 Power on this attack | All melee weapons |
+| Guard | Defensive Action | 1 Red | — | +1 Guard until next turn | All characters |
+| Quick Strike | Attack Modifier | 1 Green or Windup | — | -1w on this Attack (2w → 1w) | Light melee weapons only |
+| Ponder | Rest Modifier | 1 Blue | — | During Rest: draw 4, choose 2, return 2 to bag | All characters |
+| Coordinate | Action (1w) | 1 White | 1-6 | Give 1 preparation stack (Windup or Aim) to an ally | All characters |
+
+#### Red — Physical (STR)
 
 **Strength** enhances any melee attack. It is an attack modifier, declared and paid for when the attack is made (or pre-paid via Windup). This is the universal way to overcome Armor — any melee combatant with a Red bead or a safe window for Windup can boost their Power.
 
 **Guard** is a standalone defensive action that can be used proactively (not as a reaction). It grants +1 Guard that persists until the character's next turn on the action wheel. This allows any character to invest in defense, making even unshielded characters able to block base attacks (Guard 1 ≥ Power 1). Guard cannot be paid via Windup — defense must be instant.
 
-**Quick Strike** allows light weapons to attack faster by spending a Green bead (or Windup). Unlike the old Light Attack, Quick Strike IS enhanceable — you can stack additional modifiers, but each costs a bead. This makes light weapons efficient for fast strikes while remaining capable of enhanced attacks at higher bead cost.
+#### Green — Agility (DEX)
+
+**Quick Strike** allows light weapons to attack faster by spending a Green bead (or Windup). Quick Strike IS enhanceable — you can stack additional modifiers, but each costs a bead. This makes light weapons efficient for fast strikes while remaining capable of enhanced attacks at higher bead cost.
+
+#### Blue — Mental (MND)
+
+**Ponder** modifies the Rest action. When Resting with Ponder, draw 4 beads total (2 base + 2 extra) from your bag, choose 2 to keep, return the other 2 to the bag. The value is not in quantity (still 2 beads gained) but in **color selection** — you see twice as many options and pick the best match for your upcoming needs. Thematically, mental focus lets you recover more deliberately.
+
+#### White — Spirit (SPR)
+
+**Coordinate** is a standalone support action (1w wheel cost + 1 White bead). Target an ally within range 1-6 and grant them 1 preparation stack of their choice (Windup or Aim). The ally decides which type based on their weapon and situation. Standard preparation interruption rules apply — if the ally takes damage, uses a reaction, or takes an unrelated action before consuming the stack, it is lost. This creates a cooperation dynamic: the coordinator prepares an ally, and the team must protect them until they can capitalize on the preparation. Range 1-6 ensures the coordinator doesn't need to be adjacent, making the 2:1 effective cost ratio (1w + 1W ≈ 2w for 1w of value) worthwhile.
 
 ### Light Melee Weapons (Step 9)
 
