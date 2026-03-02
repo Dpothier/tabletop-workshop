@@ -773,6 +773,8 @@ Blue beads power mental actions. The core MND actions provide information advant
 
 **Assess** is a standalone mental action (1w wheel cost + 1 Blue bead or 1 Ponder stack). Target a monster within range 1-6 and reveal their next drawn bead and the resulting action from their action graph. This information is public — the entire team benefits. Knowing what a monster will do next turn is the foundation of tactical planning: should the team block, dodge, focus fire, or reposition? If this information has no value, the combat system has fundamentally failed in its design. Assess is the Blue equivalent of Coordinate — both cost 1w + 1 bead, both have range 1-6, both benefit the team rather than the individual.
 
+**Cunning** is a monster stat that represents how difficult a creature is to predict. When Assessing a monster with Cunning X, the Assess cost increases by X Blue beads (or Ponder stacks). A goblin with Cunning 0 costs the standard 1w + 1B to Assess. A dragon with Cunning 2 costs 1w + 3B (1 base + 2 Cunning). This creates a spectrum of predictability — mindless creatures are easy to read, intelligent ones require significant mental investment.
+
 #### White — Spirit (SPR)
 
 **Coordinate** is a standalone support action (1w wheel cost + 1 White bead). Target an ally within range 1-6 and grant them 1 preparation stack of their choice (Windup or Aim). The ally decides which type based on their weapon and situation. Standard preparation interruption rules apply — if the ally takes damage, uses a reaction, or takes an unrelated action before consuming the stack, it is lost. This creates a cooperation dynamic: the coordinator prepares an ally, and the team must protect them until they can capitalize on the preparation. Range 1-6 ensures the coordinator doesn't need to be adjacent, making the 2:1 effective cost ratio (1w + 1W ≈ 2w for 1w of value) worthwhile.
@@ -781,8 +783,8 @@ Blue beads power mental actions. The core MND actions provide information advant
 
 | Variant | Base Cost | Effect | Unlocked By |
 |---------|-----------|--------|-------------|
-| Swiften | 1w + 1 White | Advance an ally 1 position toward the active position on the wheel | TBD (support item) |
-| Bless | 1w + 1 White | Grant the target a **Gold bead** (wildcard — counts as any color) | TBD (support item) |
+| Swiften | 1w + 1 White | Advance an ally 1 position toward the active position on the wheel | TBD (magical item) |
+| Bless | 1w + 1 White | Grant the target a **Gold bead** (wildcard — counts as any color) | Censer |
 
 *Swiften* is the timing-manipulation version of Coordinate — instead of giving preparation, it gives action priority. More powerful than base Coordinate (direct wheel advancement), hence requiring a support item.
 
@@ -1057,6 +1059,94 @@ Maximum Guard from reactions per shield type:
 **Shield Wall** is an allied reaction (see Defensive Reaction Flow in Standard Terms). When an adjacent ally is attacked, the Great Shield wielder can spend 1 red bead to grant that ally +1 Guard. This stacks with the ally's own defensive reactions.
 
 The Great Shield **cannot be used to attack** — its wielder must rely entirely on their main-hand weapon for offense.
+
+### Support Weapons — Off-Hand (Step 9)
+
+Support weapons are **off-hand equipment** that provide team utility. They can be combined with any one-handed main weapon. Unlike shields, support weapons provide no passive defensive stats — their value is entirely in their special actions.
+
+All support weapons share:
+- **Off-hand slot** — combined with a one-handed main weapon
+- **No passive stats** — no Guard, no Power modifier
+- **Team-focused actions** — primarily benefit allies rather than the wielder
+- **Blue/White bead economy** — powered by MND and SPR attributes
+
+| Weapon | Slots | Theme | Key Mechanic |
+|--------|-------|-------|-------------|
+| Banner | 1 | Morale, defense | Rally + Inspire — White beads as shared Guard pool |
+| Horn | 1 | Coordination, link | Command — Ponder-gated bead sharing (any color, any purpose) |
+| Tome | 1 | Knowledge, analysis | Bestiary (Assess preservation, anti-Cunning) + Overwrite (cancel monster draw) |
+| Censer | 1 | Ritual, blessing | Bless (Gold wildcard bead) + Renew (extra draw on ally Rest) |
+
+#### Banner — Special Actions
+
+| Action | Type | Bead Cost | Range | Condition | Effect |
+|--------|------|-----------|-------|-----------|--------|
+| Rally | Reaction | 1 White | 1-6 | Ally would lose preparation stacks | Ally's preparation stacks are preserved |
+| Inspire | Reaction | 1 White | 1-6 | Ally is attacked | +1 Guard to attacked ally against this attack |
+
+**Rally** triggers when an ally within range would lose their preparation stacks (due to taking damage, using a defensive reaction, or taking an unrelated action). The Banner holder spends 1 White bead to preserve those stacks. This removes the primary counterplay to preparations — but at a real cost: White beads, attention, and the opportunity cost of not using those beads for Coordinate.
+
+**Inspire** triggers when an ally within range is attacked. The Banner holder spends 1 White bead to grant that ally +1 Guard against the current attack. This stacks with the ally's own defensive reactions and any passive Guard from armor/shield.
+
+Both abilities are **reactions** — they cost no wheel time and trigger automatically when conditions are met. The Banner holder's strategic decisions are:
+1. **Resource management:** How many White beads to keep in hand for reactions vs. spend on Coordinate/other actions
+2. **Positioning:** Stay within range 1-6 of allies who need protection
+3. **Prioritization:** Which ally to protect when multiple triggers occur simultaneously
+
+> **⚠ Balance Note:** The Banner's reaction-based resource sharing may prove too efficient — two reactions with no wheel cost, powered by a single bead color, could make the Banner holder a dominant support choice. Watch for: (1) White beads becoming disproportionately valuable for Banner holders, (2) Rally trivializing the risk/reward of preparations, (3) Inspire outclassing Shield Wall (Great Shield allied reaction, same +1 Guard but requires adjacency and Red bead). Tuning levers include: increasing bead cost, adding a cooldown (once per round), limiting range, or requiring the Banner holder to spend their own reaction slot.
+
+#### Horn — Special Actions
+
+| Action | Type | Bead Cost | Range | Condition | Effect |
+|--------|------|-----------|-------|-----------|--------|
+| Command | Coordinate variant | Ponder stack | 1-6 | Horn holder has a Ponder stack | Any ally in range may use one bead from the Horn holder's hand for any purpose. Consumes the Ponder stack. |
+
+**Command** is a Ponder-gated bead sharing ability. The Horn holder spends 1w to Ponder (standard preparation rules), then any ally within range 1-6 may use one bead from the Horn holder's hand for any purpose — attack modifiers, defensive reactions, Blue/White actions, anything that costs a bead. Using a bead this way consumes the Ponder stack.
+
+The key design: the **decision is deferred**. The Horn holder invests time (Ponder), but which ally benefits, which bead is used, and for what purpose are all determined later — when the need arises. This makes Command maximally flexible but requires setup (1w, interruptible).
+
+**Cost analysis:** 1w (Ponder) + 1 bead ≈ 2w effective cost to transfer ~1w of value. Same efficiency ratio as Coordinate. Sustained sharing requires repeated Ponders — a "bead battery" cycle of Rest (2w) + Ponder (1w) yields 2 beads drawn + 1 bead shareable per 3w, which is not overly efficient.
+
+**Comparison with Banner:**
+- **Horn** = proactive, flexible (any bead, any purpose), requires setup (Ponder, interruptible)
+- **Banner** = reactive, narrow (White beads, Guard/protection only), no setup needed
+
+#### Tome — Special Actions
+
+| Action | Type | Bead Cost | Range | Condition | Effect |
+|--------|------|-----------|-------|-----------|--------|
+| Bestiary | Passive (while Ponder held) | Ponder maintained (not consumed) | 6 | Tome holder has a Ponder stack | Allies in range ignore 1 Cunning when Assessing |
+| Overwrite | Reaction | 3 Blue (Ponder substitutes 1) | 1-6 | Monster in range reveals its bead | Cancel the draw, return bead to bag, redraw |
+
+**Bestiary** is a passive aura active while the Tome holder maintains a Ponder stack. Two benefits:
+1. **Cunning reduction:** Allies within range 6 ignore 1 point of Cunning when Assessing monsters.
+2. **Assess preservation:** The Tome holder may take Assess actions without breaking the Ponder preparation. Standard interruption rules still apply (damage, defensive reactions, non-mental actions break it), but Assess specifically does not.
+
+The Ponder is **not consumed** by either Bestiary effect — it is only consumed when actively spent as bead payment (e.g., reducing Overwrite cost by 1 Blue). This makes the Tome holder a dedicated analyst: Ponder once, then freely Assess multiple times while maintaining the Cunning reduction aura. The cycle breaks only when the Tome holder takes damage, uses a defensive reaction, or chooses to consume the Ponder for Overwrite.
+
+**Overwrite** is a dramatic reaction triggered when a monster within range 1-6 reveals its drawn bead. The Tome holder cancels the draw, returns the bead to the bag, and forces a redraw. Cost: 3 Blue beads, where a Ponder stack can substitute for 1 Blue (consuming the Ponder and dropping the Bestiary aura). The redraw is probabilistic — no guarantee of a better outcome.
+
+**Cost justification:** 3 Blue ≈ 3w of value. Compare with single-target defenses (Guard 1R, Block 1 any, Inspire 1W) that each grant +1 Guard to one character against one attack. Overwrite potentially negates an entire monster action affecting the whole team — an order of magnitude more powerful, hence an order of magnitude more expensive. The probabilistic outcome (roughly 60-70% chance of a different color in a typical monster bag) prevents Overwrite from being a guaranteed save. A MND-focused character (MND 5) has enough Blue beads to attempt Overwrite once per rest cycle, making it a rare but decisive intervention.
+
+**Tome holder's Ponder tension:**
+- Maintain Ponder → Bestiary aura (Cunning reduction + free Assess without breaking prep)
+- Consume Ponder → reduce Overwrite cost by 1 Blue (but lose aura and Assess preservation)
+- Risk management → any damage or defensive reaction breaks the Ponder, ending both Bestiary benefits
+
+#### Censer — Special Actions
+
+| Action | Type | Bead Cost | Range | Condition | Effect |
+|--------|------|-----------|-------|-----------|--------|
+| Bless | Coordinate variant | 1w + 1 White | 1-6 | — | Grant target ally a **Gold bead** (wildcard — counts as any color) |
+| Renew | Reaction | 1 White | 1-6 | Ally's Rest resolves (start of their turn) | Ally draws 1 additional bead from their bag |
+
+**Bless** grants a Gold bead that can be spent as any single bead color. Unlike Coordinate (which gives a preparation stack usable only for Attack/Shoot), the Gold bead is fully flexible — it can pay for attack modifiers, defensive reactions, or any other bead cost. The Gold bead persists in the ally's hand until spent (not subject to preparation interruption rules). The Censer's spiritual blessing takes physical form as a universal resource.
+
+**Renew** is a reaction triggered when an ally within range completes their Rest (beads are drawn at the start of their next turn). The Censer holder spends 1 White to grant the ally 1 additional bead drawn from their own bag. This amplifies recovery without the logistical problems of bead transfer — the extra bead comes from the ally's bag, matching their build's color distribution.
+
+**Cost analysis:** Renew costs 1 White (≈1w value) to grant 1 bead (≈1w value). A 1:1 trade, but the ally gets a bead from their bag (likely a color they want) while the Censer holder spends a White bead (which they've built for). Fair exchange that rewards SPR-focused builds.
+
+**Censer identity:** The resource amplifier. Banner protects (Guard, preparations), Horn redistributes (existing beads), Tome analyzes (information, cancel) — the Censer generates new value. Bless creates Gold beads from nothing, Renew adds draws to Rest. Both are White-powered, making the Censer the natural choice for high-SPR characters.
 
 ## Armor System
 
