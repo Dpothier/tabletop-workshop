@@ -46,11 +46,6 @@ Feature: Action Wheel Battle System
     Then the next actor automatically takes their turn
     And there is no End Turn button
 
-  Scenario: Monster acts when at lowest wheel position
-    Given all players have higher wheel positions than the monster
-    Then the monster should be the current actor
-    And the monster should draw a bead and act
-
   Scenario: Action buttons show wheel cost
     Given I am the current actor
     Then the Move button should show cost 1

@@ -858,3 +858,45 @@ export async function setHeroBeadHand(
     { id: heroId, beadCounts: counts }
   );
 }
+
+/**
+ * Set party size on the MenuScene by keeping only the first N characters.
+ * Must be called while still on the MenuScene (before clicking Start).
+ *
+ * This works by modifying selectedCharacters directly, because
+ * startBattle() calls withCharacterData(party) which overrides
+ * any prior withPartySize() call.
+ *
+ * @param page Playwright page
+ * @param size Desired party size (1-4)
+ * @returns true if setup succeeded
+ */
+export async function setPartySize(
+  page: Page,
+  size: number
+): Promise<boolean> {
+  return await page.evaluate(
+    (partySize) => {
+      const game = window.__PHASER_GAME__;
+      if (!game) return false;
+
+      const menuScene = game.scene.scenes.find(
+        (s) => s.sys.settings.key === 'MenuScene'
+      );
+      if (!menuScene) return false;
+
+      const menu = menuScene as {
+        selectedCharacters?: (unknown | null)[];
+      };
+
+      if (!menu.selectedCharacters) return false;
+
+      // Keep only the first N characters, null the rest
+      for (let i = partySize; i < menu.selectedCharacters.length; i++) {
+        menu.selectedCharacters[i] = null;
+      }
+      return true;
+    },
+    size
+  );
+}

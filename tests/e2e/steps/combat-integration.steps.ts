@@ -16,6 +16,7 @@ import {
   setHeroBeadHand,
   captureActionState,
   waitForWheelAdvanced,
+  setPartySize,
   UI_PANEL_COORDS,
 } from '@tests/e2e/fixtures';
 
@@ -48,6 +49,21 @@ async function clickRestButton(page: Page): Promise<void> {
 Given('I have started a battle with bead system', async ({ page }) => {
   await page.goto('/');
   await waitForGameReady(page);
+  // Click Start Battle button
+  await clickGameCoords(page, 512, 580);
+  await page.waitForTimeout(1000);
+
+  // Verify we're in battle scene
+  const state = await getGameState(page);
+  expect(state.scene).toBe('BattleScene');
+});
+
+Given('I have started a 1-hero battle', async ({ page }) => {
+  await page.goto('/');
+  await waitForGameReady(page);
+  // Set party size to 1 before starting
+  const success = await setPartySize(page, 1);
+  expect(success, 'Should be able to set party size').toBe(true);
   // Click Start Battle button
   await clickGameCoords(page, 512, 580);
   await page.waitForTimeout(1000);
@@ -122,9 +138,23 @@ When('I click a valid movement tile', async ({ page }) => {
 
 When('I complete an action', async ({ page }) => {
   await clickRestButton(page);
-  await page.waitForTimeout(500);
+  // Wait for the action to complete and the next actor (potentially monster) to act
+  // This requires: REST action execution + wheel advance + monster turn execution + logging
+  // Minimum time needed: 500ms (action) + 300ms (delay) + 1000ms (monster decision+animation+delay)
+  // Use 2 seconds to be safe and allow for variations
+  await page.waitForTimeout(2000);
 });
 
+Then('the monster should be the current actor', async ({ page }) => {
+  // The monster auto-acts when it becomes current actor, so we verify
+  // it WAS the current actor by checking the battle log.
+  // Use polling since the monster turn involves bead draw + AI + animation.
+  await expect(async () => {
+    const state = await getGameState(page);
+    const hasMonsterTurn = state.battleLog?.some((msg) => msg.includes('Monster Turn'));
+    expect(hasMonsterTurn, 'Monster should have been the current actor (see battle log)').toBe(true);
+  }).toPass({ timeout: 15000 });
+});
 Then('the next actor should be determined', async ({ page }) => {
   const state = await getGameState(page);
   expect(state.currentActor, 'Next actor should be determined').toBeDefined();
@@ -143,65 +173,6 @@ Then('there is no End Turn button', async ({ page }) => {
 });
 
 // Monster turn steps
-Given('all players have higher wheel positions than the monster', async ({ page }) => {
-  // Strategy: Make all heroes rest to advance their wheel positions.
-  // After all heroes have acted, the monster will be at the lowest position
-  // and will automatically take its turn.
-  //
-  // Each hero rest is wrapped in expect().toPass() to retry the full
-  // click sequence if the Rest button click doesn't register under load.
-
-  for (let attempt = 0; attempt < 8; attempt++) {
-    const state = await getGameState(page);
-
-    // Goal achieved: monster has taken its turn
-    if ((state.wheelPositions?.['monster'] ?? 0) > 0) break;
-
-    // If current actor is a hero, make them rest
-    if (state.currentActor?.startsWith('hero-')) {
-      const heroId = state.currentActor;
-      const priorWheelPos = state.wheelPositions?.[heroId] ?? 0;
-
-      // Retry click sequence until wheel actually advances
-      await expect(async () => {
-        const currentState = await getGameState(page);
-        // Already advanced? Done.
-        if ((currentState.wheelPositions?.[heroId] ?? 0) > priorWheelPos) return;
-
-        // Select hero, click Rest
-        const heroPos = await getCharacterPosition(page, heroId);
-        if (heroPos) {
-          await clickGridTile(page, heroPos.x, heroPos.y);
-        }
-        await clickRestButton(page);
-
-        // Check wheel advanced
-        const afterState = await getGameState(page);
-        expect(afterState.wheelPositions?.[heroId] ?? 0).toBeGreaterThan(priorWheelPos);
-      }).toPass({ timeout: 10000 });
-    } else {
-      // Monster is acting — poll until a hero becomes current actor again
-      await page.waitForFunction(
-        () => {
-          const game = (window as any).__PHASER_GAME__;
-          const scene = game?.scene?.scenes?.find((s: any) => s.sys.isActive());
-          const actor = (scene as any)?.currentActorId;
-          return actor && actor.startsWith('hero-');
-        },
-        undefined,
-        { timeout: 15000 }
-      );
-    }
-  }
-
-  // Verify the monster acted
-  await expect(async () => {
-    const state = await getGameState(page);
-    const monsterWheelPos = state.wheelPositions?.['monster'];
-    expect(monsterWheelPos, 'Monster wheel position should have advanced').toBeGreaterThan(0);
-  }).toPass({ timeout: 10000 });
-});
-
 Given('the monster is the current actor', async ({ page }) => {
   // Wait and check for monster turn
   await page.waitForTimeout(500);
@@ -210,13 +181,6 @@ Given('the monster is the current actor', async ({ page }) => {
   expect(state.currentActor).toBeDefined();
 });
 
-Then('the monster should be the current actor', async ({ page }) => {
-  // The monster auto-acts when it becomes current actor, so we verify
-  // it WAS the current actor by checking the battle log
-  const state = await getGameState(page);
-  const hasMonsterTurn = state.battleLog?.some((msg) => msg.includes('Monster Turn'));
-  expect(hasMonsterTurn, 'Monster should have been the current actor (see battle log)').toBe(true);
-});
 
 Then('the monster should draw a bead and act', async ({ page }) => {
   await expectMonsterHasBeadSystem(page);
@@ -625,4 +589,15 @@ Then('the monster should take damage from Feint Attack', async ({ page }) => {
   expect(state.monster?.currentHealth, 'Monster should have taken damage').toBeLessThan(
     state.monster?.maxHealth || 10
   );
+});
+
+// Debug step to print current wheel state
+Then('I debug print the wheel state', async ({ page }) => {
+  const state = await getGameState(page);
+  console.log('=== WHEEL STATE ===');
+  console.log('Current Actor:', state.currentActor);
+  console.log('Wheel Positions:', state.wheelPositions);
+  console.log('Battle Log:', state.battleLog?.slice(-5)); // Last 5 messages
+  console.log('Scene:', state.scene);
+  console.log('===================');
 });

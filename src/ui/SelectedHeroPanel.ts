@@ -78,20 +78,13 @@ export class SelectedHeroPanel {
   private activeTab: ActionCategory = 'movement';
   private tabBackgrounds: Map<ActionCategory, Phaser.GameObjects.Rectangle> = new Map();
   private allActionAffordability: Map<string, boolean> = new Map();
-  private heroNames: Map<string, string> = new Map();
+  private battleState: BattleState | null = null;
   private nameText!: Phaser.GameObjects.Text;
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
     this.container = scene.add.container(PANEL_X, PANEL_Y);
     this.container.setVisible(false);
-  }
-
-  /**
-   * Set the hero names map for display
-   */
-  setHeroNames(names: Map<string, string>): void {
-    this.heroNames = names;
   }
 
   /**
@@ -262,7 +255,8 @@ export class SelectedHeroPanel {
       this.activeTab = 'movement';
     }
     this.selectedHeroId = heroId;
-    this.nameText?.setText(this.heroNames.get(heroId) ?? '');
+    const character = this.battleState?.characters.find(c => c.id === heroId);
+    this.nameText?.setText(character?.getName() ?? '');
     this.updateTabHighlights();
     this.rebuildActionButtons();
     this.container.setVisible(true);
@@ -325,10 +319,11 @@ export class SelectedHeroPanel {
    */
   getState(): SelectedHeroPanelState {
     // Return all actions from currentActions for complete test coverage
+    const character = this.battleState?.characters.find(c => c.id === this.selectedHeroId);
     return {
       visible: this.container.visible,
       heroId: this.selectedHeroId,
-      heroName: this.selectedHeroId ? (this.heroNames.get(this.selectedHeroId) ?? null) : null,
+      heroName: this.selectedHeroId ? (character?.getName() ?? null) : null,
       inventorySlots: 0, // No inventory slots currently
       actionButtons: this.currentActions.map((action) => ({
         name: action.name,
@@ -351,6 +346,7 @@ export class SelectedHeroPanel {
    * Subscribe to state observer for reactive updates.
    */
   subscribeToState(observer: BattleStateObserver, state: BattleState): void {
+    this.battleState = state;
     observer.subscribe({
       actorChanged: (actorId) => {
         if (actorId === 'monster') {
