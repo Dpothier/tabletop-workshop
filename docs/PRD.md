@@ -732,12 +732,15 @@ The action wheel is fully visible, so the player can read upcoming enemy turns a
 |-------------|------|-------------|-----------------|
 | Windup | 1w | Attack | Pays the bead cost of one attack modifier |
 | Aim | 1w | Shoot | +1 Precision |
+| Ponder | 1w | Rest (Strategize), Assess | Pays the cost of one Blue bead |
 | Rest | 2w | (auto, next turn) | Draw 2 beads at start of next turn |
 | Channel | TBD | Cast | (magical actions, to be defined) |
 
 **Windup (1w):** Melee preparation. Pays the bead cost of **one** attack modifier on the next Attack. Maximum 1 windup for melee weapons. The windup replaces any single bead color — it is a universal "pay with time" option.
 
 **Aim (1w):** Ranged preparation. +1 Precision stack per Aim. Can stack multiple times (weapon-dependent max). See Ranged Combat Resolution.
+
+**Ponder (1w):** Mental preparation. Pays the cost of **one** Blue bead on the next mental action (Strategize on Rest, Assess). Maximum 1 Ponder stack. Ponder is the mental equivalent of Windup — same tradeoff between instant bead cost and time-invested preparation.
 
 **Rest (2w):** Resource preparation. Draw 2 beads from bag at the **start of your next turn** (not immediately). The 2w cost adds friction — you must be in a safe position. If interrupted before your next turn, the rest is lost and no beads are drawn.
 
@@ -748,7 +751,8 @@ The action wheel is fully visible, so the player can read upcoming enemy turns a
 | Strength | Attack Modifier | 1 Red or Windup | — | +1 Power on this attack | All melee weapons |
 | Guard | Defensive Action | 1 Red | — | +1 Guard until next turn | All characters |
 | Quick Strike | Attack Modifier | 1 Green or Windup | — | -1w on this Attack (2w → 1w) | Light melee weapons only |
-| Ponder | Rest Modifier | 1 Blue | — | During Rest: draw 4, choose 2, return 2 to bag | All characters |
+| Strategize | Rest Modifier | 1 Blue or Ponder | — | During Rest: draw 4, keep 3, return 1 to bag | All characters |
+| Assess | Action (1w) | 1 Blue or Ponder | 1-6 | Reveal target monster's next bead and resulting action | All characters |
 | Coordinate | Action (1w) | 1 White | 1-6 | Give 1 preparation stack (Windup or Aim) to an ally | All characters |
 
 #### Red — Physical (STR)
@@ -763,7 +767,11 @@ The action wheel is fully visible, so the player can read upcoming enemy turns a
 
 #### Blue — Mental (MND)
 
-**Ponder** modifies the Rest action. When Resting with Ponder, draw 4 beads total (2 base + 2 extra) from your bag, choose 2 to keep, return the other 2 to the bag. The value is not in quantity (still 2 beads gained) but in **color selection** — you see twice as many options and pick the best match for your upcoming needs. Thematically, mental focus lets you recover more deliberately.
+Blue beads power mental actions. The core MND actions provide information advantage and resource quality. They can be paid with a Blue bead (instant) or a Ponder preparation (free but interruptible) — the same tradeoff pattern as Red/Windup for physical actions.
+
+**Strategize** modifies the Rest action. When Resting with Strategize, draw 4 beads total (2 base + 2 extra) from your bag, keep 3, return 1 to the bag. The value is not just in quantity (+1 bead gained) but in **color selection** — you see twice as many options and pick the best match for your upcoming needs. Cost: 1 Blue bead or 1 Ponder stack. Thematically, mental focus lets you recover more deliberately.
+
+**Assess** is a standalone mental action (1w wheel cost + 1 Blue bead or 1 Ponder stack). Target a monster within range 1-6 and reveal their next drawn bead and the resulting action from their action graph. This information is public — the entire team benefits. Knowing what a monster will do next turn is the foundation of tactical planning: should the team block, dodge, focus fire, or reposition? If this information has no value, the combat system has fundamentally failed in its design. Assess is the Blue equivalent of Coordinate — both cost 1w + 1 bead, both have range 1-6, both benefit the team rather than the individual.
 
 #### White — Spirit (SPR)
 
