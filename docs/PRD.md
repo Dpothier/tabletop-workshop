@@ -340,10 +340,10 @@ Weapons grant unique special actions requiring bead costs.
 
 | Action Example | Wheel Cost | Bead Cost | Effect |
 |----------------|------------|-----------|--------|
-| Power Attack | 3 | 1 Red | Attack with Power 2 |
-| Defensive Stance | 1 | 1 Blue | Reduce next damage by 1 |
-| Quick Step | 1 | 1 Green | Move 3 spaces |
-| Heal | 2 | 1 White | Restore 1 HP to adjacent ally |
+| Windup + Attack + Strength | 3 | 0 (Windup pays) | Attack with Power 2 |
+| Attack + Crush | 2 | 1 Red | Attack ignoring Armor |
+| Quick Strike + Attack | 1 | 1 Green | Fast attack (light weapons) |
+| Guard | 0 | 1 Red | +1 Guard until next turn |
 
 ## Combat Resolution
 
@@ -389,22 +389,21 @@ DAMAGE DEALT (1 HP)
 | Evasion | Ability to dodge attacks entirely |
 
 ### Attack Modifiers
-| Modifier | Effect |
-|----------|--------|
-| Feint | Ignores Guard (only needs to beat Armor) |
-| Heavy | Ignores Armor (only needs to beat Guard) |
-| Precise | +2 to Agility for hit calculation |
-| Swift | Cannot be reacted to on dodge |
 
-### Dodge Reactions
-When successfully dodging (Evasion ≥ Attack Agility):
-- Riposte: Counter-attack opportunity
-- Reposition: Move 1 space
-- Brace: Gain +1 Guard until next action
+Attack modifiers enhance the base Attack action. They are declared when the attack is made and can be paid with **beads** (instant) or **Windup** (1w preparation, max 1 per attack for melee). Multiple modifiers can stack on a single attack — Windup pays for one, the rest cost beads.
 
-*Swift attacks prevent dodge reactions.*
+**Universal modifiers** (available to all melee weapons):
+| Modifier | Bead Cost | Windup | Effect |
+|----------|-----------|--------|--------|
+| Strength | 1 Red | Yes | +1 Power |
+| Quick Strike | 1 Green | Yes | -1w on Attack (light weapons only) |
+
+**Weapon-specific modifiers** are listed under each weapon's Special Actions section (Step 9). Examples: Hack (+1 Power, axe/heavy), Crush (ignore Armor, mace), Percer (ignore Armor if Guard=0 and Evasion=0, sword/spear), Cleave (2 targets, axe).
 
 ## Standard Terms & Effects
+
+### Economic Principle: 1 Wheel ≈ 1 Bead
+Rest (2w) draws 2 beads, establishing a fundamental exchange rate: **1 wheel tick of time ≈ 1 bead of any color**. This equivalence underpins all balance calculations. Any modifier costing 1 bead should be roughly equivalent to 1w of preparation (Windup, Aim). This means the choice between paying with beads (instant but resource-dependent) vs preparation (free but time-consuming and interruptible) is always a meaningful tactical decision, not a strictly better option.
 
 ### Damage
 All attacks deal **1 damage** when they successfully hit and overcome defense, unless explicitly stated otherwise. Power is not a damage value — it determines whether the attack penetrates defense (Power > Defense, strictly greater — defender wins ties). Damage is always 1 HP lost. Since base Power is 1 and base Defense is 0, standard attacks always damage unmodified targets.
@@ -489,8 +488,8 @@ Modifiers can be combined on a single Aim action. Example: a Longbow wielder spe
 
 **Parallel with melee:** At sweet spot (band modifier 0), Shoot mirrors Attack:
 - Shoot (2w, Precision 1) = Attack (2w, Power 1) — both hit undefended targets
-- Aim (1w, +1 Precision) = Strength (1 Red ≈ 1w, +1 Power) — both overcome +1 defense
-- Aim+Shoot (3w, Precision 2) = Heavy Attack (3w, Power 2) — both overcome defense 1
+- Aim (1w, +1 Precision) = Windup (1w, pays for +1 Power modifier) — both overcome +1 defense for 1w
+- Aim+Shoot (3w, Precision 2) = Windup+Attack+Strength (3w, Power 2) — both overcome defense 1 for 3w
 
 **Key differences from melee:**
 - No Evasion — you cannot dodge a projectile
@@ -648,7 +647,7 @@ A character with STR 5, DEX 2, MND 2, SPR 3 has a bag of: 5 red, 2 green, 2 blue
 - **Slots:** Equipment slot cost (determines encumbrance impact)
 - **Special Actions:** Unique abilities requiring bead costs
 
-**All melee attacks use Power 1, Agility 1 as base stats**, regardless of weapon. Weapons differentiate through their special actions, range, and access to attack tiers (Light/Standard/Heavy Attack).
+**All melee attacks use Power 1, Agility 1 as base stats**, regardless of weapon. Weapons differentiate through their special actions, range, and available modifiers (Quick Strike for light weapons, Hack for heavy weapons, etc.).
 
 ### Weapon Special Actions (Step 9)
 
@@ -690,7 +689,7 @@ Each weapon grants unique special actions. These are either **attack modifiers**
 | Knockback | Attack Modifier | 1 Red | +1 (total: 3) | Attack hits (not dodged) AND Power > Guard | Push target back X spaces, where X = Power - Guard. Collision rules apply (see Standard Terms). |
 | Bash | Attack Modifier | 1 Red | (base attack: 2) | — | +1 Power to the attack |
 
-**Crush** makes the attack bypass Armor entirely — only Guard can prevent damage. This is the "Heavy" modifier applied via bead cost.
+**Crush** makes the attack bypass Armor entirely — only Guard can prevent damage. Can be paid via bead or Windup.
 
 **Knockback** adds +1 to the base attack's wheel cost (total 3). The knockback only occurs if the attack hits (Agility > Evasion) and Power exceeds Guard. Distance = Power - Guard. See "Knockback (Forced Movement)" in Standard Terms for collision rules.
 
@@ -712,34 +711,55 @@ Each weapon grants unique special actions. These are either **attack modifiers**
 
 **Range 2 only:** The spear can only attack at range 2 — it **cannot** attack adjacent enemies (range 1). This is an intentional weakness that encourages tactical positioning and makes the spear distinct from other standard weapons.
 
-### Action Types by Weapon Category
+### Melee Attack System
 
-| Action | Light | Standard | Heavy | Wheel | Power | Agility | Enhanceable |
-|--------|-------|----------|-------|-------|-------|---------|-------------|
-| Light Attack | Yes | No | No | 1 | 1 | 1 | No |
-| Attack | Yes | Yes | Yes | 2 | 1 | 1 | Yes |
-| Heavy Attack | No | Yes | Yes | 3 | 2 | 1 | Yes |
+**One attack action: Attack (2w, Power 1, Agility 1).** All melee weapons share this single base attack. There is no separate Light Attack or Heavy Attack — all variation comes from modifiers.
 
-**All base attacks use Power 1, Agility 1** regardless of weapon. Heavy Attack always has Power 2, Agility 1. Weapons differentiate through special actions (modifiers that add Power, ignore Armor, etc.), not through base stats. Light weapons trade Heavy Attack for the faster Light Attack.
+Attack modifiers can be paid in two ways:
+- **Bead:** Spend the required bead from hand when declaring the attack (instant, reliable)
+- **Windup:** Spend 1w of preparation before the attack (free in beads, but interruptible)
+
+### Preparation (General Concept)
+
+A **preparation** is an action that invests wheel time for a future payoff. All preparations share the same interruption rules — stacks are lost if:
+- The creature takes any action other than the preparation or its paired resolution
+- The creature uses a defensive reaction (Block, Parade, etc.)
+- The creature takes damage
+
+The action wheel is fully visible, so the player can read upcoming enemy turns and judge whether a preparation window is safe — similar to choosing attack windows in a Soulslike.
+
+| Preparation | Cost | Paired With | Effect per stack |
+|-------------|------|-------------|-----------------|
+| Windup | 1w | Attack | Pays the bead cost of one attack modifier |
+| Aim | 1w | Shoot | +1 Precision |
+| Rest | 2w | (auto, next turn) | Draw 2 beads at start of next turn |
+| Channel | TBD | Cast | (magical actions, to be defined) |
+
+**Windup (1w):** Melee preparation. Pays the bead cost of **one** attack modifier on the next Attack. Maximum 1 windup for melee weapons. The windup replaces any single bead color — it is a universal "pay with time" option.
+
+**Aim (1w):** Ranged preparation. +1 Precision stack per Aim. Can stack multiple times (weapon-dependent max). See Ranged Combat Resolution.
+
+**Rest (2w):** Resource preparation. Draw 2 beads from bag at the **start of your next turn** (not immediately). The 2w cost adds friction — you must be in a safe position. If interrupted before your next turn, the rest is lost and no beads are drawn.
 
 ### Universal Actions
 
-These actions are available to all characters regardless of equipment:
-
-| Action | Type | Bead Cost | Effect | Available To |
-|--------|------|-----------|--------|-------------|
-| Strength | Attack Modifier | 1 Red | +1 Power on this attack | All melee weapons |
+| Action | Type | Cost | Effect | Available To |
+|--------|------|------|--------|-------------|
+| Strength | Attack Modifier | 1 Red or Windup | +1 Power on this attack | All melee weapons |
 | Guard | Defensive Action | 1 Red | +1 Guard until next turn | All characters |
+| Quick Strike | Attack Modifier | 1 Green or Windup | -1w on this Attack (2w → 1w) | Light melee weapons only |
 
-**Strength** enhances any melee attack (Attack, Heavy Attack, or Light Attack). It is an attack modifier, meaning it is declared and paid for when the attack is made. This is the universal way to overcome Armor — any melee combatant with a Red bead can boost their Power.
+**Strength** enhances any melee attack. It is an attack modifier, declared and paid for when the attack is made (or pre-paid via Windup). This is the universal way to overcome Armor — any melee combatant with a Red bead or a safe window for Windup can boost their Power.
 
-**Guard** is a standalone defensive action that can be used proactively (not as a reaction). It grants +1 Guard that persists until the character's next turn on the action wheel. This allows any character to invest in defense, making even unshielded characters able to block base attacks (Guard 1 ≥ Power 1).
+**Guard** is a standalone defensive action that can be used proactively (not as a reaction). It grants +1 Guard that persists until the character's next turn on the action wheel. This allows any character to invest in defense, making even unshielded characters able to block base attacks (Guard 1 ≥ Power 1). Guard cannot be paid via Windup — defense must be instant.
+
+**Quick Strike** allows light weapons to attack faster by spending a Green bead (or Windup). Unlike the old Light Attack, Quick Strike IS enhanceable — you can stack additional modifiers, but each costs a bead. This makes light weapons efficient for fast strikes while remaining capable of enhanced attacks at higher bead cost.
 
 ### Light Melee Weapons (Step 9)
 
 All light melee weapons share:
 - **Base stats:** Power 1, Agility 1, Range 1
-- **Light Attack** (common to all light weapons): Wheel cost 1, Power 1, Agility 1. Cannot be enhanced with any attack modifiers. This makes light weapons efficient at dealing damage to undefended targets.
+- **Quick Strike** (universal to all light weapons): Attack modifier, 1 Green or Windup, reduces Attack cost by 1w (2w → 1w). Unlike other modifiers, Quick Strike CAN be combined with additional modifiers — each extra modifier costs a bead, making enhanced quick attacks resource-intensive.
 - **2 special actions** per weapon (instead of 3 for standard weapons)
 
 | Weapon | Category | Power | Agility | Range | Special |
@@ -756,7 +776,7 @@ All light melee weapons share:
 | Percer | Attack Modifier | 1 Green | Target has Guard=0 AND Evasion=0 | Attack ignores Armor |
 | Parade | Defensive Reaction | 1 Red | When attacked | +1 Guard against current attack |
 
-Shares Percer and Parade with the Sword. Combined with Light Attack, the Rondel Dagger excels at pressuring unarmored targets with fast, cheap attacks.
+Shares Percer and Parade with the Sword. Combined with Quick Strike, the Rondel Dagger excels at pressuring unarmored targets with fast 1w attacks, and can enhance them with Percer when the opening is right (1w + 1G Quick Strike + 1G Percer).
 
 #### Throwing Dagger — Special Actions
 
@@ -765,7 +785,7 @@ Shares Percer and Parade with the Sword. Combined with Light Attack, the Rondel 
 | Throw | Action | 1 Green | 2 | — | Ranged attack (range 1-6, Power 1, Agility 1). On hit: the weapon is dropped on the target's tile. On dodge: the weapon lands at the end of its maximum trajectory (6 tiles in the thrown direction). The wielder loses access to the weapon until it is recovered. |
 | Parade | Defensive Reaction | 1 Red | When attacked | +1 Guard against current attack |
 
-**Throw** is a full action (not a modifier). After throwing, the character has no equipped weapon — no standard attack, no light attack, no Parade — until they pick up the dagger (move to its tile) or swap to another weapon from inventory.
+**Throw** is a full action (not a modifier). After throwing, the character has no equipped weapon — no Attack, no Quick Strike, no Parade — until they pick up the dagger (move to its tile) or swap to another weapon from inventory.
 
 #### Slicing Dagger — Special Actions
 
@@ -791,8 +811,8 @@ Shares Percer and Parade with the Sword. Combined with Light Attack, the Rondel 
 
 All heavy melee weapons share:
 - **Two-handed:** Cannot equip a shield or off-hand weapon
-- **No Light Attack**
-- **Hack** (common to all heavy weapons): Attack Modifier, 1 Red, +1 Power to the attack
+- **No Quick Strike** — heavy weapons cannot reduce Attack cost
+- **Hack** (common to all heavy weapons): Attack Modifier, 1 Red or Windup, +1 Power to the attack
 - **3 special actions** per weapon (in addition to Hack)
 
 | Weapon | Category | Range | Slots | Special |
@@ -810,7 +830,7 @@ All heavy melee weapons share:
 | Percer | Attack Modifier | 1 Green | Target has Guard=0 AND Evasion=0 | Attack ignores Armor |
 | Cleave | Attack Modifier | 1 Red | — | Attack targets two adjacent tiles (see Axe's Cleave) |
 
-The Greatsword combines the Sword's defensive and piercing capabilities with the Axe's cleave. With Hack available, it can reach Power 2 on any attack.
+The Greatsword combines the Sword's defensive and piercing capabilities with the Axe's cleave. With Hack (or Windup+Strength), it can reach Power 2 on any attack, or Power 3 with Windup + Hack + Strength (3w + 1R).
 
 #### Greataxe — Special Actions
 
@@ -820,7 +840,7 @@ The Greatsword combines the Sword's defensive and piercing capabilities with the
 | Hook | Action | 1 Green | 1 | — | Reduce target's Guard to 0 until its next turn |
 | Whirlwind | Action | 1 Red | 3 | — | Attack (Power 1, Agility 1) hitting all adjacent tiles — including allies. Each target resolved independently. Can be enhanced with attack modifiers. |
 
-**Whirlwind** is a more intense version of Cleave — it hits every adjacent tile (up to 8 tiles around the wielder). Allies in range are targeted too. The base Power is 1 (not the weapon's base of 2), but it can be enhanced (e.g., Hack for +1 Power).
+**Whirlwind** is a more intense version of Cleave — it hits every adjacent tile (up to 8 tiles around the wielder). Allies in range are targeted too. Base Power 1, Agility 1. Can be enhanced with attack modifiers (e.g., Windup + Hack for Power 2).
 
 #### Warhammer — Special Actions
 
@@ -830,7 +850,7 @@ The Greatsword combines the Sword's defensive and piercing capabilities with the
 | Knockback | Attack Modifier | 1 Red | +1 (total: 3) | Attack hits AND Power > Guard | Push target back X spaces (X = Power - Guard). Collision rules apply (see Standard Terms). |
 | Bash | Attack Modifier | 1 Red | (base attack) | — | +1 Power to the attack |
 
-Identical to the Mace's actions. With Hack + Bash, a Warhammer attack can reach Power 3 (base 1 + Hack 1 + Bash 1).
+Identical to the Mace's actions. With Windup + Hack + Bash, a Warhammer attack can reach Power 3 (base 1 + Hack 1 + Bash 1) for 3w + 1R (Windup pays one modifier, bead pays the other).
 
 #### Halberd — Special Actions
 
@@ -840,13 +860,13 @@ Identical to the Mace's actions. With Hack + Bash, a Warhammer attack can reach 
 | Extend | Attack Modifier | 1 Green | (base attack) | — | +1 Range to the attack |
 | Intercept | Defensive Reaction | 1 Green | — | A creature enters range 2 | Attack (Power 1, Agility 1). If damage dealt, movement interrupted. Cannot combine with Extend. |
 
-Identical to the Spear's actions. With Hack available, the Halberd can boost any attack's Power.
+Identical to the Spear's actions. With Hack available (via bead or Windup), the Halberd can boost any attack's Power.
 
 **Range 2 only:** Like the Spear, the Halberd cannot attack adjacent enemies (range 1).
 
 ### Ranged Weapons (Step 9)
 
-Ranged weapons use the Ranged Combat Resolution system (see Standard Terms). They cannot make melee attacks (Attack, Heavy Attack, Light Attack). Instead, they have a **Shoot** action.
+Ranged weapons use the Ranged Combat Resolution system (see Standard Terms). They cannot make melee Attack actions. Instead, they have a **Shoot** action paired with the **Aim** preparation.
 
 **Shoot** (2 wheel): Fires the weapon, consuming all Aim stacks. See Ranged Combat Resolution in Standard Terms.
 
