@@ -171,7 +171,7 @@ export class BattleBuilder {
       grid.register(characterId, spawn.x, spawn.y);
 
       // Create Character entity
-      const character = new Character(characterId, charClass.stats.health, grid, entityMap);
+      const character = new Character(characterId, charClass.stats.health, grid, entityMap, undefined, i);
 
       // Apply character data if available
       if (this.characterData && this.characterData[i]) {

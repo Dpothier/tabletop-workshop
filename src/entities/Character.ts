@@ -29,6 +29,9 @@ export class Character extends Entity {
   /** ID of the equipped weapon */
   private weaponId?: string;
 
+  /** Zero-based player index for display fallback */
+  private readonly playerIndex: number;
+
   /** Action IDs that are always available (base actions any character can do) */
   private innateActions: string[] = ['move', 'run', 'attack', 'rest'];
 
@@ -37,10 +40,12 @@ export class Character extends Entity {
     maxHealth: number,
     grid: BattleGrid,
     _entityRegistry: IEntityRegistry,
-    actionRegistry?: ActionRegistry
+    actionRegistry?: ActionRegistry,
+    playerIndex: number = 0
   ) {
     super(id, maxHealth, grid);
     this.actionRegistry = actionRegistry;
+    this.playerIndex = playerIndex;
   }
 
   /**
@@ -128,7 +133,7 @@ export class Character extends Entity {
    * Falls back to ID if name is not set.
    */
   getName(): string {
-    return this.characterName ?? this.id;
+    return this.characterName ?? `P${this.playerIndex + 1}`;
   }
 
   /**
