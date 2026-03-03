@@ -15,7 +15,7 @@ import { CharacterVisual, MonsterVisual } from '@src/visuals';
 import { GridVisual } from '@src/visuals/GridVisual';
 import { BattleUI } from '@src/ui/BattleUI';
 import { AnimationExecutor } from '@src/ui/AnimationExecutor';
-import { HeroSelectionBar } from '@src/ui/HeroSelectionBar';
+import { HeroSelectionBar, toHeroCardData } from '@src/ui/HeroSelectionBar';
 import { SelectedHeroPanel } from '@src/ui/SelectedHeroPanel';
 import { OptionSelectionPanel } from '@src/ui/OptionSelectionPanel';
 import { HERO_COLORS } from '@src/ui/colors';
@@ -265,7 +265,10 @@ export class BattleScene extends Phaser.Scene implements BattleAdapter {
 
   private createHeroSelectionBar(): void {
     this.heroSelectionBar = new HeroSelectionBar(this);
-    this.heroSelectionBar.createFromEntities(this.characters, this.classes);
+    const heroCards = this.characters.map((c, i) =>
+      toHeroCardData(c, this.classes[i % this.classes.length], i)
+    );
+    this.heroSelectionBar.create(heroCards);
     this.heroSelectionBar.onHeroClick((heroId) => this.handleHeroBarClick(heroId));
   }
 

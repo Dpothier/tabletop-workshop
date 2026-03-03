@@ -1,4 +1,6 @@
 import { Page, expect } from '@playwright/test';
+import type { HeroCardState } from '@src/ui/HeroSelectionBar';
+export type { HeroCardState };
 
 // =============================================================================
 // UI Coordinate Constants
@@ -44,21 +46,6 @@ export const HERO_BAR_COORDS = {
 // =============================================================================
 // Type Definitions
 // =============================================================================
-
-/** Hero card state for hero selection bar */
-export interface HeroCardState {
-  heroId: string;
-  className: string;
-  currentHp: number;
-  maxHp: number;
-  beadCount: number;
-  hasClassIcon: boolean;
-  hasHpBar: boolean;
-  hasBeadDisplay: boolean;
-  highlighted: boolean;
-  dimmed: boolean;
-  name: string;
-}
 
 /** Hero selection bar state */
 export interface HeroBarState {
