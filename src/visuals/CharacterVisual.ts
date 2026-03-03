@@ -14,7 +14,7 @@ export class CharacterVisual extends EntityVisual {
   private readonly characterClass: CharacterClass;
   private readonly color: number;
   private readonly index: number;
-  private readonly characterName?: string;
+  private readonly character?: Character;
   private background!: Phaser.GameObjects.Arc;
   private selectionRing!: Phaser.GameObjects.Arc;
 
@@ -25,13 +25,13 @@ export class CharacterVisual extends EntityVisual {
     characterClass: CharacterClass,
     color: number,
     index: number,
-    characterName?: string
+    character?: Character
   ) {
     super(scene, worldX, worldY, characterClass.stats.health);
     this.characterClass = characterClass;
     this.color = color;
     this.index = index;
-    this.characterName = characterName;
+    this.character = character;
     this.createVisuals();
   }
 
@@ -52,7 +52,7 @@ export class CharacterVisual extends EntityVisual {
 
     const worldX = gridSystem.gridToWorld(pos.x);
     const worldY = gridSystem.gridToWorld(pos.y);
-    return new CharacterVisual(scene, worldX, worldY, charClass, color, index, character.getName());
+    return new CharacterVisual(scene, worldX, worldY, charClass, color, index, character);
   }
 
   /**
@@ -104,7 +104,7 @@ export class CharacterVisual extends EntityVisual {
     this.background = this.scene.add.circle(0, 0, 24, this.color);
 
     // Character name initial (centered on token)
-    const initial = this.characterName ? this.characterName[0].toUpperCase() : `P${this.index + 1}`;
+    const initial = this.character?.getName()[0].toUpperCase() ?? `P${this.index + 1}`;
     const icon = this.scene.add
       .text(0, -2, initial, {
         fontSize: '20px',
