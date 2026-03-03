@@ -1181,6 +1181,7 @@ Each magical weapon defines a base effect (Cast 2w + minimum bead cost) and a se
 |--------|-------|-------|-------|-------------|
 | Hourglass of Time | 1 | Blue (MND) | Temporal Shift — advance or delay on action wheel | 4 |
 | Phoenix Heart | 1 | White (SPR) | Phoenix Rebirth — heal ally + fire burst around target | 4 |
+| Warping Stone | 1 | Blue (MND) | Warp — teleportation with swap and remote targeting | 5 |
 
 #### Hourglass of Time — Temporal Shift
 
@@ -1234,6 +1235,32 @@ The delay mode is more likely to be used as **single-target** (adjacent to one p
 **Anti-yoyo design:** Because Stabilize does not restore HP, healing cannot indefinitely extend combat. A character with stabilized wounds is functional but still closer to death. The team gains economic breathing room but must still end the fight.
 
 **Cost justification:** Phoenix Burst (+1W) against 3 adjacent enemies = 3 damage for 1W — very efficient IF positioning allows it. Ignite (+1W) effectively doubles the damage but delayed to end of round. Total max (4W + 2w Cast = 6w) for heal + up to 3 immediate damage + up to 3 delayed damage = high value, but requires: (1) 4w of uninterrupted Channel, (2) an ally surrounded by enemies but not allies, (3) surviving enemies until end of round for Ignite to trigger.
+
+#### Warping Stone — Warp
+
+| Enhancement | Cost | Effect |
+|-------------|------|--------|
+| Base | Cast (2w) + 1B | Teleport self to an empty tile within range 6 (ignores obstacles and creatures in path) |
+| Swap | +1B | Target a creature instead of an empty tile — swap positions with target |
+| Other | +1B | Teleport an adjacent creature instead of self |
+| Extended selection | +1B | "Other" target can be within range 6 instead of adjacent |
+| Extended range | +1B | Destination range increases from 6 to 12 |
+
+**Max: Cast (2w) + 5B = 7w equivalent.** Teleport any creature within 6, swap with any creature within 12.
+
+**Warp** is the most combinatorially flexible spell in the system. Each enhancement unlocks new tactical possibilities, and most casts use only 1-3 enhancements rather than the full 5B. The spell favors quick, situational casts over long channel sequences.
+
+**Common combinations:**
+- **Escape** (1B): Teleport self to safety — bypass walls, enemies, obstacles
+- **Tactical swap** (2B): Swap positions with an enemy — isolate a boss from minions, pull a ranged enemy into melee
+- **Ally rescue** (2B): Teleport adjacent ally to an empty tile within 6 — extract a wounded frontliner
+- **Remote repositioning** (3B): Teleport any creature within 6 to an empty tile within 6 — move an enemy out of formation without being adjacent
+- **Distant swap** (3B): Swap self with a creature up to 12 tiles away — extreme repositioning
+- **Full displacement** (5B): Teleport any creature within 6, swap them with any creature within 12 — rare but game-changing
+
+**Design note:** Unlike Hourglass and Phoenix Heart which reward full-channel investment with proportionally scaled AoE effects, the Warping Stone's value is in **combinatorial flexibility** — many small, situational casts rather than one big channeled cast. A 5B full cast (7w total) is theoretically possible but rarely optimal compared to multiple 2-3B casts over the course of a fight.
+
+**Cost justification:** Base (1B) is priced at Cast 2w + 1B = 3w for 6 tiles of obstacle-ignoring movement, compared to Run (2w) for 6 tiles of path-dependent movement. The 1B premium buys obstacle bypass. Each subsequent enhancement adds approximately 1w of tactical value: Swap effectively doubles the repositioning (two creatures move), Other redirects the effect, Extended selection removes adjacency requirement, Extended range doubles destination reach.
 
 ## Armor System
 
