@@ -728,21 +728,25 @@ A **preparation** is an action that invests wheel time for a future payoff. All 
 
 The action wheel is fully visible, so the player can read upcoming enemy turns and judge whether a preparation window is safe — similar to choosing attack windows in a Soulslike.
 
+All preparations can stack without limit **except Windup** (max 1 stack). The natural limits on stacking are time (each stack costs 1w), risk (any interruption loses ALL stacks), and diminishing returns. Windup is capped because melee attacks are already efficient — unlimited free modifiers would break the economy.
+
 | Preparation | Cost | Paired With | Effect per stack |
 |-------------|------|-------------|-----------------|
 | Windup | 1w | Attack | Pays the bead cost of one attack modifier |
 | Aim | 1w | Shoot | +1 Precision |
 | Ponder | 1w | Rest (Strategize), Assess | Pays the cost of one Blue bead |
 | Rest | 2w | (auto, next turn) | Draw 2 beads at start of next turn |
-| Channel | TBD | Cast | (magical actions, to be defined) |
+| Channel | 1w | Cast | Pays the cost of one bead (Blue or White, depending on spell) |
 
 **Windup (1w):** Melee preparation. Pays the bead cost of **one** attack modifier on the next Attack. Maximum 1 windup for melee weapons. The windup replaces any single bead color — it is a universal "pay with time" option.
 
-**Aim (1w):** Ranged preparation. +1 Precision stack per Aim. Can stack multiple times (weapon-dependent max). See Ranged Combat Resolution.
+**Aim (1w):** Ranged preparation. +1 Precision stack per Aim. No stack limit — practical ceiling is determined by target distance and weapon precision bands. See Ranged Combat Resolution.
 
-**Ponder (1w):** Mental preparation. Pays the cost of **one** Blue bead on the next mental action (Strategize on Rest, Assess). Maximum 1 Ponder stack. Ponder is the mental equivalent of Windup — same tradeoff between instant bead cost and time-invested preparation.
+**Ponder (1w):** Mental preparation. Pays the cost of **one** Blue bead on the next mental action (Strategize on Rest, Assess, Overwrite). No stack limit. Ponder 3 times (3w) to fully pay for Overwrite without any Blue beads — consistent with the 1w ≈ 1 bead economic principle.
 
 **Rest (2w):** Resource preparation. Draw 2 beads from bag at the **start of your next turn** (not immediately). The 2w cost adds friction — you must be in a safe position. If interrupted before your next turn, the rest is lost and no beads are drawn.
+
+**Channel (1w):** Magical preparation. Pays the cost of **one** bead (Blue or White, depending on the spell) on the next Cast. No stack limit. Channel is the "heavy investment" preparation — a powerful spell costing 4 beads can be fully channeled over 4w, cast instantly with 4 beads, or any mix in between. Total cost is always the same; the caster chooses time vs. resources vs. risk of interruption. The "find a safe spot and channel while allies protect you" playstyle is the core fantasy of magical weapons.
 
 ### Universal Actions
 
@@ -783,7 +787,7 @@ Blue beads power mental actions. The core MND actions provide information advant
 
 | Variant | Base Cost | Effect | Unlocked By |
 |---------|-----------|--------|-------------|
-| Swiften | 1w + 1 White | Advance an ally 1 position toward the active position on the wheel | TBD (magical item) |
+| Swiften | 1w + 1 White | Advance an ally 1 position toward the active position on the wheel | Hourglass of Time (Temporal Shift spell — see Magical Weapons) |
 | Bless | 1w + 1 White | Grant the target a **Gold bead** (wildcard — counts as any color) | Censer |
 
 *Swiften* is the timing-manipulation version of Coordinate — instead of giving preparation, it gives action priority. More powerful than base Coordinate (direct wheel advancement), hence requiring a support item.
@@ -1147,6 +1151,80 @@ The Ponder is **not consumed** by either Bestiary effect — it is only consumed
 **Cost analysis:** Renew costs 1 White (≈1w value) to grant 1 bead (≈1w value). A 1:1 trade, but the ally gets a bead from their bag (likely a color they want) while the Censer holder spends a White bead (which they've built for). Fair exchange that rewards SPR-focused builds.
 
 **Censer identity:** The resource amplifier. Banner protects (Guard, preparations), Horn redistributes (existing beads), Tome analyzes (information, cancel) — the Censer generates new value. Bless creates Gold beads from nothing, Renew adds draws to Rest. Both are White-powered, making the Censer the natural choice for high-SPR characters.
+
+### Magical Weapons (Step 9)
+
+Magical weapons are **artifacts** — each one channels a single specific spell. The weapon IS the spell. Unlike melee weapons (which share a common Attack action with different modifiers), each magical weapon defines its own unique Cast effect that can be scaled by investing more beads or Channel stacks.
+
+All magical weapons share:
+- **One spell per weapon** — the artifact defines what spell it casts
+- **Cast (2w)** as the base resolution action (paired with Channel preparation)
+- **Scalable power** — additional beads or Channel stacks enhance the spell's effect
+- **Blue OR White** — each spell uses one bead color (Blue for arcane/wizard, White for divine/cleric)
+- **Channel preparation** — Channel stacks substitute for bead cost at 1:1 ratio, no stack limit
+
+**Spell modulation pattern:**
+Each magical weapon defines a base effect (Cast 2w + minimum bead cost) and a set of enhancements that can be purchased with additional beads or Channel stacks. This parallels Power Attack's optional enhancements (extra_damage, knockback), but at a larger scale.
+
+**Thematic niche:** Magic justifies effects that are difficult or impossible to achieve through mundane means:
+- Wheel manipulation (advancing/delaying positions on the action wheel)
+- Area of effect (damage or effects hitting multiple targets/tiles)
+- Forced displacement (teleportation, position swapping)
+- Debuffs (slowing, weakening enemies)
+- Terrain manipulation (creating obstacles, hazardous zones)
+
+**Blue (MND) — Arcane spells:** Offensive and manipulative. Fire, lightning, telekinesis, temporal distortion. Thematically, spells a wizard would cast.
+
+**White (SPR) — Divine spells:** Protective and restorative. Wards, healing, purification, holy damage. Thematically, spells a cleric would cast.
+
+| Weapon | Slots | Color | Spell | Channel Max |
+|--------|-------|-------|-------|-------------|
+| Hourglass of Time | 1 | Blue (MND) | Temporal Shift — advance or delay on action wheel | 4 |
+| Sacred Chalice | 1 | White (SPR) | Stabilize — restore hand size without restoring HP | 4 |
+
+#### Hourglass of Time — Temporal Shift
+
+| Enhancement | Cost | Effect |
+|-------------|------|--------|
+| Base | Cast (2w) + 1B | Advance OR delay 1 adjacent target by 1w on the action wheel |
+| AoE small | +1B | Effect applies to all entities in a 3×3 area centered on caster |
+| AoE large | +1B | Area expanded to 5×5 centered on caster |
+| Power | +1B | Advancement/delay increases from 1w to 2w |
+
+**Max: Cast (2w) + 4B = 6w equivalent.** Advance or delay all entities in a 5×5 area by 2w.
+
+**Temporal Shift** manipulates positions on the action wheel. When casting, the caster chooses **advance** (move toward active position) or **delay** (move away from active position). The choice applies to all affected targets — you cannot advance some and delay others in the same cast.
+
+**AoE affects all entities** — allies AND enemies. This creates a positioning puzzle:
+- **Advance mode:** Position among allies (safe). Risk: advancing nearby enemies too.
+- **Delay mode:** Position near enemies (dangerous). Risk: delaying nearby allies too.
+
+The delay mode is more likely to be used as **single-target** (adjacent to one priority enemy) rather than AoE, since being surrounded by enemies is inherently risky. This creates two natural playstyles from the same artifact:
+1. **Support chronomancer** (backline): Channel safely among allies → AoE advance → accelerate the team
+2. **Battle chronomancer** (frontline): Move adjacent to priority target → single-target delay → slow the boss
+
+**Cost justification:** Base effect (1 adjacent target, 1w shift) costs Cast 2w + 1B = 3w total for ~1w of tactical value. The 3:1 ratio (vs Coordinate's 2:1) is justified because wheel manipulation is more powerful than a preparation stack — it directly changes turn order, which can be the difference between life and death. AoE enhancements are priced at 1B each despite potentially affecting 3-5 targets because the double-edged nature (affecting enemies/allies indiscriminately) partially offsets the multiplicative value.
+
+#### Sacred Chalice — Stabilize
+
+| Enhancement | Cost | Effect |
+|-------------|------|--------|
+| Base | Cast (2w) + 1W | Stabilize 1 wound on 1 adjacent ally |
+| Range | +1W | Extend range to 1-6 |
+| Extra wound | +1W (repeatable) | Stabilize 1 additional wound |
+
+**Max: Cast (2w) + 4W = 6w equivalent.** Stabilize 3 wounds at range 1-6.
+
+**Stabilize** restores an ally's hand size without restoring HP. Normally, hand size equals remaining HP — a character at 4/5 HP has a hand size of 4. Stabilizing a wound restores the hand size as if the HP were not lost (hand size returns to 5), but the character remains at 4 HP. This prevents the heal-damage yoyo: the character functions at full economic capacity but is still physically closer to death.
+
+**Enhancements are freely combinable** (not ordered). The caster chooses which to apply:
+- Stabilize 3 wounds adjacent (3W, no range) — emergency triage on a nearby ally
+- Stabilize 1 wound at range (2W, with range) — safe heal from the backline
+- Stabilize 2 wounds at range (3W) — balanced option
+
+**Cost justification:** Stabilizing 1 wound restores permanent hand capacity (+1 bead on every future Rest). Over a fight, this is worth 3-5w of cumulative value, making Cast 2w + 1W = 3w a fair base price. Range extension at +1W is consistent with Coordinate/Assess range pricing. Extra wounds at +1W each maintain the 1:1 bead-to-wound ratio, justified because each additional stabilization has equal permanent value.
+
+**Anti-yoyo design:** Because Stabilize does not restore HP, healing cannot indefinitely extend combat. A character with 3 stabilized wounds at 2/5 HP has full hand size (5) but dies in 2 more hits. The team gains economic breathing room but must still end the fight before accumulated wounds become lethal.
 
 ## Armor System
 
