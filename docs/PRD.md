@@ -1180,7 +1180,7 @@ Each magical weapon defines a base effect (Cast 2w + minimum bead cost) and a se
 | Weapon | Slots | Color | Spell | Channel Max |
 |--------|-------|-------|-------|-------------|
 | Hourglass of Time | 1 | Blue (MND) | Temporal Shift — advance or delay on action wheel | 4 |
-| Sacred Chalice | 1 | White (SPR) | Stabilize — restore hand size without restoring HP | 4 |
+| Phoenix Heart | 1 | White (SPR) | Phoenix Rebirth — heal ally + fire burst around target | 4 |
 
 #### Hourglass of Time — Temporal Shift
 
@@ -1205,26 +1205,35 @@ The delay mode is more likely to be used as **single-target** (adjacent to one p
 
 **Cost justification:** Base effect (1 adjacent target, 1w shift) costs Cast 2w + 1B = 3w total for ~1w of tactical value. The 3:1 ratio (vs Coordinate's 2:1) is justified because wheel manipulation is more powerful than a preparation stack — it directly changes turn order, which can be the difference between life and death. AoE enhancements are priced at 1B each despite potentially affecting 3-5 targets because the double-edged nature (affecting enemies/allies indiscriminately) partially offsets the multiplicative value.
 
-#### Sacred Chalice — Stabilize
+#### Phoenix Heart — Phoenix Rebirth
 
 | Enhancement | Cost | Effect |
 |-------------|------|--------|
 | Base | Cast (2w) + 1W | Stabilize 1 wound on 1 adjacent ally |
+| Phoenix Burst | +1W | 1 damage to ALL creatures adjacent to target (allies AND enemies) |
+| Ignite | +1W | Creatures damaged by the burst are set on fire (1 damage at end of round) |
 | Range | +1W | Extend range to 1-6 |
-| Extra wound | +1W (repeatable) | Stabilize 1 additional wound |
 
-**Max: Cast (2w) + 4W = 6w equivalent.** Stabilize 3 wounds at range 1-6.
+**Max: Cast (2w) + 4W = 6w equivalent.** Stabilize 1 wound + fire burst + ignite at range 1-6.
 
-**Stabilize** restores an ally's hand size without restoring HP. Normally, hand size equals remaining HP — a character at 4/5 HP has a hand size of 4. Stabilizing a wound restores the hand size as if the HP were not lost (hand size returns to 5), but the character remains at 4 HP. This prevents the heal-damage yoyo: the character functions at full economic capacity but is still physically closer to death.
+**Phoenix Rebirth** is a dual-nature spell: healing and destruction in a single cast. The target is always an ally — the phoenix flame heals them while scorching everything around them. Enhancements are freely combinable: the caster chooses which to apply based on the tactical situation.
 
-**Enhancements are freely combinable** (not ordered). The caster chooses which to apply:
-- Stabilize 3 wounds adjacent (3W, no range) — emergency triage on a nearby ally
-- Stabilize 1 wound at range (2W, with range) — safe heal from the backline
-- Stabilize 2 wounds at range (3W) — balanced option
+**Stabilize** restores the target ally's hand size without restoring HP. Normally, hand size equals remaining HP — a character at 4/5 HP has a hand size of 4. Stabilizing a wound restores the hand size as if the HP were not lost (hand size returns to 5), but the character remains at 4 HP. This prevents the heal-damage yoyo: the character functions at full economic capacity but is still physically closer to death.
 
-**Cost justification:** Stabilizing 1 wound restores permanent hand capacity (+1 bead on every future Rest). Over a fight, this is worth 3-5w of cumulative value, making Cast 2w + 1W = 3w a fair base price. Range extension at +1W is consistent with Coordinate/Assess range pricing. Extra wounds at +1W each maintain the 1:1 bead-to-wound ratio, justified because each additional stabilization has equal permanent value.
+**Phoenix Burst** deals 1 damage to ALL creatures adjacent to the target — allies AND enemies, indiscriminately. The fire radiates from the healed ally, not the caster. This creates a positioning puzzle: you want to cast on an ally surrounded by enemies but not by other allies.
 
-**Anti-yoyo design:** Because Stabilize does not restore HP, healing cannot indefinitely extend combat. A character with 3 stabilized wounds at 2/5 HP has full hand size (5) but dies in 2 more hits. The team gains economic breathing room but must still end the fight before accumulated wounds become lethal.
+**Ignite** sets fire to creatures damaged by the burst. Ignited creatures take 1 additional damage at the **end of the current round** (not tied to individual turns). All burn damage resolves simultaneously at round end.
+
+**Example combinations:**
+- Pure heal: Cast (2w) + 1W = stabilize 1 wound, adjacent, no fire (safe)
+- Heal + burst: Cast (2w) + 2W = stabilize + fire burst on adjacent creatures (aggressive)
+- Full power: Cast (2w) + 4W = stabilize + burst + ignite at range 1-6 (devastating)
+
+**The phoenix fantasy:** Your frontline tank is surrounded by 3 enemies, wounded. You channel the Phoenix Heart and cast on them — they're healed (stabilized), the 3 enemies take 1 fire damage each immediately, and 1 burn damage each at end of round. Total: 1 wound stabilized + 6 damage dealt. The tank is literally reborn from ashes in an explosion of flame.
+
+**Anti-yoyo design:** Because Stabilize does not restore HP, healing cannot indefinitely extend combat. A character with stabilized wounds is functional but still closer to death. The team gains economic breathing room but must still end the fight.
+
+**Cost justification:** Phoenix Burst (+1W) against 3 adjacent enemies = 3 damage for 1W — very efficient IF positioning allows it. Ignite (+1W) effectively doubles the damage but delayed to end of round. Total max (4W + 2w Cast = 6w) for heal + up to 3 immediate damage + up to 3 delayed damage = high value, but requires: (1) 4w of uninterrupted Channel, (2) an ally surrounded by enemies but not allies, (3) surviving enemies until end of round for Ignite to trigger.
 
 ## Armor System
 
