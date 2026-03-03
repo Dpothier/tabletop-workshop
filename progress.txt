@@ -1,0 +1,173 @@
+# Ralph Wiggum Progress Log
+
+This file tracks the progress of autonomous TDD iterations, learnings, and issues encountered.
+Updated after each completed story or failed iteration.
+
+---
+
+## Manual Development - Steps 1-7 & 8.1-8.4 Completed
+
+[MANUAL] Step 1: Action Wheel System ✅
+- Created ActionWheel turn order system with 8-segment rotation mechanics
+- FIFO tie-breaking for same-position creatures
+- Key files: src/systems/ActionWheel.ts, features/unit/action-wheel.feature
+- Test count: 17 unit scenarios
+- Pattern: System class with position-based queue, wrap-around mechanics
+
+[MANUAL] Step 2: Monster Bead Bag AI ✅
+- BeadBag system with draw/peek/reshuffle mechanics
+- MonsterStateMachine with color-based state transitions
+- Monster schema updated: beads, states, start_state
+- Key files: src/systems/BeadBag.ts, src/systems/MonsterStateMachine.ts
+- Test count: 25 unit scenarios (14 beads + 11 state machine)
+- Pattern: Bead colors (red/blue/green/white) map to creature stats; states define actions
+
+[MANUAL] Step 3: Player Bead System ✅
+- PlayerBeadHand with three pools (bag, hand, discard)
+- Default: 3 beads each color (12 total)
+- Auto-reshuffle when empty, spend/draw/canAfford methods
+- Key files: src/systems/PlayerBeadHand.ts, integrated with CharacterToken
+- Test count: 19 unit scenarios
+- Pattern: Pool-based management with cost validation
+
+[MANUAL] Step 4: Combat Integration ✅
+- Replaced TurnManager with ActionWheel in BattleScene
+- Actions: Move (cost 1), Run (cost 2), Attack (cost 2), Rest (cost 2)
+- HP values: heroes 3, bosses 10
+- Continuous turn loop with wheel and bead UI
+- Key files: src/scenes/BattleScene.ts, BattleUI, wheel/bead visualization
+- Test count: 19 E2E scenarios
+- Pattern: processTurn() → getNextActor() → execute → advanceEntity()
+
+[MANUAL] Step 5: Turn Enforcement Bug Fix ✅
+- Validate current actor matches selected hero
+- Auto-select current actor when turn begins
+- Gray out non-active hero portraits
+- Key files: src/scenes/BattleScene.ts, src/ui/HeroSelectionBar.ts
+- Test count: 3 E2E scenarios
+- Pattern: Turn enforcement via handleHeroBarClick() and showPlayerTurn()
+
+[MANUAL] Step 6: Battle UI Redesign ✅
+- Enhanced bead display (10px cards, 14px panel)
+- Turn banner (top center), action wheel pie chart
+- Action icons: → (Move), » (Run), ⚔ (Attack), ⏸ (Rest)
+- Hero card colors (P1-P4 unique), grid lines (2px, 0.7 alpha)
+- Key files: src/ui/BattleUI.ts, HeroSelectionBar.ts, SelectedHeroPanel.ts
+- Test count: 40 E2E scenarios
+- Pattern: Visual polish with colored backgrounds and size scaling
+
+[MANUAL] Step 7: Defense and Evasion System ✅
+- Defensive stats: Armor, Guard, Evasion on creature schema
+- Offensive stats: Power, Agility on attack schema
+- Attack modifiers: Feint, Heavy, Precise, Swift
+- Player defensive reactions: +1 Guard (red bead) or +1 Evasion (green bead)
+- Key files: src/systems/CombatResolver.ts, AttackEffect.ts, Entity.ts
+- Test count: 70 unit scenarios (32 resolver + 8 defense display + 15 display + 10 reactions + 5 combat)
+- Pattern: Pre-resolution prompt via Effect.execute() async support
+
+[MANUAL] Step 8.1: Character Data Model & Storage ✅
+- CharacterData interface: id, name, attributes (str/dex/mnd/spr), weapon, isDefault, timestamps
+- CharacterStorageService: getAll/getById/save/delete/isNameUnique methods
+- localStorage-backed CRUD with max 10 custom characters
+- Default characters loaded from public/data/characters/defaults.yaml (4 characters)
+- Key files: src/types/CharacterData.ts, src/services/CharacterStorageService.ts
+- Test count: 17 unit scenarios
+- Pattern: Service class with localStorage integration
+
+[MANUAL] Step 8.2: Starting Weapons Data ✅
+- 4 weapons defined: Sword, Axe, Mace, Spear
+- Stats: Sword (power=1, agility=1, range=1), Axe (power=2, agility=0, range=1), Mace (power=1, agility=0, range=1), Spear (power=1, agility=1, range=1-2)
+- WeaponDefinition interface and DataLoader.loadWeapons()
+- Key files: public/data/weapons/core.yaml, src/types/WeaponDefinition.ts, src/systems/DataLoader.ts
+- Test count: 7 unit scenarios
+- Pattern: YAML data with TypeScript interface binding
+
+[MANUAL] Step 8.3: Character Creation Scene - Layout & Name ✅
+- CharacterCreationScene with DOM input for character name
+- Validation: max 20 characters, uniqueness check, empty validation
+- First-letter token preview, Cancel button
+- DOM support via Phaser integration in src/main.ts
+- Key files: src/scenes/CharacterCreationScene.ts, src/scenes/MenuScene.ts (button added)
+- Test count: 4 E2E scenarios passing (6 @wip)
+- Pattern: Phaser scene with embedded HTML input
+
+[MANUAL] Step 8.4: Character Creation Scene - Attributes ✅
+- 4 attributes (STR, DEX, MND, SPR) with +/- buttons
+- Min=1, max=6 per attribute, 8 point allocation (4 pre-allocated)
+- Real-time bead preview circles (Red=STR, Green=DEX, Blue=MND, White=SPR)
+- Button disable logic: + disabled at max/zero points, - disabled at min
+- Key files: src/scenes/CharacterCreationScene.ts (extended)
+- Test count: 8 E2E scenarios
+- Pattern: UI state management with validation and visual feedback
+
+---
+
+## Ralph Autonomous Loop Starts Here
+Date: 2026-02-25
+Remaining: Steps 8.5-8.11
+Context: Character Creation system partially implemented (8.1-8.4 complete)
+Total tests: 535 (469 unit + 66 E2E)
+
+### Key Codebase Patterns
+
+**TDD Structure**:
+- Features: BDD format (Gherkin) in features/ (unit/, integration/, e2e/)
+- Step definitions: tests/steps/ and tests/e2e/steps/
+- Production code: src/
+- Run tests: npm run test:unit, npm run test:e2e, npm run test
+
+**System Architecture**:
+- Systems: Encapsulated logic classes (ActionWheel, BeadBag, CombatResolver, etc.)
+- Entities: Domain objects (Token, CharacterToken, MonsterToken, Entity)
+- Services: Stateful managers (CharacterStorageService, DataLoader)
+- UI Components: Phaser graphics classes (HeroSelectionBar, SelectedHeroPanel, BattleUI)
+- Scenes: Game scenes (MenuScene, BattleScene, CharacterCreationScene)
+
+**Data Patterns**:
+- YAML config in public/data/
+- TypeScript interfaces for all data (CharacterData, WeaponDefinition, etc.)
+- localStorage for character persistence
+- Immutable updates where possible
+
+**Testing Patterns**:
+- Each feature file is focused (one system/concern)
+- Given/When/Then step structure
+- Mock/stub external dependencies
+- E2E tests verify integration scenarios
+
+---
+
+## Ralph Session — 2026-02-25
+
+[ITERATION 1] Story: STORY-8.5 — Character Creation Scene - Weapon & Save
+- Result: SUCCESS
+- Phase RED: 6 E2E scenarios written (5 passing, 1 @wip for edit mode)
+- Phase GREEN: Weapon selection UI, save functionality, DOM test elements
+- Key files modified: src/scenes/CharacterCreationScene.ts, features/e2e/character-creation.feature, tests/e2e/steps/character-creation.steps.ts
+- Learnings:
+  - DOM weapon buttons need data-weapon attribute (lowercase id), not textContent matching
+  - localStorage access requires page navigation first in E2E setup steps
+  - Edit mode via scene.start() data parameter needs scene-level support (deferred to @wip)
+  - Reused existing continue-button pattern for step transitions (name → attributes → weapons)
+- Test count: 469 unit + 71 E2E = 540 total (was 535)
+
+[ITERATION 2] UI Bug Fixes — CharacterCreationScene Layout
+- Result: SUCCESS
+- 5 visual bugs fixed via TDD (RED → GREEN → visual verification):
+  1. "Character Name" label visible on attribute/weapon steps → hidden via setVisible(false)
+  2. Continue/Cancel buttons overlapping attribute rows (y=484 vs y=520) → repositioned to y=660
+  3. Save/Cancel buttons overlapping weapon rows (y=564 vs y=560) → dynamic calculation (y=660)
+  4. "Bead Bag Preview" title overlapping SPR row (both y=520) → moved to y=560
+  5. Bead preview circles off-center (center=647 vs canvas=512) → dynamic centering from -totalWidth/2
+- 2 @wip test fixes:
+  - Token preview: toBeVisible → toBeAttached + content check (hidden DOM element)
+  - localStorage SecurityError: navigate before accessing storage
+- New agent: ui-verifier (Playwright-based visual bug detection)
+- Vite config: usePolling=true (inotify watcher limit workaround)
+- Key files: src/scenes/CharacterCreationScene.ts, tests/e2e/steps/character-creation.steps.ts, features/e2e/character-creation.feature
+- Learnings:
+  - Phaser ScenePlugin.start() DOES shutdown the calling scene (SceneManager.start() does NOT)
+  - Scene overlap seen in console was SceneManager API, not a real bug in UI flow
+  - DOM test elements with visibility:hidden are intentionally hidden — check content not visibility
+  - E2E position tests should access scene properties directly, not search by estimated position
+- Test count: 469 unit + 78 E2E = 547 total (was 540)
