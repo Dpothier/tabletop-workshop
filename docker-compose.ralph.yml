@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  ralph:
+    build:
+      context: .
+      dockerfile: Dockerfile.ralph
+    container_name: ralph-tdd-loop
+
+    # Use pipes for non-interactive AFK mode
+    stdin_open: true
+    tty: false
+
+    # Environment variables
+    environment:
+      # Auth option 1: API key (set ANTHROPIC_API_KEY in your shell)
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+
+      # Auth option 2: OAuth token from Max/Pro subscription
+      CLAUDE_CODE_OAUTH_TOKEN: ${CLAUDE_CODE_OAUTH_TOKEN:-}
+
+      # JIRA integration (optional)
+      JIRA_BASE_URL: ${JIRA_BASE_URL:-}
+      JIRA_EMAIL: ${JIRA_EMAIL:-}
+      JIRA_API_TOKEN: ${JIRA_API_TOKEN:-}
+      JIRA_PROJECT_KEY: ${JIRA_PROJECT_KEY:-}
+
+      # Ralph configuration
+      PROJECT_ROOT: /workspace
+      RALPH_MODE: "true"
+
+    # Load .env.ralph for JIRA credentials (optional, ignored if missing)
+    env_file:
+      - path: .env.ralph
+        required: false
+
+    # Volumes for persistence
+    volumes:
+      # Persist claude-mem data
+      - ~/.claude-mem:/home/ralph/.claude-mem
+
+      # OAuth credentials from host (Max/Pro subscription)
+      - ~/.claude:/home/ralph/.claude:ro
+      - ~/.config/claude-code:/home/ralph/.config/claude-code:ro
+
+      # Project source (read-write for commits)
+      - .:/workspace:rw
+
+    # Network configuration
+    networks:
+      - ralph-network
+
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    # Resource limits (adjust based on your system)
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 2G
+
+    # Example command overrides (uncomment to use):
+    # command: ["--epic", "STORY-001", "--max", "10"]
+    #
+    # Options:
+    # --epic EPIC_KEY    : Sync from JIRA epic before starting
+    # --max N            : Override AFK_MAX_ITERATIONS
+    # --no-worktree      : Work in main repo instead of worktree
+
+networks:
+  ralph-network:
+    driver: bridge

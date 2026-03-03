@@ -1,0 +1,47 @@
+{
+  "project": "tabletop-workshop",
+  "branchName": "ralph/example",
+  "description": "Example stories showing how to structure user stories for Ralph",
+  "userStories": [
+    {
+      "id": "STORY-001",
+      "title": "Initialize battle grid state management",
+      "description": "Create a BattleGrid class that manages the 8x8 tactical grid for combat encounters.\n\nAcceptance Criteria:\n- Grid should be 8x8\n- Should track hero and monster positions\n- Should allow querying occupancy\n- Should support movement validation",
+      "type": "unit",
+      "passes": false,
+      "estimatedPoints": 5
+    },
+    {
+      "id": "STORY-002",
+      "title": "Implement action resolution system",
+      "description": "Create ActionResolver that processes combat actions (attack, defend, cast) with proper validation.\n\nAcceptance Criteria:\n- Support attack actions with hit/miss\n- Support defend actions that reduce damage\n- Support spell actions with mana costs\n- Return resolution result with outcome",
+      "type": "unit",
+      "passes": false,
+      "estimatedPoints": 8
+    },
+    {
+      "id": "STORY-003",
+      "title": "E2E: Complete single combat round",
+      "description": "End-to-end test of a complete combat round from action selection to damage application.\n\nAcceptance Criteria:\n- Hero selects attack action\n- System rolls attack\n- Monster takes damage if hit\n- UI updates to show new health\n- Turn passes to monster",
+      "type": "e2e",
+      "passes": false,
+      "estimatedPoints": 13
+    },
+    {
+      "id": "STORY-004",
+      "title": "Add defensive reactions",
+      "description": "Allow heroes and monsters to react with defensive actions when attacked.\n\nAcceptance Criteria:\n- Defender can choose to defend reaction\n- Defender reaction reduces damage by 50%\n- Reaction prevents counter-attack\n- Reaction has cooldown of 1 turn",
+      "type": "unit",
+      "passes": false,
+      "estimatedPoints": 5
+    },
+    {
+      "id": "STORY-005",
+      "title": "Implement critical hit system",
+      "description": "Add critical hit mechanics where 20% of successful attacks deal 2x damage.\n\nAcceptance Criteria:\n- Attack roll of 18+ is critical\n- Critical hits deal double damage\n- Critical hits trigger special animation\n- UI shows critical hit indicator",
+      "type": "unit",
+      "passes": false,
+      "estimatedPoints": 3
+    }
+  ]
+}

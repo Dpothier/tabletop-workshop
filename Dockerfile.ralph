@@ -1,0 +1,71 @@
+# Ralph Wiggum - Autonomous TDD Loop in Docker
+# Base: Ubuntu 22.04 with Node.js 20
+# User: non-root "ralph" for security
+
+FROM ubuntu:22.04
+
+# Set environment variables
+ENV DEBIAN_FRONTEND=noninteractive \
+    NODE_VERSION=20 \
+    HOME=/home/ralph \
+    PATH="/home/ralph/.bun/bin:${PATH}"
+
+# Install system dependencies: git, jq, curl, build tools
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    jq \
+    curl \
+    ca-certificates \
+    build-essential \
+    python3 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js 20 from NodeSource
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y --no-install-recommends nodejs && \
+    rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN useradd -m -s /bin/bash ralph && \
+    mkdir -p /workspace && \
+    chown -R ralph:ralph /workspace
+
+# Switch to ralph user
+USER ralph
+WORKDIR /home/ralph
+
+# Install Bun (as ralph user, no sudo needed)
+RUN curl -fsSL https://bun.sh/install | bash && \
+    chmod +x /home/ralph/.bun/bin/bun
+
+# Verify installations
+RUN node --version && \
+    npm --version && \
+    /home/ralph/.bun/bin/bun --version && \
+    git --version && \
+    jq --version
+
+# Install Claude Code CLI globally (as ralph user)
+RUN npm install -g @anthropic-ai/claude-code && \
+    claude --version
+
+# Copy project files into workspace
+COPY --chown=ralph:ralph . /workspace/
+
+# Set working directory
+WORKDIR /workspace
+
+# Install project dependencies
+RUN npm install
+
+# Verify ralph setup
+RUN [ -f /workspace/.ralph/config.sh ] && \
+    [ -f /workspace/scripts/ralph/ralph.sh ] && \
+    echo "Ralph configuration verified"
+
+# Health check: can we run claude?
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD claude --version || exit 1
+
+# Entrypoint: Ralph main loop
+ENTRYPOINT ["/workspace/scripts/ralph/ralph.sh"]

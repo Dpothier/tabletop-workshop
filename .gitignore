@@ -31,3 +31,4 @@ mockups/
 
 # MCP config (local)
 .mcp.json
+.env.ralph
