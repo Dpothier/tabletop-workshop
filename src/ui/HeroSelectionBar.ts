@@ -20,6 +20,27 @@ export interface HeroCardData {
 }
 
 /**
+ * Create HeroCardData from domain entities.
+ */
+export function toHeroCardData(
+  character: Character,
+  charClass: CharacterClass,
+  index: number
+): HeroCardData {
+  const beadCounts = character.getHandCounts() ?? { red: 0, blue: 0, green: 0, white: 0 };
+  return {
+    heroId: character.id,
+    className: charClass.name,
+    classIcon: charClass.icon || charClass.name[0],
+    color: HERO_COLORS[index % HERO_COLORS.length],
+    currentHp: character.currentHealth,
+    maxHp: character.maxHealth,
+    beadCounts,
+    name: character.getName(),
+  };
+}
+
+/**
  * Hero card state for E2E testing
  */
 export interface HeroCardState {
@@ -70,29 +91,6 @@ export class HeroSelectionBar {
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
     this.container = scene.add.container(HERO_BAR_X, HERO_BAR_Y);
-  }
-
-  /**
-   * Create hero cards from Character entities and CharacterClass definitions
-   */
-  createFromEntities(characters: Character[], classes: CharacterClass[]): void {
-    const heroCardData: HeroCardData[] = characters.map((character, index) => {
-      const charClass = classes[index % classes.length];
-      const beadCounts = character.getHandCounts() ?? { red: 0, blue: 0, green: 0, white: 0 };
-
-      return {
-        heroId: character.id,
-        className: charClass.name,
-        classIcon: charClass.icon || charClass.name[0],
-        color: HERO_COLORS[index % HERO_COLORS.length],
-        currentHp: character.currentHealth,
-        maxHp: character.maxHealth,
-        beadCounts,
-        name: character.getName(),
-      };
-    });
-
-    this.create(heroCardData);
   }
 
   /**
