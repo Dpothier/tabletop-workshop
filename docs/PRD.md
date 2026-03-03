@@ -500,6 +500,40 @@ Modifiers can be combined on a single Aim action. Example: a Longbow wielder spe
 - Defensive reactions that grant Guard still apply (Block, Parade, etc.)
 - All ranged hits deal 1 damage (same as melee)
 
+### Magical Combat Resolution
+
+Magical attacks use **Intensity vs Ward**. This applies to ALL magical effects on enemy targets — damage (Phoenix Burst), manipulation (Temporal Shift), forced displacement (Warp) — not just damage.
+
+```
+      Channel (1 wheel) → +1 Channel stack (repeatable, no limit)
+           ↓ (when ready)
+      Cast (2 wheel) + bead cost
+           ↓
+      Intensity = Base (1) + bonus Intensity purchased
+           ↓
+       ┌───┴───┐
+       │       │
+  Intensity   Ward ≥ Intensity
+   > Ward         ↓
+       ↓      Effect RESISTED
+  Effect manifests
+  (1 damage for attacks,
+   full effect for manipulation)
+```
+
+**Default Intensity = 1** for all spells. Any spell can pay +1 bead (same color as the spell) to increase Intensity by 1. This is a universal enhancement available to all magical weapons, not listed per weapon.
+
+**Ward** is the magical defense stat. Most creatures have Ward 0 (no innate magic resistance). Some monsters have Ward 1+ (magically resistant creatures). Ward can be increased by the Resist reaction.
+
+**Ally targeting:** An ally targeted by a magical effect (Phoenix Burst AoE, Temporal Shift, Warp) can choose to **voluntarily accept** the effect (skip the Ward check) or **resist** using their Ward normally. This allows friendly fire to be managed tactically — an ally in a Phoenix Burst zone can accept the fire damage if there's a good reason, or Resist it.
+
+**Key differences from melee/ranged:**
+- No Agility/Evasion check — magic cannot be dodged, only resisted
+- No Armor contribution — physical protection does not affect magic
+- Ward is the sole defense (passive Ward + Resist reaction)
+- Intensity > Ward is strictly greater (defender wins ties, consistent with all other combat)
+- All magical hits deal 1 damage (same as melee/ranged)
+
 ### Bleed
 A creature that is **bleeding** loses 1 HP at the end of each round (when the action wheel crosses segment 0). Bleed stacks — a creature with 2 bleed effects loses 2 HP per round. Bleed lasts indefinitely until cured (by healing effects, consumables, or other abilities). Bleed is applied when an attack that inflicts bleed deals damage.
 
@@ -757,6 +791,7 @@ All preparations can stack without limit **except Windup** (max 1 stack). The na
 | Quick Strike | Attack Modifier | 1 Green or Windup | — | -1w on this Attack (2w → 1w) | Light melee weapons only |
 | Strategize | Rest Modifier | 1 Blue or Ponder | — | During Rest: draw 4, keep 3, return 1 to bag | All characters |
 | Assess | Action (1w) | 1 Blue or Ponder | 1-6 | Reveal target monster's next bead and resulting action | All characters |
+| Resist | Defensive Reaction | 1 White | — | +1 Ward against current magical attack | All characters |
 | Coordinate | Action (1w) | 1 White | 1-6 | Give 1 preparation stack (Windup or Aim) to an ally | All characters |
 
 #### Red — Physical (STR)
@@ -780,6 +815,8 @@ Blue beads power mental actions. The core MND actions provide information advant
 **Cunning** is a monster stat that represents how difficult a creature is to predict. When Assessing a monster with Cunning X, the Assess cost increases by X Blue beads (or Ponder stacks). A goblin with Cunning 0 costs the standard 1w + 1B to Assess. A dragon with Cunning 2 costs 1w + 3B (1 base + 2 Cunning). This creates a spectrum of predictability — mindless creatures are easy to read, intelligent ones require significant mental investment.
 
 #### White — Spirit (SPR)
+
+**Resist** is a defensive reaction against magical attacks. When targeted by a magical effect (directly or via AoE), spend 1 White bead to gain +1 Ward against that effect. This is the magical equivalent of Guard (1 Red, +1 Guard for physical attacks). Any character can Resist — it is not limited to magic users. Ward from Resist stacks with innate Ward.
 
 **Coordinate** is a standalone support action (1w wheel cost + 1 White bead). Target an ally within range 1-6 and grant them 1 preparation stack of their choice (Windup or Aim). The ally decides which type based on their weapon and situation. Standard preparation interruption rules apply — if the ally takes damage, uses a reaction, or takes an unrelated action before consuming the stack, it is lost. This creates a cooperation dynamic: the coordinator prepares an ally, and the team must protect them until they can capitalize on the preparation. Range 1-6 ensures the coordinator doesn't need to be adjacent, making the 2:1 effective cost ratio (1w + 1W ≈ 2w for 1w of value) worthwhile.
 
@@ -1162,6 +1199,7 @@ All magical weapons share:
 - **Scalable power** — additional beads or Channel stacks enhance the spell's effect
 - **Blue OR White** — each spell uses one bead color (Blue for arcane/wizard, White for divine/cleric)
 - **Channel preparation** — Channel stacks substitute for bead cost at 1:1 ratio, no stack limit
+- **Intensity** — all spells have base Intensity 1; pay +1 bead (spell's color) to increase Intensity by 1 (universal, not listed per weapon)
 
 **Spell modulation pattern:**
 Each magical weapon defines a base effect (Cast 2w + minimum bead cost) and a set of enhancements that can be purchased with additional beads or Channel stacks. This parallels Power Attack's optional enhancements (extra_damage, knockback), but at a larger scale.
