@@ -1220,6 +1220,7 @@ Each magical weapon defines a base effect (Cast 2w + minimum bead cost) and a se
 | Hourglass of Time | 1 | Blue (MND) | Temporal Shift — advance or delay on action wheel | 4 |
 | Phoenix Heart | 1 | White (SPR) | Phoenix Rebirth — heal ally + fire burst around target | 4 |
 | Warping Stone | 1 | Blue (MND) | Warp — teleportation with swap and remote targeting | 5 |
+| Tear of Light | 1 | White (SPR) | Sanctuary — luminous barrier that repels enemies | sustained |
 
 #### Hourglass of Time — Temporal Shift
 
@@ -1299,6 +1300,42 @@ The delay mode is more likely to be used as **single-target** (adjacent to one p
 **Design note:** Unlike Hourglass and Phoenix Heart which reward full-channel investment with proportionally scaled AoE effects, the Warping Stone's value is in **combinatorial flexibility** — many small, situational casts rather than one big channeled cast. A 5B full cast (7w total) is theoretically possible but rarely optimal compared to multiple 2-3B casts over the course of a fight.
 
 **Cost justification:** Base (1B) is priced at Cast 2w + 1B = 3w for 6 tiles of obstacle-ignoring movement, compared to Run (2w) for 6 tiles of path-dependent movement. The 1B premium buys obstacle bypass. Each subsequent enhancement adds approximately 1w of tactical value: Swap effectively doubles the repositioning (two creatures move), Other redirects the effect, Extended selection removes adjacency requirement, Extended range doubles destination reach.
+
+#### Tear of Light — Sanctuary
+
+| Enhancement | Cost | Effect |
+|-------------|------|--------|
+| Base | Cast (2w) + 1W | Create a 3×3 luminous barrier zone centered on caster; push all enemies to the nearest edge |
+| Zone size | +1W | Expand zone to 5×5 |
+| Zone size | +1W | Expand zone to 7×7 |
+
+**Sanctuary** is the only **sustained spell** in the system. Unlike other spells that resolve instantly, Sanctuary persists as long as the caster maintains at least 1 Channel stack. This creates a fundamentally different playstyle: the fortress mage.
+
+**On cast:** All enemies within the zone are pushed to the nearest edge (forced displacement). If an enemy cannot be pushed (wall, another creature), standard collision rules apply — the blocked creature takes 1 damage. The push distance equals the difference between the enemy's position and the zone edge.
+
+**While active:**
+- Enemies **cannot enter** the zone. The luminous barrier is a force of repulsion, not a physical wall.
+- Enemies **can attack through** the barrier — melee attacks against creatures at the zone edge, ranged attacks, and magical attacks all function normally. The barrier does not block line of sight or projectiles.
+- When an enemy attempts to move into the zone, the caster must pay **2** (any combination of Channel stacks and White beads) to repel them. If the caster cannot or chooses not to pay, the barrier breaks and the zone disappears.
+- The zone is **centered on the caster** and moves with them if the caster is moved by an external effect (ally Warp, push, etc.) without losing Channel stacks.
+- The caster **can continue to Channel** while the zone is active. Sanctuary is the resolution of Channel, so taking the Channel action does not break the zone — it replenishes the maintenance pool.
+
+**Zone drops when:**
+- The caster has 0 Channel stacks remaining
+- The caster takes any action other than Channel (Move, Attack, Cast another spell, etc.)
+- The caster takes damage (standard preparation interruption)
+- The caster uses a defensive reaction
+
+**Mobility paradox:** The caster cannot move on their own (Move breaks Channel). But allies can reposition the caster — a Warping Stone user can teleport the Sanctuary caster, moving the entire zone. This creates teamwork: the team protects and repositions the fortress.
+
+**Typical investment:**
+- Channel 4w + Cast 2w + 1W (3×3) = 7w startup, 4 stacks for maintenance (blocks 2 breach attempts)
+- Channel 6w + Cast 2w + 3W (7×7) = 11w startup, 6 stacks for maintenance (blocks 3 breach attempts)
+- Continue channeling after cast to replenish: each 1w adds 1 stack to the maintenance pool
+
+**Cost justification:** The initial cast (2w + 1-3W = 3-5w) is comparable to other spells. The true cost is the ongoing Channel investment and the caster's complete immobility — they contribute nothing to offense while maintaining the zone. The 2-per-breach maintenance cost ensures the barrier is not permanent: a coordinated multi-enemy assault drains the pool rapidly. Against a single enemy, the barrier holds easily; against a swarm, it crumbles under pressure.
+
+**Design identity:** Sanctuary is the most expensive, most situational, and most team-dependent spell. It shines in defensive scenarios: protecting a wounded team, holding a chokepoint, buying time for another caster to channel a big spell. It's weak when the team needs to advance or when enemies can simply attack through the barrier without needing to enter.
 
 ## Armor System
 
