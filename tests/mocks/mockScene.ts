@@ -103,6 +103,41 @@ export function createMockScene(): any {
             this.text = newText;
             return this;
           },
+          visible: true,
+          depth: 0,
+          alpha: 1,
+          setVisible: function (visible: boolean) {
+            this.visible = visible;
+            return this;
+          },
+          setDepth: function (depth: number) {
+            this.depth = depth;
+            return this;
+          },
+          setAlpha: function (alpha: number) {
+            this.alpha = alpha;
+            return this;
+          },
+          setPosition: function (newX: number, newY: number) {
+            this.x = newX;
+            this.y = newY;
+            return this;
+          },
+          setScale: function () {
+            return this;
+          },
+          setInteractive: function () {
+            return this;
+          },
+          disableInteractive: function () {
+            return this;
+          },
+          on: function () {
+            return this;
+          },
+          off: function () {
+            return this;
+          },
           destroy: function (_removeFromDisplay?: boolean) {
             // no-op
           },
