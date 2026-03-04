@@ -43,3 +43,4 @@ import './battle-builder-beads.steps';
 import './cast-resolver.steps';
 import './ranged-resolver.steps';
 import './stabilize.steps';
+import './status-effects.steps';
