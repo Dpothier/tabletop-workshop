@@ -361,13 +361,15 @@ main() {
         export RALPH_MODE=true
 
         local claude_exit=0
+        pushd "$work_dir" > /dev/null
         if [ "$MODE" = "AFK" ]; then
             # AFK mode: non-interactive, pipe context
-            echo "$context" | claude -p --verbose --cwd "$work_dir" 2>&1 || claude_exit=$?
+            echo "$context" | claude -p --verbose 2>&1 || claude_exit=$?
         else
             # HITL mode: interactive with initial message
-            echo "$context" | claude --verbose --cwd "$work_dir" 2>&1 || claude_exit=$?
+            echo "$context" | claude --verbose 2>&1 || claude_exit=$?
         fi
+        popd > /dev/null
 
         log_info "Claude exited with code: $claude_exit"
 
