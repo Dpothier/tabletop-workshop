@@ -285,3 +285,31 @@ Total tests: 535 (469 unit + 66 E2E)
   - 5 prep types: windup (max 1, attack), aim (unlimited, shoot), ponder (unlimited), channel (unlimited, cast), rest (2w cost)
 - Test count: 555 unit + 111 E2E = 666 total
 
+[ITERATION 5] Story: MFG-11 — Unified Attack System
+- Result: SUCCESS
+- Phase RED: 11 unit scenarios written (unified-attack.feature)
+- Phase GREEN: resolveUnifiedAttack() delegates to existing resolveAttack() with computed stats
+- Key files created:
+  - src/combat/UnifiedAttackResolver.ts (resolveUnifiedAttack function + WeaponModifier type)
+  - features/unit/unified-attack.feature (11 scenarios)
+  - tests/steps/unified-attack.steps.ts (step definitions)
+- Learnings:
+  - Unified formula: power = 1 (base) + weaponPower + windupStacks + weaponModifier.powerBonus
+  - Unified formula: agility = 1 (base) + weaponAgility + weaponModifier.agilityBonus
+  - WeaponModifier carries built-in attackModifiers (e.g., Percer → feint)
+  - Composition over duplication: delegates to existing resolveAttack() for combat resolution
+- Test count: 566 unit + 111 E2E = 677 total
+
+---
+
+## Epic MFG-7 (Step 9.1 — Core Mechanics) COMPLETE
+All 7 stories pass:
+- MFG-17: Cast/Channel System ✅
+- MFG-16: Ranged Combat System ✅
+- MFG-15: Stabilize Mechanic ✅
+- MFG-14: Status Effects: Burn ✅
+- MFG-13: Magical Combat Resolution ✅
+- MFG-12: Preparation System ✅
+- MFG-11: Unified Attack System ✅
+Total tests added: 91 unit scenarios across 7 stories
+
