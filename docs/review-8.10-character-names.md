@@ -9,9 +9,9 @@
 | 3 | Fallback incohérent : CharacterVisual tombe sur "P1" mais `Character.getName()` tombe sur l'ID | ✅ DONE | Unifié sur P{index+1} — Character.playerIndex + getName() fallback |
 | 4 | `createFromEntities()` couple fortement HeroSelectionBar au modèle Character+CharacterClass | ✅ DONE | Factory function `toHeroCardData()` extraite, `createFromEntities()` supprimée |
 | 5 | Mock scene dupliqué à l'identique dans 2 fichiers de tests (115 lignes chacun) | ✅ DONE | Extrait dans `tests/mocks/mockScene.ts` partagé |
-| 6 | Interface `HeroCardState` redéfinie dans fixtures.ts au lieu d'être importée de la source | MINOR | Importer `HeroCardState` depuis `@src/ui/HeroSelectionBar` |
+| 6 | Interface `HeroCardState` redéfinie dans fixtures.ts au lieu d'être importée de la source | ✅ DONE | Import depuis `@src/ui/HeroSelectionBar`, définition locale supprimée |
 | 7 | `showPanel()` peut être appelé avant `setHeroNames()` — condition de course potentielle | ✅ OBSOLETE | `setHeroNames()` supprimé — showPanel() résout le nom paresseusement depuis battleState |
-| 8 | Mock text incomplet (manque `setVisible`, `setDepth`, etc.) | MINOR | Enrichir le mock partagé (voir point 5) |
+| 8 | Mock text incomplet (manque `setVisible`, `setDepth`, etc.) | ✅ DONE | Mock text enrichi : setVisible, setDepth, setAlpha, setPosition, setScale, on/off, etc. |
 | 9 | Affichage nom complet (carte) vs initiale (token) — intentionnel mais non documenté | ✅ DONE | Documenté dans PRD.md lignes 1454-1455 |
 
 ## Détails
@@ -72,4 +72,4 @@ Deux stratégies différentes pour le même cas.
 1. **#1 + #2** (CRITICAL) — ✅ Les deux corrigés (commit 1f1b77f + cfaaac3)
 2. **#5** (MAJOR) — ✅ Extrait dans tests/mocks/mockScene.ts
 3. **#3 + #4** (MAJOR) — ✅ Les deux corrigés (fallback unifié + toHeroCardData factory)
-4. **#6-#8** (MINOR) — Nettoyage opportuniste
+4. **#6-#8** (MINOR) — ✅ Tous corrigés (#6 import, #7 obsolète, #8 mock enrichi)

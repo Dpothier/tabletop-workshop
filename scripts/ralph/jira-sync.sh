@@ -124,7 +124,8 @@ search_epic_issues() {
     local epic_key="$1"
 
     local jql="parent = ${epic_key} AND status = \"To Do\" ORDER BY priority DESC"
-    jira_api_call "GET" "/rest/api/3/search?jql=$(echo -n "$jql" | jq -sRr @uri)"
+    local data="{\"jql\": $(echo "$jql" | jq -Rs .), \"maxResults\": 50, \"fields\": [\"summary\", \"status\", \"description\", \"issuetype\", \"priority\"]}"
+    jira_api_call "POST" "/rest/api/3/search/jql" "$data"
 }
 
 # Extract acceptance criteria from description
