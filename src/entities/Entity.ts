@@ -23,6 +23,7 @@ export class Entity {
   public armor: number = 0;
   public guard: number = 0;
   public evasion: number = 0;
+  public stabilizedWounds: number = 0;
   protected readonly grid: BattleGrid;
 
   constructor(id: string, maxHealth: number, grid: BattleGrid) {
@@ -121,5 +122,26 @@ export class Entity {
    */
   receiveDamage(amount: number): void {
     this.currentHealth = Math.max(0, this.currentHealth - amount);
+  }
+
+  /**
+   * Get total wounds (health lost).
+   */
+  getWounds(): number {
+    return this.maxHealth - this.currentHealth;
+  }
+
+  /**
+   * Get hand size based on current health and stabilized wounds.
+   */
+  getHandSize(): number {
+    return Math.max(0, this.currentHealth + this.stabilizedWounds);
+  }
+
+  /**
+   * Stabilize wounds (cannot exceed total wounds).
+   */
+  stabilize(count: number): void {
+    this.stabilizedWounds = Math.min(count, this.getWounds());
   }
 }

@@ -42,3 +42,4 @@ import './character-storage.steps';
 import './battle-builder-beads.steps';
 import './cast-resolver.steps';
 import './ranged-resolver.steps';
+import './stabilize.steps';
