@@ -171,3 +171,117 @@ Total tests: 535 (469 unit + 66 E2E)
   - DOM test elements with visibility:hidden are intentionally hidden — check content not visibility
   - E2E position tests should access scene properties directly, not search by estimated position
 - Test count: 469 unit + 78 E2E = 547 total (was 540)
+
+[ITERATION 1] Story: STORY-8.6
+- Result: FAILURE
+- Error: Claude exited with code 1
+- Action: Will retry on next iteration
+
+
+[ITERATION 1] Story: MFG-17
+- Result: FAILURE
+- Error: Claude exited with code 1
+- Action: Will retry on next iteration
+
+
+[ITERATION 2] Story: MFG-17
+- Result: FAILURE
+- Error: Claude exited with code 1
+- Action: Will retry on next iteration
+
+
+[ITERATION 3] Story: MFG-17
+- Result: FAILURE
+- Error: Claude exited with code 1
+- Action: Will retry on next iteration
+
+[ITERATION 4] Story: MFG-17 — Cast/Channel System
+- Result: SUCCESS
+- Phase RED: 21 unit scenarios written (cast-resolver.feature)
+- Phase GREEN: resolveSpellCast() pure function + SpellDefinition type
+- Key files created:
+  - src/combat/CastResolver.ts (resolveSpellCast function)
+  - src/types/SpellDefinition.ts (SpellDefinition, SpellEnhancement interfaces)
+  - features/unit/cast-resolver.feature (21 scenarios)
+  - tests/steps/cast-resolver.steps.ts (step definitions)
+- Learnings:
+  - Step definition names must be globally unique in quickpickle (had to prefix with "cast" to avoid collision with combat-resolver steps)
+  - Step files must be imported in tests/steps/index.ts to be loaded
+  - TypeScript TDD requires stub files in RED phase so imports resolve (all tests break if setup file fails)
+  - Damage formula: (baseDamage + enhancementDamage) * intensity - ward
+- Test count: 496 unit + 111 E2E = 607 total
+
+[ITERATION 4] Story: MFG-16 — Ranged Combat System
+- Result: SUCCESS
+- Phase RED: 12 unit scenarios written (ranged-resolver.feature)
+- Phase GREEN: resolveRangedAttack() pure function + RangedWeaponDefinition type
+- Key files created:
+  - src/combat/RangedResolver.ts (resolveRangedAttack function)
+  - src/types/RangedWeaponDefinition.ts (RangeBand, RangedWeaponDefinition interfaces)
+  - features/unit/ranged-resolver.feature (12 scenarios)
+  - tests/steps/ranged-resolver.steps.ts (step definitions)
+- Learnings:
+  - QuickPickleWorld has a `result` property (type number) — don't use `result` as a world property name
+  - Verify test math before implementing: caught 3 calculation errors in generated tests
+  - Range band determination: check range against band min/max, default to long
+- Test count: 508 unit + 111 E2E = 619 total
+
+[ITERATION 4] Story: MFG-15 — Stabilize Mechanic
+- Result: SUCCESS
+- Phase RED: 10 unit scenarios written (stabilize.feature)
+- Phase GREEN: Added stabilizedWounds, getWounds(), getHandSize(), stabilize() to Entity class
+- Key files modified/created:
+  - src/entities/Entity.ts (added 4 members)
+  - features/unit/stabilize.feature (10 scenarios)
+  - tests/steps/stabilize.steps.ts (5 new step definitions)
+- Learnings:
+  - Extending existing classes: reuse existing step defs from entity.steps, only add new steps
+  - Hand size formula: Math.max(0, currentHP + stabilizedWounds)
+  - stabilize() caps at getWounds() to prevent over-stabilization
+- Test count: 518 unit + 111 E2E = 629 total
+
+[ITERATION 4] Story: MFG-14 — Status Effects: Burn
+- Result: SUCCESS
+- Phase RED: 10 unit scenarios written (status-effects.feature)
+- Phase GREEN: StatusEffectManager class with burn tracking and end-of-round resolution
+- Key files created:
+  - src/systems/StatusEffectManager.ts (StatusEffectManager class)
+  - features/unit/status-effects.feature (10 scenarios)
+  - tests/steps/status-effects.steps.ts (step definitions)
+- Learnings:
+  - When reporting damage in EndOfRoundDamage, cap at entity.currentHealth for actual damage dealt
+  - Burn stacks accumulate (multiple applyBurn calls add up)
+  - resolveEndOfRound uses callback pattern for entity access (keeps manager decoupled)
+- Test count: 528 unit + 111 E2E = 639 total
+
+[ITERATION 4] Story: MFG-13 — Magical Combat Resolution
+- Result: SUCCESS
+- Phase RED: 10 unit scenarios (magical-resolver.feature)
+- Phase GREEN: resolveMagicalEffect() + ward property on Entity
+- Key files:
+  - src/combat/MagicalResolver.ts (Intensity vs Ward gate)
+  - src/entities/Entity.ts (ward property + setWard/getWard)
+  - features/unit/magical-resolver.feature (10 scenarios)
+  - tests/steps/magical-resolver.steps.ts
+- Learnings:
+  - Intensity > Ward is a GATE check (binary manifests), not damage reduction
+  - Ward is magical defense, kept separate from getDefenseStats() (physical)
+  - Ally accept bypasses ward entirely
+- Test count: 538 unit + 111 E2E = 649 total
+
+[ITERATION 5] Story: MFG-12 — Preparation System
+- Result: SUCCESS
+- Phase RED: 17 unit scenarios written (preparation.feature)
+- Phase GREEN: PreparationManager class with stack tracking, limits, interruption, consumption
+- Key files created:
+  - src/systems/PreparationManager.ts (PreparationManager class + PREPARATION_DEFINITIONS)
+  - features/unit/preparation.feature (17 scenarios)
+  - tests/steps/preparation.steps.ts (step definitions)
+- Learnings:
+  - Map<string, Map<PreparationType, number>> for nested entity→prepType→stacks tracking
+  - maxStacks enforcement via Math.min on prepare()
+  - interruptByAction selectively clears preps whose pairedActions don't include the action
+  - Unused quickpickle world/params need _ prefix to avoid TS6133
+  - 5 prep types: windup (max 1, attack), aim (unlimited, shoot), ponder (unlimited), channel (unlimited, cast), rest (2w cost)
+- Test count: 555 unit + 111 E2E = 666 total
+

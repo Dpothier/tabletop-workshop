@@ -1,55 +1,62 @@
 {
-  "project": "tabletop-workshop",
-  "branchName": "ralph/step-8",
-  "description": "Character Creation System - remaining stories (8.5-8.11)",
+  "project": "MFG",
+  "epicKey": "MFG-7",
+  "branchName": "ralph/MFG-7",
   "userStories": [
     {
-      "id": "STORY-8.5",
-      "title": "Character Creation Scene - Weapon & Save",
-      "description": "Add weapon selection and character save functionality to CharacterCreationScene.ts\n\nAcceptance Criteria:\n- List all 4 weapons with their stats (power, agility, range) displayed\n- Visual highlight indicates selected weapon\n- 'Save' button present\n- Save button disabled if: name invalid OR points not spent OR no weapon selected\n- Save calls CharacterStorageService.save() with complete character data\n- After successful save, return to MenuScene\n- Edit mode: pre-fill all fields (name, attributes, weapon) if character passed as parameter\n- E2E tests pass (minimum 4 scenarios)",
-      "type": "e2e",
+      "id": "MFG-17",
+      "title": "9.1.7 — Cast/Channel System",
+      "description": "Tests:",
+      "acceptanceCriteria": [],
+      "priority": 3,
       "passes": true
     },
     {
-      "id": "STORY-8.6",
-      "title": "Menu Scene - Character Slots UI",
-      "description": "Replace party size selector with 4 character slots in MenuScene.ts\n\nAcceptance Criteria:\n- Remove existing 'Party Size' selector UI\n- Display 4 slots arranged horizontally\n- Empty slot displays '+' or 'Empty' placeholder\n- Filled slot displays: character name + first letter + attribute summary\n- Click empty slot → opens character selection popup\n- Click filled slot → opens popup for change/remove options\n- 'Start Battle' button disabled if no characters selected\n- E2E tests pass (minimum 4 scenarios)",
-      "type": "e2e",
-      "passes": false
+      "id": "MFG-16",
+      "title": "9.1.6 — Ranged Combat System",
+      "description": "Tests:",
+      "acceptanceCriteria": [],
+      "priority": 3,
+      "passes": true
     },
     {
-      "id": "STORY-8.7",
-      "title": "Menu Scene - Character Selection Popup",
-      "description": "Create CharacterSelectionPopup.ts component for selecting characters in slots\n\nAcceptance Criteria:\n- Modal popup displays list of all saved characters\n- Each entry shows: name, attribute summary (STR/DEX/MND/SPR), weapon\n- Default characters visually marked (e.g., lock icon)\n- Already selected characters grayed out (non-selectable)\n- 'Create New' button navigates to CharacterCreationScene\n- 'Remove' button appears when editing existing slot\n- Select character → closes popup, fills slot\n- Click outside popup or X button → closes without changes\n- E2E tests pass (minimum 5 scenarios)",
-      "type": "e2e",
-      "passes": false
+      "id": "MFG-15",
+      "title": "9.1.5 — Stabilize Mechanic",
+      "description": "Tests:",
+      "acceptanceCriteria": [],
+      "priority": 3,
+      "passes": true
     },
     {
-      "id": "STORY-8.8",
-      "title": "Character Management View",
-      "description": "Create CharacterManagementPanel.ts for managing saved characters\n\nAcceptance Criteria:\n- 'Manage Characters' button in MenuScene\n- Panel displays all characters with full details\n- 'Edit' button for custom characters → CharacterCreationScene (edit mode)\n- 'Delete' button for custom characters (disabled if in current party)\n- Delete confirmation dialog ('Delete X ?')\n- Default characters: no Edit/Delete buttons\n- 'Export All' button → downloads JSON file with all characters\n- 'Import' button → loads JSON file, merges with existing characters\n- E2E tests pass (minimum 5 scenarios)",
-      "type": "e2e",
-      "passes": false
+      "id": "MFG-14",
+      "title": "9.1.4 — Status Effects: Burn",
+      "description": "Tests:",
+      "acceptanceCriteria": [],
+      "priority": 3,
+      "passes": true
     },
     {
-      "id": "STORY-8.9",
-      "title": "Battle Integration - Bead Bag from Attributes",
-      "description": "Modify BattleBuilder.ts to create characters with bead bags based on their attributes\n\nAcceptance Criteria:\n- BattleBuilder receives list of CharacterData instead of partySize\n- Character entity stores: name, attributes (str/dex/mnd/spr), weaponId\n- PlayerBeadSystem initialized with composition based on attributes\n- Character with STR=5,DEX=2,MND=2,SPR=3 → bead bag of 5 red, 2 green, 2 blue, 3 white\n- Draw 3 beads at battle start (unchanged)\n- Unit tests pass (minimum 6 scenarios)",
-      "type": "unit",
-      "passes": false
+      "id": "MFG-13",
+      "title": "9.1.3 — Magical Combat Resolution",
+      "description": "Tests:",
+      "acceptanceCriteria": [],
+      "priority": 3,
+      "passes": true
     },
     {
-      "id": "STORY-8.10",
-      "title": "Battle UI - Character Names Display",
-      "description": "Display character names in combat UI (HeroSelectionBar, SelectedHeroPanel, CharacterVisual)\n\nAcceptance Criteria:\n- HeroSelectionBar: character name visible on each hero card\n- SelectedHeroPanel: character name displayed at top when hero selected\n- CharacterVisual: token on grid shows first letter of character name (instead of 'P1', 'P2', etc.)\n- Player colors (P1-P4) preserved for visual distinction\n- E2E tests pass (minimum 3 scenarios)",
-      "type": "e2e",
-      "passes": false
+      "id": "MFG-12",
+      "title": "9.1.2 — Preparation System",
+      "description": "Tests:",
+      "acceptanceCriteria": [],
+      "priority": 3,
+      "passes": true
     },
     {
-      "id": "STORY-8.11",
-      "title": "Final Integration & Polish",
-      "description": "Complete integration testing and final polish of character creation system\n\nAcceptance Criteria:\n- Complete flow works: Menu → Create Character → Select Characters → Battle\n- Default characters usable immediately on first launch\n- Import/Export functionality works correctly\n- All unit tests pass\n- All E2E tests pass\n- No regressions in existing functionality\n- 'npm run check' passes without errors (typecheck + lint + format)",
-      "type": "e2e",
+      "id": "MFG-11",
+      "title": "9.1.1 — Unified Attack System",
+      "description": "Tests:",
+      "acceptanceCriteria": [],
+      "priority": 3,
       "passes": false
     }
   ]
