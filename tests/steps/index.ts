@@ -44,3 +44,4 @@ import './cast-resolver.steps';
 import './ranged-resolver.steps';
 import './stabilize.steps';
 import './status-effects.steps';
+import './magical-resolver.steps';

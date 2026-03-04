@@ -23,6 +23,7 @@ export class Entity {
   public armor: number = 0;
   public guard: number = 0;
   public evasion: number = 0;
+  public ward: number = 0;
   public stabilizedWounds: number = 0;
   protected readonly grid: BattleGrid;
 
@@ -114,6 +115,20 @@ export class Entity {
    */
   setEvasion(amount: number): void {
     this.evasion = amount;
+  }
+
+  /**
+   * Set ward value (magical defense).
+   */
+  setWard(amount: number): void {
+    this.ward = amount;
+  }
+
+  /**
+   * Get ward value (magical defense).
+   */
+  getWard(): number {
+    return this.ward;
   }
 
   /**
