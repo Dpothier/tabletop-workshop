@@ -144,7 +144,7 @@ BattleScene (Thin Adapter - implements BattleAdapter)
 | targetType drives dispatch | Adding actions requires only YAML changes, no code |
 | BattleAdapter abstracts UI | Enables testing Action/ActionResolution without Phaser |
 | TurnFlowController orchestrates | Pure logic extracted from BattleScene, fully testable |
-| Visuals maintain entity references | Visual classes store references to their state entities (Character, Monster) to avoid duplicating data. Dynamic data is accessed via entity methods, not local copies. Reactive updates pass through BattleStateObserver. |
+| Visuals store entity/data references | CharacterVisual holds an optional `Character` entity reference; MonsterVisual holds a `Monster` data definition. Dynamic data (names) is accessed via entity methods when available. Reactive updates (health, position) pass through BattleStateObserver. |
 
 ---
 
