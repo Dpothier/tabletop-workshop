@@ -303,10 +303,6 @@ main() {
     if [ -n "$epic_key" ] && [ -n "${JIRA_BASE_URL:-}" ] && [ -z "${AGENT_ID:-}" ]; then
         log_info "Syncing stories from JIRA epic ${epic_key}..."
         "${SCRIPT_DIR}/jira-sync.sh" pull "$epic_key" || log_warning "JIRA pull failed, using existing prd.json"
-        # Re-copy prd.json to worktree if using one
-        if [ "$work_dir" != "$PROJECT_ROOT" ] && [ -f "${PROJECT_ROOT}/prd.json" ]; then
-            cp "${PROJECT_ROOT}/prd.json" "${work_dir}/prd.json"
-        fi
     fi
 
     local total
