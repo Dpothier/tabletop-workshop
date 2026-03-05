@@ -8,7 +8,8 @@ FROM ubuntu:22.04
 ENV DEBIAN_FRONTEND=noninteractive \
     NODE_VERSION=20 \
     HOME=/home/ralph \
-    PATH="/home/ralph/.bun/bin:${PATH}"
+    PATH="/home/ralph/.bun/bin:/home/ralph/.npm-global/bin:${PATH}" \
+    NPM_CONFIG_PREFIX=/home/ralph/.npm-global
 
 # Install system dependencies: git, jq, curl, build tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -46,8 +47,9 @@ RUN node --version && \
     git --version && \
     jq --version
 
-# Install Claude Code CLI globally (as ralph user)
-RUN npm install -g @anthropic-ai/claude-code && \
+# Install Claude Code CLI in user-local prefix
+RUN mkdir -p /home/ralph/.npm-global && \
+    npm install -g @anthropic-ai/claude-code && \
     claude --version
 
 # Copy project files into workspace
