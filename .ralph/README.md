@@ -4,7 +4,7 @@
 
 Ralph Wiggum est un systeme de TDD (Test-Driven Development) autonome qui automatise le cycle de developpement. Il orchestre des sessions Claude Code CLI pour executer iterativement le cycle Red → Green → Refactor → Verify → Commit sur chaque user story definie dans `prd.json`.
 
-L'objectif central est de rendre le developpement reproductible et non-supervisable : un developpeur peut confier un epic JIRA a Ralph et le retrouver avec du code valide, teste, commite et synchronise vers JIRA. Trois modes d'operation couvrent les cas d'usage de l'assistance interactive au pipeline CI/CD multi-agents en parallele.
+L'objectif central est de rendre le developpement reproductible et non-supervisable : un developpeur peut confier un epic JIRA a Ralph et le retrouver avec du code valide, teste, commite et synchronise vers JIRA. Deux modes d'operation couvrent les cas d'usage de l'agent unique autonome au pipeline CI/CD multi-agents en parallele : AFK (agent unique) et Swarm (multi-agents paralleles).
 
 Le flux de base est le suivant : `prd.json` definit les user stories → Ralph selectionne la premiere story incomplete → ecrit un test qui echoue → ecrit le code minimal → valide → commite → marque la story comme terminee → passe a la suivante.
 
@@ -90,7 +90,7 @@ graph TD
     PROGRESS[progress.txt<br/>Learnings]
     JIRA[JIRA Cloud<br/>API REST]
 
-    subgraph "Mode HITL / AFK"
+    subgraph "Mode AFK (Agent Unique)"
         RALPH[ralph.sh<br/>Boucle principale]
         HOOK[stop-hook.sh<br/>Re-injection de session]
         CLAUDE_CLI[claude CLI<br/>Moteur IA]
@@ -157,68 +157,24 @@ graph TD
 
 ## 4. Modes d'Operation — Presentation Comparative
 
-| Aspect | HITL | AFK | Swarm |
-|--------|------|-----|-------|
-| **Script principal** | `ralph.sh` (via `hitl.sh`) | `ralph.sh` (via `afk.sh`) | `ralph-swarm.sh` (via `swarm-afk.sh`) |
-| **Interaction** | Interactive (l'humain voit chaque action) | Entierement autonome | Entierement autonome + parallele |
-| **Isolation** | Docker container (optionnel) | Docker container (recommande) | Docker container (recommande) |
-| **Parallelisme** | 1 agent | 1 agent | Jusqu'a N agents (defaut : 3) |
-| **Permissions Claude** | Normales | `--dangerously-skip-permissions` | `--dangerously-skip-permissions` |
-| **Max iterations** | 5 (`HITL_MAX_ITERATIONS`) | 50 (`AFK_MAX_ITERATIONS`) | Dependant du nombre de stories |
-| **Synchronisation JIRA** | Optionnelle | Optionnelle | Automatique (graphe de dependances) |
-| **Branching git** | Worktree unique `ralph/{epic}` | Worktree unique `ralph/{epic}` | Worktrees multiples + branche d'integration |
-| **Strategie de merge** | Manuelle (le developpeur revue) | Auto-push vers la branche | Auto-merge vers `integration/{epic}` + PR |
-| **Resolution de conflits** | Manuelle | N/A (agent unique) | Automatisee via Claude resolver (max 2 retries) |
-| **Reseau** | Acces complet | Firewall optionnel | Firewall optionnel |
-| **Cas d'usage** | Developpement assiste, debugging, exploration | Stories independantes overnight | Epics entiers avec dependances |
+| Aspect | AFK | Swarm |
+|--------|-----|-------|
+| **Script principal** | `ralph.sh` (via `afk.sh`) | `ralph-swarm.sh` (via `swarm-afk.sh`) |
+| **Interaction** | Entierement autonome | Entierement autonome + parallele |
+| **Isolation** | Docker container (recommande) | Docker container (recommande) |
+| **Parallelisme** | 1 agent | Jusqu'a N agents (defaut : 3) |
+| **Permissions Claude** | `--dangerously-skip-permissions` | `--dangerously-skip-permissions` |
+| **Max iterations** | 50 | Dependant du nombre de stories |
+| **Synchronisation JIRA** | Optionnelle | Automatique (graphe de dependances) |
+| **Branching git** | Worktree unique `ralph/{epic}` | Worktrees multiples + branche d'integration |
+| **Strategie de merge** | Auto-push vers la branche | Auto-merge vers `integration/{epic}` + PR |
+| **Resolution de conflits** | N/A (agent unique) | Automatisee via Claude resolver (max 2 retries) |
+| **Reseau** | Firewall optionnel | Firewall optionnel |
+| **Cas d'usage** | Stories independantes overnight | Epics entiers avec dependances |
 
 ---
 
 ## 5. Details de Chaque Mode avec Exemples
-
-### Mode HITL (Human-In-The-Loop)
-
-**Concept** : Le developpeur lance Claude de facon interactive, avec ou sans Docker. Le container fournit l'isolation, l'humain observe et approuve. Utile pour le pair-programming, le debugging, l'apprentissage.
-
-**Lancement**
-```bash
-# Direct (sans Docker)
-scripts/ralph/ralph.sh --epic MFG-7
-
-# Via Docker
-scripts/ralph/hitl.sh
-```
-
-**Flux HITL**
-
-```mermaid
-sequenceDiagram
-    participant Dev as Developpeur
-    participant R as ralph.sh
-    participant C as claude CLI
-    participant H as stop-hook.sh
-    participant P as prd.json
-
-    Dev->>R: ralph.sh --epic MFG-7
-    R->>P: Lire stories (passes == false)
-    R->>R: build_context() → PROMPT.md + story + progress.txt
-    R->>C: echo context | claude --verbose (RALPH_MODE=true)
-    C-->>Dev: Session interactive (RED / GREEN / REFACTOR / VERIFY / COMMIT)
-    C->>H: Session se termine → stop-hook recu
-    H->>P: Verifier stories restantes
-    alt Stories restantes et iterations < MAX
-        H-->>C: block + re-injecter contexte pour prochaine story
-        C-->>Dev: Nouvelle iteration
-    else Toutes les stories completes ou MAX atteint
-        H-->>C: allow stop
-        C-->>Dev: Session terminee
-    end
-    R->>R: finalize_worktree() → push branch
-```
-
-**Quand l'utiliser** : developpement assiste, debugging d'une story en echec, decouverte du codebase, stories necessitant un jugement humain.
-
----
 
 ### Mode AFK (Away-From-Keyboard)
 
@@ -231,8 +187,8 @@ sequenceDiagram
 # Via Docker (recommande)
 scripts/ralph/afk.sh --epic MFG-7
 
-# Direct (dangereux — sans sandbox !)
-RALPH_MODE=true scripts/ralph/ralph.sh --epic MFG-7 --no-worktree
+# Direct (sans Docker — assurer l'isolation autrement)
+scripts/ralph/ralph.sh --epic MFG-7
 ```
 
 **Flux AFK**
@@ -372,7 +328,7 @@ Avec `SWARM_ENABLE_CHAINING=true`, la chaine MFG-11/13/14 est confiee a un seul 
 | `scripts/ralph/ralph-swarm.sh` | 470 | Orchestrateur Swarm, boucle de scheduling, coordination |
 | `scripts/ralph/stop-hook.sh` | 215 | Hook de continuation de session Claude |
 | `scripts/ralph/jira-sync.sh` | 465 | Synchronisation bidirectionnelle JIRA ↔ prd.json |
-| `scripts/ralph/hitl.sh` | 23 | Wrapper Docker — mode HITL interactif |
+| `scripts/ralph/hitl.sh` | 23 | Wrapper Docker — Claude Code interactif en mode yolo (utilitaire independant de Ralph) |
 | `scripts/ralph/afk.sh` | 24 | Wrapper Docker — mode AFK autonome |
 | `scripts/ralph/swarm-afk.sh` | 67 | Wrapper Docker — mode Swarm |
 | `scripts/ralph/init-firewall.sh` | 132 | Securite reseau container (whitelist ufw) |
@@ -383,7 +339,7 @@ Avec `SWARM_ENABLE_CHAINING=true`, la chaine MFG-11/13/14 est confiee a un seul 
 | `.ralph/config.sh` | 52 | Configuration centrale exportee vers tous les composants |
 | `.ralph/PROMPT.md` | 89 | Algorithme TDD injecte dans chaque session Claude |
 | `Dockerfile.ralph` | 72 | Image Docker (Ubuntu 22.04 + Node.js 20 + Claude Code CLI) |
-| `docker-compose.ralph.yml` | 81 | Compose pour agent unique (HITL / AFK) |
+| `docker-compose.ralph.yml` | 81 | Compose pour agent unique (AFK) |
 | `docker-compose.swarm.yml` | 59 | Compose pour l'orchestrateur Swarm |
 | `prd.json` | variable | Stories (fichier runtime, genere ou ecrit manuellement) |
 | `progress.txt` | variable | Learnings accumules entre les iterations (fichier runtime) |
@@ -397,8 +353,7 @@ Toutes les variables sont definies dans `.ralph/config.sh` et exportees vers les
 
 | Variable | Defaut | Description |
 |----------|--------|-------------|
-| `HITL_MAX_ITERATIONS` | `5` | Max iterations en mode interactif |
-| `AFK_MAX_ITERATIONS` | `50` | Max iterations en mode autonome |
+| `MAX_ITERATIONS` | `50` | Max iterations par run (override avec --max) |
 | `SWARM_MAX_PARALLEL_AGENTS` | `3` | Max agents concurrents en mode Swarm |
 | `SWARM_POLL_INTERVAL` | `10` | Secondes entre les verifications du statut des agents |
 | `SWARM_MAX_CONFLICT_RETRIES` | `2` | Max tentatives de resolution par conflit |
@@ -412,7 +367,7 @@ Toutes les variables sont definies dans `.ralph/config.sh` et exportees vers les
 | `RALPH_DIR` | `$PROJECT_ROOT/.ralph` | Repertoire de configuration |
 | `SWARM_STATE_DIR` | `$PROJECT_ROOT/.ralph/swarm-state` | Etat runtime du Swarm (graph.json, agents.json, logs/) |
 
-**Detection automatique du mode** : `config.sh` verifie la presence de `/.dockerenv` pour determiner `MODE=AFK` ou `MODE=HITL`, ce qui fixe automatiquement `MAX_ITERATIONS`.
+**Detection automatique du mode** : `config.sh` verifie la presence de `/.dockerenv` pour determiner `MODE=AFK`, ce qui fixe automatiquement `MAX_ITERATIONS`.
 
 ---
 
@@ -451,7 +406,7 @@ Claude est tenu de :
 
 ### Mecanisme du Stop Hook
 
-`stop-hook.sh` est enregistre comme hook `Stop` de Claude Code. A chaque fin de session, il :
+`stop-hook.sh` est enregistre comme hook `Stop` de Claude Code. C'est un filet de securite pour la boucle en mode pipe : si Claude termine une story au sein d'une session et que la boucle externe n'a pas encore re-invoque, le hook intervient. A chaque fin de session, il :
 1. Verifie que `RALPH_MODE=true` est present (evite d'interferer avec les sessions normales)
 2. Cherche `<promise>COMPLETE</promise>` dans le dernier message de l'assistant
 3. Verifie qu'il reste des stories incompletes dans `prd.json`
@@ -461,7 +416,7 @@ Claude est tenu de :
 ### Gestion des Worktrees Git
 
 Ralph cree un worktree isole pour travailler sans contaminer la branche principale :
-- Mode HITL/AFK : `.claude/worktrees/ralph` sur la branche `ralph/{epic}`
+- Mode AFK : `.claude/worktrees/ralph` sur la branche `ralph/{epic}`
 - Mode Swarm : `.claude/worktrees/ralph-{agent_id}` sur la branche `ralph-swarm/{agent_id}`
 - Branche d'integration Swarm : `.claude/worktrees/integration-{epic}` sur `integration/{epic}`
 

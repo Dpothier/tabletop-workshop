@@ -2,9 +2,8 @@
 
 # Ralph Wiggum - Autonomous TDD Loop Configuration
 
-# Max iterations per mode
-HITL_MAX_ITERATIONS=5          # Human-in-the-loop mode
-AFK_MAX_ITERATIONS=50          # Away-from-keyboard mode
+# Max iterations per run (override with --max flag)
+MAX_ITERATIONS="${MAX_ITERATIONS:-50}"
 
 # Swarm orchestrator settings
 SWARM_MAX_PARALLEL_AGENTS=3   # Max concurrent Ralph agents
@@ -18,20 +17,15 @@ SWARM_STATE_DIR="${PROJECT_ROOT}/.ralph/swarm-state"
 AUTO_FORMAT_ON_FAILURE=true    # true: run npm run format between iterations
 AUTO_LINT_FIX_ON_FAILURE=true  # true: run npm run lint:fix between iterations
 
-# Paths (auto-detected from git root)
+# Paths (auto-detected from git root, respect existing values from parent process)
 PROJECT_ROOT="${PROJECT_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
-PRD_FILE="${PROJECT_ROOT}/prd.json"
-PROGRESS_FILE="${PROJECT_ROOT}/progress.txt"
-RALPH_DIR="${PROJECT_ROOT}/.ralph"
+PRD_FILE="${PRD_FILE:-${PROJECT_ROOT}/prd.json}"
+PROGRESS_FILE="${PROGRESS_FILE:-${PROJECT_ROOT}/progress.txt}"
+RALPH_DIR="${RALPH_DIR:-${PROJECT_ROOT}/.ralph}"
 
-# Mode detection: AFK if in container, HITL otherwise
-if [ -f "/.dockerenv" ]; then
-    MODE="AFK"
-    MAX_ITERATIONS=$AFK_MAX_ITERATIONS
-else
-    MODE="HITL"
-    MAX_ITERATIONS=$HITL_MAX_ITERATIONS
-fi
+# Container detection (for logging only)
+IN_CONTAINER=false
+[ -f "/.dockerenv" ] && IN_CONTAINER=true
 
 # Color output
 RED='\033[0;31m'
@@ -47,6 +41,6 @@ log_error()   { echo -e "${RED}[ERROR]${NC} $1"; }
 
 # Export for child processes
 export PROJECT_ROOT PRD_FILE PROGRESS_FILE RALPH_DIR
-export MODE MAX_ITERATIONS
+export MAX_ITERATIONS IN_CONTAINER
 export AUTO_FORMAT_ON_FAILURE AUTO_LINT_FIX_ON_FAILURE
 export SWARM_MAX_PARALLEL_AGENTS SWARM_POLL_INTERVAL SWARM_MAX_CONFLICT_RETRIES SWARM_ENABLE_CHAINING SWARM_CLEANUP_WORKTREES SWARM_STATE_DIR

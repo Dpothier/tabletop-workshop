@@ -268,7 +268,7 @@ main() {
 
     log_info "============================================"
     log_info "  Ralph Wiggum Autonomous TDD Loop"
-    log_info "  Mode: $MODE | Max iterations: $MAX_ITERATIONS${AGENT_ID:+ | Agent: $AGENT_ID}"
+    log_info "  Max iterations: $MAX_ITERATIONS${AGENT_ID:+ | Agent: $AGENT_ID}${IN_CONTAINER:+ | Container: yes}"
     log_info "============================================"
 
     # Check prerequisites
@@ -371,13 +371,7 @@ main() {
 
         local claude_exit=0
         pushd "$work_dir" > /dev/null
-        if [ "$MODE" = "AFK" ]; then
-            # AFK mode: non-interactive, pipe context, skip permissions (container provides isolation)
-            echo "$context" | claude -p --verbose --dangerously-skip-permissions 2>&1 || claude_exit=$?
-        else
-            # HITL mode: interactive with initial message
-            echo "$context" | claude --verbose 2>&1 || claude_exit=$?
-        fi
+        echo "$context" | claude -p --verbose --dangerously-skip-permissions 2>&1 || claude_exit=$?
         popd > /dev/null
 
         log_info "Claude exited with code: $claude_exit"
