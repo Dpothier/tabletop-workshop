@@ -10,9 +10,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 COMPOSE_FILE="${PROJECT_ROOT}/docker-compose.ralph.yml"
 
-# Export host UID/GID for Docker user mapping (credential file permissions)
+# Export host identity for Docker (snap Docker resolves ~ to snap home, not real home)
 export HOST_UID=$(id -u)
 export HOST_GID=$(id -g)
+export REAL_HOME=$(eval echo "~$(whoami)")
 
 # Build if needed
 if ! docker compose -f "$COMPOSE_FILE" images ralph --quiet 2>/dev/null | grep -q .; then

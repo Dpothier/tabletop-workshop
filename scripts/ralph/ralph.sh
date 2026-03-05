@@ -367,7 +367,7 @@ main() {
 
         local claude_exit=0
         pushd "$work_dir" > /dev/null
-        echo "$context" | claude -p --verbose --dangerously-skip-permissions 2>&1 || claude_exit=$?
+        claude -p --verbose --dangerously-skip-permissions "$context" 2>&1 || claude_exit=$?
         popd > /dev/null
 
         log_info "Claude exited with code: $claude_exit"
