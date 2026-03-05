@@ -1,10 +1,11 @@
-version: '3.8'
-
 services:
   ralph:
     build:
       context: .
       dockerfile: Dockerfile.ralph
+
+    # Run as host user so mounted file permissions (credentials, workspace) work
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
 
     # Non-interactive stdin/tty for automated execution
     stdin_open: true
@@ -27,6 +28,7 @@ services:
       # Ralph configuration
       PROJECT_ROOT: /workspace
       RALPH_MODE: "true"
+      HOME: /home/ralph
 
     # Load .env.ralph for JIRA credentials (optional, ignored if missing)
     env_file:
@@ -38,9 +40,9 @@ services:
       # Persist claude-mem data
       - ~/.claude-mem:/home/ralph/.claude-mem
 
-      # OAuth credentials from host (Max/Pro subscription)
-      - ~/.claude:/home/ralph/.claude:ro
-      - ~/.config/claude-code:/home/ralph/.config/claude-code:ro
+      # Claude Code credentials and state from host (rw for token refresh)
+      - ~/.claude:/home/ralph/.claude
+      - ~/.config/claude-code:/home/ralph/.config/claude-code
 
       # Project source (read-write for commits)
       - .:/workspace:rw

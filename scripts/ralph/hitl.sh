@@ -12,6 +12,10 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 COMPOSE_FILE="${PROJECT_ROOT}/docker-compose.ralph.yml"
 WORKTREES_BASE="${PROJECT_ROOT}/.claude/worktrees"
 
+# Export host UID/GID for Docker user mapping (credential file permissions)
+export HOST_UID=$(id -u)
+export HOST_GID=$(id -g)
+
 # Color output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
