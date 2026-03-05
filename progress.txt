@@ -171,3 +171,63 @@ Total tests: 535 (469 unit + 66 E2E)
   - DOM test elements with visibility:hidden are intentionally hidden — check content not visibility
   - E2E position tests should access scene properties directly, not search by estimated position
 - Test count: 469 unit + 78 E2E = 547 total (was 540)
+
+[ITERATION 1] Story: MFG-52
+- Result: FAILURE
+- Error: Claude exited with code 1
+- Action: Will retry on next iteration
+
+
+[ITERATION 2] Story: MFG-52
+- Result: FAILURE
+- Error: Claude exited with code 1
+- Action: Will retry on next iteration
+
+
+[ITERATION 3] Story: MFG-52
+- Result: FAILURE
+- Error: Claude exited with code 1
+- Action: Will retry on next iteration
+
+
+[ITERATION 4] Story: MFG-52
+- Result: FAILURE
+- Error: Claude exited with code 1
+- Action: Will retry on next iteration
+
+
+[ITERATION 5] Story: MFG-52
+- Result: FAILURE
+- Error: Claude exited with code 1
+- Action: Will retry on next iteration
+
+
+[ITERATION 6] Story: MFG-52
+- Result: FAILURE
+- Error: Claude exited with code 1
+- Action: Will retry on next iteration
+
+
+[ITERATION 7] Story: MFG-52
+- Result: FAILURE
+- Error: Claude exited with code 1
+- Action: Will retry on next iteration
+
+
+[ITERATION 8] Story: MFG-52
+- Result: FAILURE
+- Error: Claude exited with code 1
+- Action: Will retry on next iteration
+
+
+[ITERATION 9] Story: MFG-52
+- Result: SUCCESS
+- Story work was already completed in prior sessions:
+  - src/combat/AttackResolvers.ts: extracted pure functions (buildDefensiveOptions, applyDefensiveReaction, buildAttackEvents)
+  - features/unit/attack-resolvers.feature: 23 test scenarios covering all resolver functions
+  - src/effects/AttackEffect.ts: delegates to thin resolver calls
+- Fix: Removed unused AnimationEvent import from AttackEffect.ts
+- Tests: 498 unit tests passing, no new typecheck errors
+- Learnings:
+  - Story had empty acceptance criteria — previous iterations failed likely due to unclear requirements
+  - When a story has no AC, check if the work is already done before writing new tests

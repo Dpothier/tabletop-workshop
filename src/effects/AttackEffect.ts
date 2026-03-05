@@ -1,15 +1,12 @@
 import type { Effect, EffectResult, GameContext, ResolvedParams } from '@src/types/Effect';
-import type {
-  AnimationEvent,
-  AttackEvent,
-  DamageEvent,
-  DodgeEvent,
-  GuardedEvent,
-  HitEvent,
-} from '@src/types/AnimationEvent';
 import type { AttackModifier } from '@src/types/Combat';
-import type { OptionPrompt, OptionChoice } from '@src/types/ParameterPrompt';
+import type { OptionPrompt } from '@src/types/ParameterPrompt';
 import { resolveAttack } from '@src/combat/CombatResolver';
+import {
+  buildDefensiveOptions,
+  applyDefensiveReaction,
+  buildAttackEvents,
+} from '@src/combat/AttackResolvers';
 import { Character } from '@src/entities/Character';
 
 /**
@@ -18,7 +15,12 @@ import { Character } from '@src/entities/Character';
  * Prompts player characters to spend beads for defensive bonuses before combat resolution.
  */
 export class AttackEffect implements Effect {
-  private async promptDefensiveReaction(context: GameContext, target: Character, power: number, agility: number): Promise<void> {
+  private async promptDefensiveReaction(
+    context: GameContext,
+    target: Character,
+    power: number,
+    agility: number
+  ): Promise<void> {
     const beadHand = context.getBeadHand(target.id);
     if (!beadHand) {
       return;
@@ -32,29 +34,7 @@ export class AttackEffect implements Effect {
     }
 
     // Build options for defensive reaction
-    const options: OptionChoice[] = [];
-
-    // Add options for red beads (guard)
-    for (let i = 1; i <= handCounts.red; i++) {
-      options.push({
-        id: `guard-${i}`,
-        label: `Spend ${i} red bead${i > 1 ? 's' : ''} for +${i} Guard`,
-      });
-    }
-
-    // Add options for green beads (evasion)
-    for (let i = 1; i <= handCounts.green; i++) {
-      options.push({
-        id: `evade-${i}`,
-        label: `Spend ${i} green bead${i > 1 ? 's' : ''} for +${i} Evasion`,
-      });
-    }
-
-    // Always include pass option
-    options.push({
-      id: 'pass',
-      label: 'Pass',
-    });
+    const options = buildDefensiveOptions(handCounts);
 
     const prompt: OptionPrompt = {
       type: 'option',
@@ -72,25 +52,24 @@ export class AttackEffect implements Effect {
     }
 
     const reactionId = selected[0];
+    const reaction = applyDefensiveReaction(reactionId);
     let beadsSpent = false;
 
     // Handle guard reaction
-    if (reactionId.startsWith('guard-')) {
-      const count = parseInt(reactionId.substring(6), 10);
-      for (let i = 0; i < count; i++) {
+    if (reaction.type === 'guard') {
+      for (let i = 0; i < reaction.count; i++) {
         beadHand.spend('red');
       }
-      target.setGuard(target.guard + count);
+      target.setGuard(target.guard + reaction.count);
       beadsSpent = true;
     }
 
     // Handle evasion reaction
-    if (reactionId.startsWith('evade-')) {
-      const count = parseInt(reactionId.substring(6), 10);
-      for (let i = 0; i < count; i++) {
+    if (reaction.type === 'evade') {
+      for (let i = 0; i < reaction.count; i++) {
         beadHand.spend('green');
       }
-      target.setEvasion(target.evasion + count);
+      target.setEvasion(target.evasion + reaction.count);
       beadsSpent = true;
     }
 
@@ -155,55 +134,21 @@ export class AttackEffect implements Effect {
     // Resolve combat
     const combatResult = resolveAttack({ power, agility }, defenseStats, attackModifiers);
 
-    // Calculate actual damage (capped at target's current health for hit outcomes)
-    let actualDamage = combatResult.damage;
-
-    const events: AnimationEvent[] = [];
-
-    // Add legacy attack event for backward compatibility
-    events.push({
-      type: 'attack',
+    // Build animation events from combat result
+    const events = buildAttackEvents(
       attackerId,
       targetId,
-      damage: actualDamage,
-    } as AttackEvent);
+      combatResult,
+      target.currentHealth,
+      target.maxHealth,
+      power
+    );
 
-    // Add outcome-specific event
-    if (combatResult.outcome === 'dodged') {
-      events.push({
-        type: 'dodge',
-        entityId: targetId,
-        attackerId,
-        canReact: combatResult.canReact,
-      } as DodgeEvent);
-    } else if (combatResult.outcome === 'guarded') {
-      events.push({
-        type: 'guarded',
-        entityId: targetId,
-        attackerId,
-        blockedDamage: power - combatResult.damage,
-      } as GuardedEvent);
-    } else {
-      // Hit - cap damage at target's current health
+    // Apply damage on hit
+    let actualDamage = 0;
+    if (combatResult.outcome === 'hit') {
       actualDamage = Math.min(combatResult.damage, target.currentHealth);
-
-      events.push({
-        type: 'hit',
-        entityId: targetId,
-        attackerId,
-        damage: actualDamage,
-      } as HitEvent);
-
-      // Only apply damage on hit
       target.receiveDamage(actualDamage);
-
-      // Add damage event for UI health bar update
-      events.push({
-        type: 'damage',
-        entityId: targetId,
-        newHealth: target.currentHealth,
-        maxHealth: target.maxHealth,
-      } as DamageEvent);
     }
 
     return {
