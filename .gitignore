@@ -32,3 +32,6 @@ mockups/
 # MCP config (local)
 .mcp.json
 .env.ralph
+
+# Ralph swarm state
+.ralph/swarm-state/

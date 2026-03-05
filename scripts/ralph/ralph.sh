@@ -243,6 +243,10 @@ main() {
                 NO_WORKTREE=true
                 shift
                 ;;
+            --agent-id)
+                AGENT_ID="$2"
+                shift 2
+                ;;
             *)
                 # Legacy: first positional arg = max iterations
                 if [[ "$1" =~ ^[0-9]+$ ]]; then
@@ -257,9 +261,14 @@ main() {
         MAX_ITERATIONS="$max_override"
     fi
 
+    # --agent-id implies --no-worktree (orchestrator manages worktrees)
+    if [ -n "${AGENT_ID:-}" ]; then
+        NO_WORKTREE=true
+    fi
+
     log_info "============================================"
     log_info "  Ralph Wiggum Autonomous TDD Loop"
-    log_info "  Mode: $MODE | Max iterations: $MAX_ITERATIONS"
+    log_info "  Mode: $MODE | Max iterations: $MAX_ITERATIONS${AGENT_ID:+ | Agent: $AGENT_ID}"
     log_info "============================================"
 
     # Check prerequisites
@@ -291,7 +300,7 @@ main() {
     fi
 
     # JIRA sync: pull stories if epic key provided and JIRA configured
-    if [ -n "$epic_key" ] && [ -n "${JIRA_BASE_URL:-}" ]; then
+    if [ -n "$epic_key" ] && [ -n "${JIRA_BASE_URL:-}" ] && [ -z "${AGENT_ID:-}" ]; then
         log_info "Syncing stories from JIRA epic ${epic_key}..."
         "${SCRIPT_DIR}/jira-sync.sh" pull "$epic_key" || log_warning "JIRA pull failed, using existing prd.json"
         # Re-copy prd.json to worktree if using one
@@ -332,7 +341,7 @@ main() {
         if all_stories_complete; then
             log_success "All stories complete after $iteration iterations!"
             # JIRA sync: push completed stories
-            if [ -n "${JIRA_BASE_URL:-}" ]; then
+            if [ -n "${JIRA_BASE_URL:-}" ] && [ -z "${AGENT_ID:-}" ]; then
                 log_info "Syncing completed stories back to JIRA..."
                 "${SCRIPT_DIR}/jira-sync.sh" push || log_warning "JIRA push failed"
             fi
@@ -363,8 +372,8 @@ main() {
         local claude_exit=0
         pushd "$work_dir" > /dev/null
         if [ "$MODE" = "AFK" ]; then
-            # AFK mode: non-interactive, pipe context
-            echo "$context" | claude -p --verbose 2>&1 || claude_exit=$?
+            # AFK mode: non-interactive, pipe context, skip permissions (container provides isolation)
+            echo "$context" | claude -p --verbose --dangerously-skip-permissions 2>&1 || claude_exit=$?
         else
             # HITL mode: interactive with initial message
             echo "$context" | claude --verbose 2>&1 || claude_exit=$?
@@ -410,7 +419,7 @@ main() {
     done
 
     # JIRA sync: push completed stories
-    if [ -n "${JIRA_BASE_URL:-}" ]; then
+    if [ -n "${JIRA_BASE_URL:-}" ] && [ -z "${AGENT_ID:-}" ]; then
         log_info "Syncing completed stories back to JIRA..."
         "${SCRIPT_DIR}/jira-sync.sh" push || log_warning "JIRA push failed"
     fi

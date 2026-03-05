@@ -1,0 +1,59 @@
+# Ralph Wiggum - Swarm Docker Compose
+# Run the swarm orchestrator in an isolated container
+#
+# Usage:
+#   EPIC_KEY=MFG-7 docker compose -f docker-compose.swarm.yml up --build
+#
+# The orchestrator runs inside the container and spawns agents as processes
+# (not as separate containers). Each agent gets its own git worktree.
+
+services:
+  swarm-orchestrator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # No container_name - allows scaling if needed
+    volumes:
+      - .:/workspace
+      - node_modules:/workspace/node_modules
+    working_dir: /workspace
+    environment:
+      - EPIC_KEY=${EPIC_KEY:?Set EPIC_KEY environment variable}
+      - SWARM_EXTRA_ARGS=${SWARM_EXTRA_ARGS:-}
+      # JIRA credentials (from .env.ralph or environment)
+      - JIRA_BASE_URL=${JIRA_BASE_URL:-}
+      - JIRA_EMAIL=${JIRA_EMAIL:-}
+      - JIRA_API_TOKEN=${JIRA_API_TOKEN:-}
+      - JIRA_PROJECT_KEY=${JIRA_PROJECT_KEY:-}
+      # Anthropic API key for Claude
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:?Set ANTHROPIC_API_KEY}
+      # Force AFK mode
+      - RALPH_MODE=true
+    entrypoint: ["bash", "-c"]
+    command:
+      - |
+        echo "Starting Ralph Swarm Orchestrator"
+        echo "Epic: $EPIC_KEY"
+        echo "Extra args: $SWARM_EXTRA_ARGS"
+
+        # Install claude CLI if not present
+        if ! command -v claude &>/dev/null; then
+          npm install -g @anthropic-ai/claude-code
+        fi
+
+        # Run the orchestrator
+        exec scripts/ralph/ralph-swarm.sh --epic "$EPIC_KEY" $SWARM_EXTRA_ARGS
+    # Resource limits per agent
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+        reservations:
+          memory: 2G
+    # Keep stdin open for potential interaction
+    stdin_open: true
+    tty: true
+
+volumes:
+  node_modules:
+    driver: local

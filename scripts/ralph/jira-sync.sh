@@ -128,6 +128,15 @@ search_epic_issues() {
     jira_api_call "POST" "/rest/api/3/search/jql" "$data"
 }
 
+# Search JIRA for issues linked to epic, including all statuses and issuelinks
+search_epic_issues_with_links() {
+    local epic_key="$1"
+
+    local jql="parent = ${epic_key} ORDER BY priority DESC"
+    local data="{\"jql\": $(echo "$jql" | jq -Rs .), \"maxResults\": 50, \"fields\": [\"summary\", \"status\", \"description\", \"issuetype\", \"priority\", \"issuelinks\"]}"
+    jira_api_call "POST" "/rest/api/3/search/jql" "$data"
+}
+
 # Extract acceptance criteria from description
 extract_acceptance_criteria() {
     local description="$1"
@@ -343,6 +352,66 @@ show_transitions() {
     get_transitions "$issue_key" | jq '.transitions[] | {id: .id, name: .name}'
 }
 
+# Pull dependency graph from JIRA
+pull_graph() {
+    local epic_key="$1"
+
+    if [ -z "$epic_key" ]; then
+        log_error "Epic key required: jira-sync.sh pull-graph <EPIC_KEY>"
+        return 1
+    fi
+
+    log_info "Pulling dependency graph from JIRA epic ${epic_key}..."
+
+    if ! validate_env; then
+        log_error "Cannot pull from JIRA: missing environment variables"
+        return 1
+    fi
+
+    # Fetch issues linked to epic with issuelinks
+    local search_result
+    search_result=$(search_epic_issues_with_links "$epic_key")
+
+    # Check for errors
+    if echo "$search_result" | jq -e '.errorMessages' >/dev/null 2>&1; then
+        log_error "JIRA API error: $(echo "$search_result" | jq -r '.errorMessages[]')"
+        return 1
+    fi
+
+    # Create .ralph/swarm-state directory if needed
+    local swarm_state_dir="${PROJECT_ROOT}/.ralph/swarm-state"
+    mkdir -p "$swarm_state_dir"
+
+    # Write raw JIRA response to temp file
+    local temp_jira_file
+    temp_jira_file=$(mktemp)
+    echo "$search_result" > "$temp_jira_file"
+
+    # Source dependency-graph.sh and build graph
+    source "${SCRIPT_DIR}/lib/dependency-graph.sh"
+
+    local graph_output="${swarm_state_dir}/graph.json"
+    build_graph "$temp_jira_file" "$graph_output"
+
+    # Clean up temp file
+    rm -f "$temp_jira_file"
+
+    # Log summary
+    local issue_count
+    local ready_count
+    local chain_count
+
+    issue_count=$(jq '.nodes | length' "$graph_output" 2>/dev/null || echo "0")
+    ready_count=$(jq '.ready | length' "$graph_output" 2>/dev/null || echo "0")
+    chain_count=$(jq '.chains | length' "$graph_output" 2>/dev/null || echo "0")
+
+    log_success "Pulled dependency graph from epic ${epic_key}"
+    log_info "  Issues: ${issue_count}"
+    log_info "  Ready tasks (no dependencies): ${ready_count}"
+    log_info "  Dependency chains: ${chain_count}"
+    log_info "  Written to: ${graph_output}"
+}
+
 # Main
 main() {
     case "${1:-}" in
@@ -361,6 +430,9 @@ main() {
         transitions)
             show_transitions "${2:-}"
             ;;
+        pull-graph)
+            pull_graph "${2:-}"
+            ;;
         status)
             log_info "JIRA Integration Status:"
             log_info "  Base URL: ${JIRA_BASE_URL:-not set}"
@@ -369,7 +441,7 @@ main() {
             [ -n "${JIRA_API_TOKEN:-}" ] && log_info "  API Token: *** (configured)" || log_info "  API Token: not set"
             ;;
         *)
-            echo "Usage: $0 {pull|push|start|complete|transitions|status}"
+            echo "Usage: $0 {pull|push|start|complete|transitions|pull-graph|status}"
             echo ""
             echo "Commands:"
             echo "  pull <EPIC_KEY>      - Sync stories from JIRA to prd.json"
@@ -377,6 +449,7 @@ main() {
             echo "  start <ISSUE_KEY>    - Transition issue to In Progress + add Ralph label"
             echo "  complete <ISSUE_KEY> - Transition issue to In Review + add comment"
             echo "  transitions <ISSUE_KEY> - List available transitions (debugging)"
+            echo "  pull-graph <EPIC_KEY> - Fetch dependency graph from JIRA (includes issuelinks)"
             echo "  status               - Show JIRA configuration status"
             echo ""
             echo "Environment Variables:"

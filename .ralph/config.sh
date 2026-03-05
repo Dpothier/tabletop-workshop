@@ -6,6 +6,14 @@
 HITL_MAX_ITERATIONS=5          # Human-in-the-loop mode
 AFK_MAX_ITERATIONS=50          # Away-from-keyboard mode
 
+# Swarm orchestrator settings
+SWARM_MAX_PARALLEL_AGENTS=3   # Max concurrent Ralph agents
+SWARM_POLL_INTERVAL=10        # Seconds between agent status polls
+SWARM_MAX_CONFLICT_RETRIES=2  # Max resolver attempts per conflict
+SWARM_ENABLE_CHAINING=true    # Group linear chains for one agent
+SWARM_CLEANUP_WORKTREES=true  # Remove agent worktrees after merge
+SWARM_STATE_DIR="${PROJECT_ROOT}/.ralph/swarm-state"
+
 # Behavior flags
 AUTO_FORMAT_ON_FAILURE=true    # true: run npm run format between iterations
 AUTO_LINT_FIX_ON_FAILURE=true  # true: run npm run lint:fix between iterations
@@ -41,3 +49,4 @@ log_error()   { echo -e "${RED}[ERROR]${NC} $1"; }
 export PROJECT_ROOT PRD_FILE PROGRESS_FILE RALPH_DIR
 export MODE MAX_ITERATIONS
 export AUTO_FORMAT_ON_FAILURE AUTO_LINT_FIX_ON_FAILURE
+export SWARM_MAX_PARALLEL_AGENTS SWARM_POLL_INTERVAL SWARM_MAX_CONFLICT_RETRIES SWARM_ENABLE_CHAINING SWARM_CLEANUP_WORKTREES SWARM_STATE_DIR
