@@ -5,9 +5,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.ralph
-    container_name: ralph-tdd-loop
 
-    # Use pipes for non-interactive AFK mode
+    # Non-interactive stdin/tty for automated execution
     stdin_open: true
     tty: false
 
@@ -73,7 +72,6 @@ services:
     # Options:
     # --epic EPIC_KEY    : Sync from JIRA epic before starting
     # --max N            : Override AFK_MAX_ITERATIONS
-    # --no-worktree      : Work in main repo instead of worktree
 
 networks:
   ralph-network:
