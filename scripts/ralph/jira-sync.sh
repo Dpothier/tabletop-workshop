@@ -255,16 +255,8 @@ pull_from_jira() {
     # Clean up any remaining description_adf fields
     prd_json=$(echo "$prd_json" | jq 'del(.userStories[].description_adf)')
 
-    # Merge with existing prd.json to preserve pass status
-    if [ -f "$PRD_FILE" ]; then
-        local old_passes
-        old_passes=$(jq '.userStories | map({(.id): .passes}) | add // {}' "$PRD_FILE" 2>/dev/null || echo '{}')
-
-        prd_json=$(echo "$prd_json" | jq \
-            --argjson old_passes "$old_passes" \
-            '.userStories |= map(. + {passes: ($old_passes[.id] // false)})' \
-        )
-    fi
+    # No passes merge: stories pulled from JIRA "To Do" always start as passes: false.
+    # If a story was reset to "To Do" in JIRA, it must be redone.
 
     # Write prd.json
     echo "$prd_json" | jq '.' > "$PRD_FILE"
