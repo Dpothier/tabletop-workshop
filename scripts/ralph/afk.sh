@@ -15,9 +15,20 @@ export HOST_UID=$(id -u)
 export HOST_GID=$(id -g)
 export REAL_HOME=$(eval echo "~$(whoami)")
 
-# Always rebuild to pick up latest code changes
-echo "[INFO] Building Docker image..."
-docker compose -f "$COMPOSE_FILE" build --quiet
+# Parse our flags (before passing rest to ralph.sh)
+BUILD=false
+RALPH_ARGS=()
+for arg in "$@"; do
+    case "$arg" in
+        --build) BUILD=true ;;
+        *) RALPH_ARGS+=("$arg") ;;
+    esac
+done
+
+if [ "$BUILD" = "true" ]; then
+    echo "[INFO] Building Docker image..."
+    docker compose -f "$COMPOSE_FILE" build --quiet
+fi
 
 echo "[INFO] Starting Ralph in AFK mode (autonomous TDD loop)"
 echo "[INFO] Container is isolated — all file changes stay in the mounted workspace"
@@ -25,4 +36,4 @@ echo "[INFO] Use 'docker compose -f docker-compose.ralph.yml logs -f' to follow 
 echo ""
 
 # --no-worktree: Docker provides isolation; host worktrees have broken .git paths inside containers
-docker compose -f "$COMPOSE_FILE" run --rm ralph --no-worktree "$@"
+docker compose -f "$COMPOSE_FILE" run --rm ralph --no-worktree ${RALPH_ARGS[@]+"${RALPH_ARGS[@]}"}
