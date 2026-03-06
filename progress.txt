@@ -244,3 +244,20 @@ Total tests: 535 (469 unit + 66 E2E)
 - No status effect system exists yet, but no tests are specified
 - 498 unit tests passing
 - All stories in prd.json now marked passes: true
+
+[ITERATION 10] Story: MFG-52
+- Result: SUCCESS
+- Created ActionPipeline module (src/combat/ActionPipeline.ts) with:
+  - validateTargeting(): melee (adjacency) and ranged (distance) validation
+  - handleDefensiveReaction(): async pipeline hook for player defensive reactions
+  - applyStateMutation(): applies damage on hit, no-op on dodge/guard
+- Created ShootEffect (src/effects/ShootEffect.ts): thin wrapper around resolveAttack for ranged attacks
+- Created CastEffect (src/effects/CastEffect.ts): thin wrapper using spellPower for spell resolution
+- Created features/unit/action-pipeline.feature: 10 test scenarios covering targeting, reactions, state mutation, and thin effects
+- Created tests/steps/action-pipeline.steps.ts: step definitions for all scenarios
+- Updated tests/steps/index.ts: added action-pipeline.steps import
+- Tests: 508 unit tests passing (498 existing + 10 new)
+- Learnings:
+  - QuickPickle step definitions must be imported in tests/steps/index.ts or they won't be discovered
+  - Step patterns must be unique across ALL step files — use prefixes like "pipeline" to avoid collisions
+  - When step definitions share patterns like "the target should have {int} health", quickpickle throws "More than one step"
