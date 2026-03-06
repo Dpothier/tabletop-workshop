@@ -52,6 +52,10 @@ RUN mkdir -p /home/ralph/.npm-global && \
     npm install -g @anthropic-ai/claude-code && \
     claude --version
 
+# Embed git SHA for staleness detection (passed via --build-arg)
+ARG GIT_SHA=unknown
+LABEL ralph.git_sha="${GIT_SHA}"
+
 # Copy project files into workspace
 COPY --chown=ralph:ralph . /workspace/
 

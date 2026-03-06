@@ -16,18 +16,42 @@ export HOST_GID=$(id -g)
 export REAL_HOME=$(eval echo "~$(whoami)")
 
 # Parse our flags (before passing rest to ralph.sh)
-BUILD=false
+FORCE_BUILD=false
+NO_BUILD=false
 RALPH_ARGS=()
 for arg in "$@"; do
     case "$arg" in
-        --build) BUILD=true ;;
+        --build) FORCE_BUILD=true ;;
+        --no-build) NO_BUILD=true ;;
         *) RALPH_ARGS+=("$arg") ;;
     esac
 done
 
-if [ "$BUILD" = "true" ]; then
-    echo "[INFO] Building Docker image..."
+# Auto-detect if image is stale by comparing git SHA
+export GIT_SHA=$(git -C "$PROJECT_ROOT" rev-parse --short HEAD 2>/dev/null || echo "unknown")
+
+needs_build() {
+    if [ "$FORCE_BUILD" = "true" ]; then return 0; fi
+    if [ "$NO_BUILD" = "true" ]; then return 1; fi
+
+    # No image exists
+    local image_id
+    image_id=$(docker compose -f "$COMPOSE_FILE" images ralph --quiet 2>/dev/null | head -1)
+    if [ -z "$image_id" ]; then return 0; fi
+
+    # Compare git SHA in image label vs current HEAD
+    local image_sha
+    image_sha=$(docker inspect --format '{{ index .Config.Labels "ralph.git_sha" }}' "$image_id" 2>/dev/null || echo "")
+    if [ "$image_sha" != "$GIT_SHA" ]; then return 0; fi
+
+    return 1
+}
+
+if needs_build; then
+    echo "[INFO] Building Docker image (${GIT_SHA})..."
     docker compose -f "$COMPOSE_FILE" build --quiet
+else
+    echo "[INFO] Image up to date (${GIT_SHA})"
 fi
 
 echo "[INFO] Starting Ralph in AFK mode (autonomous TDD loop)"
