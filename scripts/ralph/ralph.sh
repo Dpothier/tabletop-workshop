@@ -372,7 +372,12 @@ main() {
 
         local claude_exit=0
         pushd "$work_dir" > /dev/null
-        claude -p --verbose --dangerously-skip-permissions "$context" 2>&1 | tee "$log_file" || claude_exit=${PIPESTATUS[0]}
+        # Export context as env var to avoid quoting issues with script -c
+        export RALPH_CONTEXT="$context"
+        # script -qf creates a pseudo-TTY so Claude streams output in real-time
+        # Output goes to both terminal and log file simultaneously
+        script -qfc 'claude -p --verbose --dangerously-skip-permissions "$RALPH_CONTEXT"' "$log_file" || claude_exit=$?
+        unset RALPH_CONTEXT
         popd > /dev/null
 
         log_info "Claude exited with code: $claude_exit"
