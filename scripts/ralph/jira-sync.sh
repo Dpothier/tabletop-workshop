@@ -145,6 +145,41 @@ extract_acceptance_criteria() {
     echo "$description" | grep -A 100 -i "acceptance criteria" | grep "^-" | sed 's/^- //' || echo ""
 }
 
+# Recursively extract all text from JIRA ADF (Atlassian Document Format) JSON.
+# ADF is a tree of nodes; text lives in leaf nodes of type "text".
+# Bullet lists become "- item", headings get "## " prefix, etc.
+# Input: ADF JSON on stdin. Output: plain text on stdout.
+adf_to_text() {
+    jq -r '
+        def walk_node:
+            if .type == "text" then
+                .text // ""
+            elif .type == "hardBreak" then
+                "\n"
+            elif .type == "bulletList" then
+                (.content // [] | map(
+                    "- " + (.content // [] | map(walk_node) | join(""))
+                ) | join("\n"))
+            elif .type == "orderedList" then
+                (.content // [] | to_entries | map(
+                    "\(.key + 1). " + (.value.content // [] | map(walk_node) | join(""))
+                ) | join("\n"))
+            elif .type == "heading" then
+                (.content // [] | map(walk_node) | join("")) + "\n"
+            elif .type == "codeBlock" then
+                "```\n" + (.content // [] | map(walk_node) | join("")) + "\n```"
+            elif .type == "paragraph" then
+                (.content // [] | map(walk_node) | join(""))
+            else
+                (.content // [] | map(walk_node) | join(""))
+            end;
+        if . == null then ""
+        else
+            .content // [] | map(walk_node) | join("\n")
+        end
+    '
+}
+
 # Load existing prd.json to preserve pass status
 load_existing_passes() {
     local issue_id="$1"
@@ -185,6 +220,7 @@ pull_from_jira() {
     # Transform to prd.json format
     local branch_name="ralph/${epic_key}"
 
+    # First pass: extract structure with raw ADF descriptions
     local prd_json=$(jq \
         --arg epic_key "$epic_key" \
         --arg branch_name "$branch_name" \
@@ -197,7 +233,7 @@ pull_from_jira() {
                 .issues[] | {
                     id: .key,
                     title: .fields.summary,
-                    description: (.fields.description.content[0].content[0].text // ""),
+                    description_adf: .fields.description,
                     acceptanceCriteria: [],
                     priority: (if .fields.priority.name == "Highest" then 1 elif .fields.priority.name == "High" then 2 elif .fields.priority.name == "Medium" then 3 elif .fields.priority.name == "Low" then 4 else 5 end),
                     passes: false
@@ -205,6 +241,19 @@ pull_from_jira() {
             ]
         }' \
         <<< "$search_result")
+
+    # Second pass: convert ADF descriptions to plain text
+    local story_count
+    story_count=$(echo "$prd_json" | jq '.userStories | length')
+
+    for i in $(seq 0 $((story_count - 1))); do
+        local plain_desc
+        plain_desc=$(echo "$prd_json" | jq ".userStories[$i].description_adf" | adf_to_text)
+        prd_json=$(echo "$prd_json" | jq --arg desc "$plain_desc" ".userStories[$i].description = \$desc | .userStories[$i] |= del(.description_adf)")
+    done
+
+    # Clean up any remaining description_adf fields
+    prd_json=$(echo "$prd_json" | jq 'del(.userStories[].description_adf)')
 
     # Merge with existing prd.json to preserve pass status
     if [ -f "$PRD_FILE" ]; then
