@@ -15,11 +15,9 @@ export HOST_UID=$(id -u)
 export HOST_GID=$(id -g)
 export REAL_HOME=$(eval echo "~$(whoami)")
 
-# Build if needed
-if ! docker compose -f "$COMPOSE_FILE" images ralph --quiet 2>/dev/null | grep -q .; then
-    echo "[INFO] Building Docker image..."
-    docker compose -f "$COMPOSE_FILE" build
-fi
+# Always rebuild to pick up latest code changes
+echo "[INFO] Building Docker image..."
+docker compose -f "$COMPOSE_FILE" build --quiet
 
 echo "[INFO] Starting Ralph in AFK mode (autonomous TDD loop)"
 echo "[INFO] Container is isolated — all file changes stay in the mounted workspace"

@@ -38,12 +38,12 @@ services:
     # Volumes for persistence
     volumes:
       # Persist claude-mem data
-      - ${REAL_HOME:?Set REAL_HOME}/.claude-mem:/home/ralph/.claude-mem
+      - ${REAL_HOME:-~}/.claude-mem:/home/ralph/.claude-mem
 
       # Claude Code credentials and state from host (rw for token refresh)
-      - ${REAL_HOME}/.claude.json:/home/ralph/.claude.json
-      - ${REAL_HOME}/.claude:/home/ralph/.claude
-      - ${REAL_HOME}/.config/claude-code:/home/ralph/.config/claude-code
+      - ${REAL_HOME:-~}/.claude.json:/home/ralph/.claude.json
+      - ${REAL_HOME:-~}/.claude:/home/ralph/.claude
+      - ${REAL_HOME:-~}/.config/claude-code:/home/ralph/.config/claude-code
 
       # Project source (read-write for commits)
       - .:/workspace:rw
