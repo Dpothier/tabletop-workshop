@@ -33,5 +33,6 @@ mockups/
 .mcp.json
 .env.ralph
 
-# Ralph swarm state
+# Ralph runtime state
 .ralph/swarm-state/
+.ralph/logs/

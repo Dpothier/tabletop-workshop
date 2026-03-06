@@ -362,12 +362,17 @@ main() {
         echo "$iteration" > "${RALPH_DIR}/.iteration_count"
 
         # Invoke Claude with RALPH_MODE so the stop hook activates
-        log_info "Invoking Claude CLI..."
         export RALPH_MODE=true
+
+        # Log file for this iteration (tail -f to monitor)
+        local log_dir="${work_dir}/.ralph/logs"
+        mkdir -p "$log_dir"
+        local log_file="${log_dir}/iteration-${iteration}-${next_story}.log"
+        log_info "Invoking Claude CLI... (log: ${log_file})"
 
         local claude_exit=0
         pushd "$work_dir" > /dev/null
-        claude -p --verbose --dangerously-skip-permissions "$context" 2>&1 || claude_exit=$?
+        claude -p --verbose --dangerously-skip-permissions "$context" 2>&1 | tee "$log_file" || claude_exit=${PIPESTATUS[0]}
         popd > /dev/null
 
         log_info "Claude exited with code: $claude_exit"

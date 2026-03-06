@@ -45,9 +45,10 @@ export function buildDefensiveOptions(handCounts: BeadCounts): OptionChoice[] {
 /**
  * Parses a defensive reaction ID string into its type and count.
  */
-export function applyDefensiveReaction(
-  reactionId: string
-): { type: 'guard' | 'evade' | 'pass'; count: number } {
+export function applyDefensiveReaction(reactionId: string): {
+  type: 'guard' | 'evade' | 'pass';
+  count: number;
+} {
   if (reactionId.startsWith('guard-')) {
     const count = parseInt(reactionId.substring(6), 10);
     return { type: 'guard', count };

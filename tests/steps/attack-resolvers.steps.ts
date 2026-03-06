@@ -60,20 +60,20 @@ Given(
 
 // buildDefensiveOptions Tests - When steps
 
-When(
-  'I call buildDefensiveOptions with those hand counts',
-  function (world: AttackResolversWorld) {
-    expect(world.handCounts).toBeDefined();
-    world.defensiveOptions = buildDefensiveOptions(world.handCounts!);
-  }
-);
+When('I call buildDefensiveOptions with those hand counts', function (world: AttackResolversWorld) {
+  expect(world.handCounts).toBeDefined();
+  world.defensiveOptions = buildDefensiveOptions(world.handCounts!);
+});
 
 // buildDefensiveOptions Tests - Then steps
 
-Then('the result should contain {int} option', function (world: AttackResolversWorld, count: number) {
-  expect(world.defensiveOptions).toBeDefined();
-  expect(world.defensiveOptions!.length).toBe(count);
-});
+Then(
+  'the result should contain {int} option',
+  function (world: AttackResolversWorld, count: number) {
+    expect(world.defensiveOptions).toBeDefined();
+    expect(world.defensiveOptions!.length).toBe(count);
+  }
+);
 
 Then(
   'the result should contain {int} options',
@@ -119,9 +119,7 @@ Then(
   'the result should have type {string}',
   function (world: AttackResolversWorld, expectedType: string) {
     expect(world.defensiveReaction).toBeDefined();
-    expect(world.defensiveReaction!.type).toBe(
-      expectedType as 'guard' | 'evade' | 'pass'
-    );
+    expect(world.defensiveReaction!.type).toBe(expectedType as 'guard' | 'evade' | 'pass');
   }
 );
 
@@ -209,10 +207,13 @@ When('I call buildAttackEvents', function (world: AttackResolversWorld) {
 
 // buildAttackEvents Tests - Then steps
 
-Then('the result should contain {int} event', function (world: AttackResolversWorld, count: number) {
-  expect(world.attackEvents).toBeDefined();
-  expect(world.attackEvents!.length).toBe(count);
-});
+Then(
+  'the result should contain {int} event',
+  function (world: AttackResolversWorld, count: number) {
+    expect(world.attackEvents).toBeDefined();
+    expect(world.attackEvents!.length).toBe(count);
+  }
+);
 
 Then(
   'the result should contain {int} events',
