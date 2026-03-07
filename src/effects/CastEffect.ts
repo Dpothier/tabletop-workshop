@@ -38,12 +38,20 @@ export class CastEffect implements Effect {
 
     // Thin resolver: use spellPower for both power and agility
     const defenseStats = target.getDefenseStats();
-    const combatResult = resolveAttack({ power: spellPower, agility: spellPower }, defenseStats, []);
+    const combatResult = resolveAttack(
+      { power: spellPower, agility: spellPower },
+      defenseStats,
+      []
+    );
 
     // Build events
     const events = buildAttackEvents(
-      attackerId, targetId, combatResult,
-      target.currentHealth, target.maxHealth, spellPower
+      attackerId,
+      targetId,
+      combatResult,
+      target.currentHealth,
+      target.maxHealth,
+      spellPower
     );
 
     // Pipeline: apply state mutation

@@ -44,8 +44,12 @@ export class ShootEffect implements Effect {
 
     // Build events
     const events = buildAttackEvents(
-      attackerId, targetId, combatResult,
-      target.currentHealth, target.maxHealth, power
+      attackerId,
+      targetId,
+      combatResult,
+      target.currentHealth,
+      target.maxHealth,
+      power
     );
 
     // Pipeline: apply state mutation

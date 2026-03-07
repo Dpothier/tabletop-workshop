@@ -59,10 +59,7 @@ export async function handleDefensiveReaction(
  * On hit: applies damage (capped at current health)
  * On dodge/guard: no mutation
  */
-export function applyStateMutation(
-  target: Entity,
-  combatResult: CombatResult
-): MutationResult {
+export function applyStateMutation(target: Entity, combatResult: CombatResult): MutationResult {
   if (combatResult.outcome === 'hit') {
     const actualDamage = Math.min(combatResult.damage, target.currentHealth);
     target.receiveDamage(actualDamage);
