@@ -103,7 +103,9 @@ export class Action {
         for (const optionId of selectedOptions) {
           const optionDef = this.definition.options[optionId];
           if (optionDef?.modifies && optionDef.modifier) {
-            const targets = Array.isArray(optionDef.modifies) ? optionDef.modifies : [optionDef.modifies];
+            const targets = Array.isArray(optionDef.modifies)
+              ? optionDef.modifies
+              : [optionDef.modifies];
             if (targets.includes(hydrated.id)) {
               Object.assign(modifiers, optionDef.modifier);
             }
@@ -137,9 +139,11 @@ export class Action {
       }
     }
 
+    // Return the last effect's data (if any) so callers can inspect outcome
+    const lastResult = Array.from(chainResults.values()).pop();
     return {
       success: true,
-      data: {},
+      data: lastResult?.data ?? {},
       events: allEvents,
     };
   }

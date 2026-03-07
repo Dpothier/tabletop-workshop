@@ -47,3 +47,4 @@ import './entity-buffs.steps';
 import './preparation-manager.steps';
 import './status-effect-manager.steps';
 import './cast-effect.steps';
+import './weapon-attack-pipeline.steps';
