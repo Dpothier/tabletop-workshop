@@ -1,13 +1,8 @@
 import type { Effect, EffectResult, GameContext, ResolvedParams } from '@src/types/Effect';
 import type { AttackModifier } from '@src/types/Combat';
-import type { OptionPrompt } from '@src/types/ParameterPrompt';
 import { resolveAttack } from '@src/combat/CombatResolver';
-import {
-  buildDefensiveOptions,
-  applyDefensiveReaction,
-  buildAttackEvents,
-} from '@src/combat/AttackResolvers';
-import { Character } from '@src/entities/Character';
+import { buildAttackEvents } from '@src/combat/AttackResolvers';
+import { handleDefensiveReaction } from '@src/combat/ActionPipeline';
 
 /**
  * AttackEffect attacks a target entity using the combat resolution system.
@@ -15,69 +10,6 @@ import { Character } from '@src/entities/Character';
  * Prompts player characters to spend beads for defensive bonuses before combat resolution.
  */
 export class AttackEffect implements Effect {
-  private async promptDefensiveReaction(
-    context: GameContext,
-    target: Character,
-    power: number,
-    agility: number
-  ): Promise<void> {
-    const beadHand = context.getBeadHand(target.id);
-    if (!beadHand) {
-      return;
-    }
-
-    const handCounts = beadHand.getHandCounts();
-    const hasDefensiveBeads = handCounts.red > 0 || handCounts.green > 0;
-
-    if (!hasDefensiveBeads || !context.adapter) {
-      return;
-    }
-
-    // Build options for defensive reaction
-    const options = buildDefensiveOptions(handCounts);
-
-    const prompt: OptionPrompt = {
-      type: 'option',
-      key: 'defensiveReaction',
-      prompt: 'Incoming Attack! Boost your defenses?',
-      subtitle: `⚔ Power ${power}    💨 Agility ${agility}`,
-      optional: true,
-      multiSelect: false,
-      options,
-    };
-
-    const selected = await context.adapter.promptOptions(prompt);
-    if (!selected || selected.length === 0) {
-      return;
-    }
-
-    const reactionId = selected[0];
-    const reaction = applyDefensiveReaction(reactionId);
-    let beadsSpent = false;
-
-    // Handle guard reaction
-    if (reaction.type === 'guard') {
-      for (let i = 0; i < reaction.count; i++) {
-        beadHand.spend('red');
-      }
-      target.setGuard(target.guard + reaction.count);
-      beadsSpent = true;
-    }
-
-    // Handle evasion reaction
-    if (reaction.type === 'evade') {
-      for (let i = 0; i < reaction.count; i++) {
-        beadHand.spend('green');
-      }
-      target.setEvasion(target.evasion + reaction.count);
-      beadsSpent = true;
-    }
-
-    // Notify UI that beads have changed
-    if (beadsSpent) {
-      context.adapter.notifyBeadsChanged(target.id, beadHand.getHandCounts());
-    }
-  }
   async execute(
     context: GameContext,
     params: ResolvedParams,
@@ -124,9 +56,7 @@ export class AttackEffect implements Effect {
     }
 
     // Prompt for defensive reaction if target is a Character
-    if (target instanceof Character) {
-      await this.promptDefensiveReaction(context, target, power, agility);
-    }
+    await handleDefensiveReaction(context, target, power, agility);
 
     // Get target's defense stats
     const defenseStats = target.getDefenseStats();

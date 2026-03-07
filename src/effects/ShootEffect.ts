@@ -2,19 +2,19 @@ import type { Effect, EffectResult, GameContext, ResolvedParams } from '@src/typ
 import type { AttackModifier } from '@src/types/Combat';
 import { resolveAttack } from '@src/combat/CombatResolver';
 import { buildAttackEvents } from '@src/combat/AttackResolvers';
-import { validateTargeting, applyStateMutation } from '@src/combat/ActionPipeline';
+import { validateTargeting, applyStateMutation, handleDefensiveReaction } from '@src/combat/ActionPipeline';
 
 /**
  * ShootEffect — thin wrapper around resolveAttack for ranged attacks.
  * Uses ActionPipeline for targeting validation and state mutation.
  */
 export class ShootEffect implements Effect {
-  execute(
+  async execute(
     context: GameContext,
     params: ResolvedParams,
     _modifiers: Record<string, unknown>,
     _chainResults: Map<string, EffectResult>
-  ): EffectResult {
+  ): Promise<EffectResult> {
     const targetId = params.targetEntity as string;
     const power = (params.power as number) ?? 1;
     const agility = (params.agility as number) ?? 1;
@@ -37,6 +37,9 @@ export class ShootEffect implements Effect {
     if (!target) {
       return { success: false, reason: 'Target not found', data: {}, events: [] };
     }
+
+    // Prompt for defensive reaction
+    await handleDefensiveReaction(context, target, power, agility);
 
     // Thin resolver call
     const defenseStats = target.getDefenseStats();

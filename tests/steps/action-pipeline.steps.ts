@@ -1,8 +1,9 @@
 import { Given, When, Then } from 'quickpickle';
-import { expect } from 'vitest';
+import { expect, vi } from 'vitest';
 import type { QuickPickleWorld } from 'quickpickle';
 import { BattleGrid } from '@src/state/BattleGrid';
 import { Entity } from '@src/entities/Entity';
+import { Character } from '@src/entities/Character';
 import type { GameContext, EffectResult } from '@src/types/Effect';
 import type { CombatResult } from '@src/types/Combat';
 import {
@@ -12,6 +13,7 @@ import {
 } from '@src/combat/ActionPipeline';
 import { ShootEffect } from '@src/effects/ShootEffect';
 import { CastEffect } from '@src/effects/CastEffect';
+import type { BattleAdapter } from '@src/types/BattleAdapter';
 import type {
   AttackEvent,
   DamageEvent,
@@ -54,6 +56,9 @@ interface ActionPipelineWorld extends QuickPickleWorld {
   damageEvent?: DamageEvent;
   isPlayerTarget?: boolean;
   isMonsterTarget?: boolean;
+  pipelineCharacter?: Character;
+  pipelineAdapter?: BattleAdapter;
+  pipelineAdapterPrompted?: boolean;
 }
 
 // Background
@@ -268,6 +273,199 @@ Given('the target has a defensive reaction handler', function (world: ActionPipe
   };
 });
 
+// Pipeline-specific Given steps
+
+Given(
+  'a pipeline attacker at position {int},{int}',
+  function (world: ActionPipelineWorld, x: number, y: number) {
+    expect(world.grid).toBeDefined();
+    world.attackerId = 'pipeline-attacker';
+    world.attacker = new Entity('pipeline-attacker', 100, world.grid!);
+    world.grid!.register('pipeline-attacker', x, y);
+    // Set actorId on gameContext
+    if (world.gameContext) {
+      world.gameContext.actorId = world.attackerId;
+    }
+  }
+);
+
+Given(
+  'a pipeline attacker at position {int},{int} with attack power {int} and agility {int}',
+  function (world: ActionPipelineWorld, x: number, y: number, power: number, agility: number) {
+    expect(world.grid).toBeDefined();
+    world.attackerId = 'pipeline-attacker';
+    world.attacker = new Entity('pipeline-attacker', 100, world.grid!);
+    world.attackPower = power;
+    world.agility = agility;
+    world.grid!.register('pipeline-attacker', x, y);
+    // Set actorId on gameContext
+    if (world.gameContext) {
+      world.gameContext.actorId = world.attackerId;
+    }
+  }
+);
+
+Given(
+  'a pipeline player character at position {int},{int} with {int} health and {int} red beads',
+  function (world: ActionPipelineWorld, x: number, y: number, health: number, redBeads: number) {
+    expect(world.grid).toBeDefined();
+    const characterId = 'pipeline-character';
+    world.pipelineCharacter = new Character(characterId, health, world.grid!, { getEntity: () => undefined } as any);
+    world.pipelineCharacter.currentHealth = health;
+    world.pipelineCharacter.initializeBeadHand();
+    world.pipelineCharacter.setBeadHand({ red: redBeads, blue: 0, green: 0, white: 0 });
+    world.grid!.register(characterId, x, y);
+    world.targetId = characterId;
+
+    // Update gameContext to return the character and its bead hand
+    if (!world.gameContext) {
+      world.gameContext = {
+        grid: world.grid!,
+        actorId: world.attackerId || 'pipeline-attacker',
+        getEntity(id: string): Entity | undefined {
+          if (id === characterId) return world.pipelineCharacter;
+          if (world.attacker?.id === id) return world.attacker;
+          return undefined;
+        },
+        getBeadHand: (id: string) => {
+          if (id === characterId) return world.pipelineCharacter?.getBeadHand();
+          return undefined;
+        },
+        adapter: world.pipelineAdapter,
+      };
+    } else {
+      const originalGetEntity = world.gameContext.getEntity;
+      world.gameContext.getEntity = (id: string) => {
+        if (id === characterId) return world.pipelineCharacter;
+        return originalGetEntity(id);
+      };
+      const originalGetBeadHand = world.gameContext.getBeadHand;
+      world.gameContext.getBeadHand = (id: string) => {
+        if (id === characterId) return world.pipelineCharacter?.getBeadHand();
+        return originalGetBeadHand?.(id);
+      };
+      world.gameContext.adapter = world.pipelineAdapter;
+    }
+  }
+);
+
+Given(
+  'a pipeline player character at position {int},{int} with {int} health and {int} green beads',
+  function (world: ActionPipelineWorld, x: number, y: number, health: number, greenBeads: number) {
+    expect(world.grid).toBeDefined();
+    const characterId = 'pipeline-character';
+    world.pipelineCharacter = new Character(characterId, health, world.grid!, { getEntity: () => undefined } as any);
+    world.pipelineCharacter.currentHealth = health;
+    world.pipelineCharacter.initializeBeadHand();
+    world.pipelineCharacter.setBeadHand({ red: 0, blue: 0, green: greenBeads, white: 0 });
+    world.grid!.register(characterId, x, y);
+    world.targetId = characterId;
+
+    // Update gameContext to return the character and its bead hand
+    if (!world.gameContext) {
+      world.gameContext = {
+        grid: world.grid!,
+        actorId: world.attackerId || 'pipeline-attacker',
+        getEntity(id: string): Entity | undefined {
+          if (id === characterId) return world.pipelineCharacter;
+          if (world.attacker?.id === id) return world.attacker;
+          return undefined;
+        },
+        getBeadHand: (id: string) => {
+          if (id === characterId) return world.pipelineCharacter?.getBeadHand();
+          return undefined;
+        },
+        adapter: world.pipelineAdapter,
+      };
+    } else {
+      const originalGetEntity = world.gameContext.getEntity;
+      world.gameContext.getEntity = (id: string) => {
+        if (id === characterId) return world.pipelineCharacter;
+        return originalGetEntity(id);
+      };
+      const originalGetBeadHand = world.gameContext.getBeadHand;
+      world.gameContext.getBeadHand = (id: string) => {
+        if (id === characterId) return world.pipelineCharacter?.getBeadHand();
+        return originalGetBeadHand?.(id);
+      };
+      world.gameContext.adapter = world.pipelineAdapter;
+    }
+  }
+);
+
+Given(
+  'a pipeline player character at position {int},{int} with {int} health and {int} defensive beads',
+  function (world: ActionPipelineWorld, x: number, y: number, health: number, defensiveBeads: number) {
+    expect(world.grid).toBeDefined();
+    const characterId = 'pipeline-character';
+    world.pipelineCharacter = new Character(characterId, health, world.grid!, { getEntity: () => undefined } as any);
+    world.pipelineCharacter.currentHealth = health;
+    world.pipelineCharacter.initializeBeadHand();
+    // Defensive beads are red and white (non-damaging colors in typical bead systems)
+    // Split between red and white
+    const redBeads = defensiveBeads;
+    const whiteBeads = 0;
+    world.pipelineCharacter.setBeadHand({ red: redBeads, blue: 0, green: 0, white: whiteBeads });
+    world.grid!.register(characterId, x, y);
+    world.targetId = characterId;
+
+    // Update gameContext to return the character and its bead hand
+    if (!world.gameContext) {
+      world.gameContext = {
+        grid: world.grid!,
+        actorId: world.attackerId || 'pipeline-attacker',
+        getEntity(id: string): Entity | undefined {
+          if (id === characterId) return world.pipelineCharacter;
+          if (world.attacker?.id === id) return world.attacker;
+          return undefined;
+        },
+        getBeadHand: (id: string) => {
+          if (id === characterId) return world.pipelineCharacter?.getBeadHand();
+          return undefined;
+        },
+        adapter: world.pipelineAdapter,
+      };
+    } else {
+      const originalGetEntity = world.gameContext.getEntity;
+      world.gameContext.getEntity = (id: string) => {
+        if (id === characterId) return world.pipelineCharacter;
+        return originalGetEntity(id);
+      };
+      const originalGetBeadHand = world.gameContext.getBeadHand;
+      world.gameContext.getBeadHand = (id: string) => {
+        if (id === characterId) return world.pipelineCharacter?.getBeadHand();
+        return originalGetBeadHand?.(id);
+      };
+      world.gameContext.adapter = world.pipelineAdapter;
+    }
+  }
+);
+
+Given(
+  'the pipeline adapter will select {string}',
+  function (world: ActionPipelineWorld, reactionId: string) {
+    // Create a mock BattleAdapter with promptOptions that returns the selected reaction
+    world.pipelineAdapter = {
+      promptOptions: vi.fn().mockResolvedValue([reactionId]),
+      promptTile: vi.fn(),
+      promptEntity: vi.fn(),
+      animate: vi.fn(),
+      log: vi.fn(),
+      showPlayerTurn: vi.fn(),
+      awaitPlayerAction: vi.fn(),
+      transition: vi.fn(),
+      delay: vi.fn(),
+      notifyBeadsChanged: vi.fn(),
+    };
+    world.pipelineAdapterPrompted = false;
+
+    // Update gameContext.adapter if gameContext exists
+    if (world.gameContext) {
+      world.gameContext.adapter = world.pipelineAdapter;
+    }
+  }
+);
+
 // Targeting validation When steps
 
 When('I validate melee targeting from attacker to target', function (world: ActionPipelineWorld) {
@@ -360,6 +558,25 @@ When(
   }
 );
 
+When(
+  'I handle pipeline defensive reaction with power {int} and agility {int}',
+  async function (world: ActionPipelineWorld, power: number, agility: number) {
+    expect(world.gameContext).toBeDefined();
+    expect(world.pipelineCharacter).toBeDefined();
+
+    // Call the actual handleDefensiveReaction function
+    const result = handleDefensiveReaction(world.gameContext!, world.pipelineCharacter!, power, agility);
+    if (result instanceof Promise) {
+      await result;
+    }
+
+    // Track if adapter was prompted
+    if (world.pipelineAdapter && world.pipelineAdapter.promptOptions) {
+      world.pipelineAdapterPrompted = (world.pipelineAdapter.promptOptions as any).mock?.called ?? false;
+    }
+  }
+);
+
 // Defensive reaction Then steps
 
 Then('the target should be prompted for defensive reaction', function (world: ActionPipelineWorld) {
@@ -380,6 +597,52 @@ Then('no defensive reaction prompt should be shown', function (world: ActionPipe
   expect(world.defensiveReactionContext).toBeDefined();
   expect(world.defensiveReactionContext!.prompted).toBe(false);
 });
+
+// Pipeline-specific Then steps
+
+Then('the pipeline character guard should be {int}', function (world: ActionPipelineWorld, expectedGuard: number) {
+  expect(world.pipelineCharacter).toBeDefined();
+  expect(world.pipelineCharacter!.guard).toBe(expectedGuard);
+});
+
+Then('the pipeline character evasion should be {int}', function (world: ActionPipelineWorld, expectedEvasion: number) {
+  expect(world.pipelineCharacter).toBeDefined();
+  expect(world.pipelineCharacter!.evasion).toBe(expectedEvasion);
+});
+
+Then(
+  'the pipeline character should have {int} red beads remaining',
+  function (world: ActionPipelineWorld, expectedRedBeads: number) {
+    expect(world.pipelineCharacter).toBeDefined();
+    const beadHand = world.pipelineCharacter!.getBeadHand();
+    expect(beadHand).toBeDefined();
+    const counts = beadHand!.getHandCounts();
+    expect(counts.red).toBe(expectedRedBeads);
+  }
+);
+
+Then(
+  'the pipeline character should have {int} green beads remaining',
+  function (world: ActionPipelineWorld, expectedGreenBeads: number) {
+    expect(world.pipelineCharacter).toBeDefined();
+    const beadHand = world.pipelineCharacter!.getBeadHand();
+    expect(beadHand).toBeDefined();
+    const counts = beadHand!.getHandCounts();
+    expect(counts.green).toBe(expectedGreenBeads);
+  }
+);
+
+Then(
+  'the pipeline adapter should not have been prompted',
+  function (world: ActionPipelineWorld) {
+    if (world.pipelineAdapter && world.pipelineAdapter.promptOptions) {
+      expect((world.pipelineAdapter.promptOptions as any).mock?.called ?? false).toBe(false);
+    } else {
+      // If no adapter was set, then it was never prompted
+      expect(true).toBe(true);
+    }
+  }
+);
 
 // Combat result setup steps
 

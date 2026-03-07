@@ -41,6 +41,42 @@ Feature: Action Pipeline — validate targeting, handle reactions, mutate state
     When I handle defensive reaction with attack power 5 and agility 3
     Then no defensive reaction prompt should be shown
 
+  # Pipeline defensive reactions - real behavior (4 scenarios)
+
+  Scenario: Pipeline applies guard boost when player selects guard reaction
+    Given a grid of 9x9
+    And a pipeline attacker at position 0,0
+    And a pipeline player character at position 1,0 with 10 health and 2 red beads
+    And the pipeline adapter will select "guard-2"
+    When I handle pipeline defensive reaction with power 5 and agility 3
+    Then the pipeline character guard should be 2
+    And the pipeline character should have 0 red beads remaining
+
+  Scenario: Pipeline applies evasion boost when player selects evade reaction
+    Given a grid of 9x9
+    And a pipeline attacker at position 0,0
+    And a pipeline player character at position 1,0 with 10 health and 2 green beads
+    And the pipeline adapter will select "evade-2"
+    When I handle pipeline defensive reaction with power 5 and agility 3
+    Then the pipeline character evasion should be 2
+    And the pipeline character should have 0 green beads remaining
+
+  Scenario: Pipeline skips prompt when character has no defensive beads
+    Given a grid of 9x9
+    And a pipeline attacker at position 0,0
+    And a pipeline player character at position 1,0 with 10 health and 0 defensive beads
+    When I handle pipeline defensive reaction with power 5 and agility 3
+    Then the pipeline adapter should not have been prompted
+
+  Scenario: ShootEffect calls defensive reaction before combat resolution
+    Given a grid of 9x9
+    And a pipeline attacker at position 0,0 with attack power 5 and agility 3
+    And a pipeline player character at position 3,0 with 10 health and 2 red beads
+    And the pipeline adapter will select "guard-2"
+    When I execute ShootEffect with range 5
+    Then the pipeline character guard should be 2
+    And the pipeline effect should succeed
+
   # Pipeline state mutation (2 scenarios)
 
   Scenario: Pipeline applies damage to target after hit result
