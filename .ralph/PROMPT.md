@@ -53,11 +53,12 @@ Execute one complete TDD iteration to advance the project by making one user sto
 {
   "id": "STORY-001",
   "title": "Feature description",
-  "description": "Detailed acceptance criteria",
-  "type": "unit|e2e",
+  "description": "Full story description including acceptance criteria",
   "passes": false
 }
 ```
+
+**IMPORTANT**: The `description` field contains ALL requirements and acceptance criteria for the story. Read it carefully and implement EVERY acceptance criterion listed. Do NOT skip stories or mark them as passing without writing new tests and new code that satisfy the acceptance criteria in the description.
 
 ## Environment Variables
 
@@ -87,3 +88,4 @@ Begin each phase with a clear marker:
 4. **Validation**: Always run full checks before commit
 5. **Context**: Always read and update progress.txt with learnings
 6. **JIRA Optional**: JIRA integration is optional - if env vars are not set, skip JIRA commands silently
+7. **Never skip work**: Every story with `passes: false` requires NEW tests and NEW code. Read the full description — it contains the acceptance criteria. Do not mark a story as passing based on existing code alone.

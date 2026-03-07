@@ -234,7 +234,6 @@ pull_from_jira() {
                     id: .key,
                     title: .fields.summary,
                     description_adf: .fields.description,
-                    acceptanceCriteria: [],
                     priority: (if .fields.priority.name == "Highest" then 1 elif .fields.priority.name == "High" then 2 elif .fields.priority.name == "Medium" then 3 elif .fields.priority.name == "Low" then 4 else 5 end),
                     passes: false
                 }
