@@ -96,11 +96,26 @@ export class Action {
     for (const hydrated of this.effects) {
       const resolvedParams = this.resolveParams(hydrated.params, params, chainResults);
 
-      // Execute effect (may be async)
+      // Collect modifiers from selected options
+      const modifiers: Record<string, unknown> = {};
+      const selectedOptions = params.get('options') as string[] | undefined;
+      if (selectedOptions && this.definition.options) {
+        for (const optionId of selectedOptions) {
+          const optionDef = this.definition.options[optionId];
+          if (optionDef?.modifies && optionDef.modifier) {
+            const targets = Array.isArray(optionDef.modifies) ? optionDef.modifies : [optionDef.modifies];
+            if (targets.includes(hydrated.id)) {
+              Object.assign(modifiers, optionDef.modifier);
+            }
+          }
+        }
+      }
+
+      // Execute effect (may be async) with collected modifiers
       const resultOrPromise = hydrated.effect.execute(
         contextWithAdapter,
         resolvedParams,
-        {}, // No modifiers in steps 3.1-3.5
+        modifiers,
         chainResults
       );
 

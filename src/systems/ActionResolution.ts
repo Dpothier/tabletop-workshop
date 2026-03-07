@@ -3,6 +3,7 @@ import type { BattleAdapter } from '@src/types/BattleAdapter';
 import type { ActionResult } from '@src/types/ActionDefinition';
 import type { GameContext } from '@src/types/Effect';
 import type { EntityPrompt } from '@src/types/ParameterPrompt';
+import type { BeadCounts } from '@src/types/Beads';
 
 /**
  * ActionResolution handles the execution of an action with async parameter collection
@@ -64,6 +65,36 @@ export class ActionResolution {
           };
         }
         collectedValues.set(prompt.key, entity);
+      }
+    }
+
+    // Spend bead costs if any
+    const beadHand = this.context.getBeadHand(this.actorId);
+    if (beadHand) {
+      const cost = this.action.cost;
+      const beadCost: BeadCounts = {
+        red: cost.red ?? 0,
+        blue: cost.blue ?? 0,
+        green: cost.green ?? 0,
+        white: cost.white ?? 0,
+      };
+
+      if (!beadHand.canAfford(beadCost)) {
+        return {
+          cancelled: false,
+          success: false,
+          reason: 'insufficient beads',
+          cost: this.action.cost,
+          events: [],
+          data: {},
+        };
+      }
+
+      // Spend each bead color
+      for (const color of ['red', 'blue', 'green', 'white'] as const) {
+        for (let i = 0; i < (cost[color] ?? 0); i++) {
+          beadHand.spend(color);
+        }
       }
     }
 

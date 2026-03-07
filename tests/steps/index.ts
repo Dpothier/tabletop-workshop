@@ -42,3 +42,4 @@ import './character-storage.steps';
 import './battle-builder-beads.steps';
 import './attack-resolvers.steps';
 import './action-pipeline.steps';
+import './action-framework-payment.steps';
