@@ -23,6 +23,7 @@ export class Entity {
   public armor: number = 0;
   public guard: number = 0;
   public evasion: number = 0;
+  public readonly buffs: Map<string, number> = new Map();
   protected readonly grid: BattleGrid;
 
   constructor(id: string, maxHealth: number, grid: BattleGrid) {
@@ -121,5 +122,34 @@ export class Entity {
    */
   receiveDamage(amount: number): void {
     this.currentHealth = Math.max(0, this.currentHealth - amount);
+  }
+
+  /**
+   * Add stacks of a named effect. Accumulates with existing stacks.
+   */
+  addStacks(name: string, count: number): void {
+    const current = this.buffs.get(name) ?? 0;
+    this.buffs.set(name, current + count);
+  }
+
+  /**
+   * Get current stack count for a named effect. Returns 0 if not present.
+   */
+  getStacks(name: string): number {
+    return this.buffs.get(name) ?? 0;
+  }
+
+  /**
+   * Clear stacks of a specific named effect.
+   */
+  clearStacks(name: string): void {
+    this.buffs.delete(name);
+  }
+
+  /**
+   * Clear all effects from the buffs map.
+   */
+  clearAll(): void {
+    this.buffs.clear();
   }
 }
