@@ -167,7 +167,7 @@ adf_to_text() {
             elif .type == "heading" then
                 (.content // [] | map(walk_node) | join("")) + "\n"
             elif .type == "codeBlock" then
-                "```\n" + (.content // [] | map(walk_node) | join("")) + "\n```"
+                "```" + (.attrs.language // "") + "\n" + (.content // [] | map(walk_node) | join("")) + "\n```"
             elif .type == "paragraph" then
                 (.content // [] | map(walk_node) | join(""))
             else
