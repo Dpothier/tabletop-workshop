@@ -44,3 +44,5 @@ import './attack-resolvers.steps';
 import './action-pipeline.steps';
 import './action-framework-payment.steps';
 import './entity-buffs.steps';
+import './preparation-manager.steps';
+import './status-effect-manager.steps';
