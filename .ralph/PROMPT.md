@@ -36,20 +36,9 @@ Execute one complete TDD iteration to advance the project by making one user sto
 
 ### 5. Accept Phase: Validate Against Story Requirements
 
-**IMPORTANT**: This phase MUST be executed in a separate context window to avoid self-assessment bias. The agent that wrote the code must NOT be the one evaluating it.
+**IMPORTANT**: This phase MUST be executed in a separate context window to avoid self-assessment bias.
 
-- Delegate to **architecture-reviewer** (separate agent context) with only the story ID:
-  > Review the implementation for story [STORY-ID].
-  > Read the story description from `prd.json` to get ALL acceptance criteria.
-  > Run `git diff` to see the actual changes made.
-  > Read the new/modified test files and production code as needed.
-  >
-  > Produce a structured acceptance report:
-  > 1. List EACH acceptance criterion from the story description
-  > 2. For each criterion, state: COVERED (test + code exist) or MISSING (not implemented or not tested)
-  > 3. Flag any architectural violations or design constraints not respected
-  > 4. Final verdict: ACCEPT or REJECT with list of gaps
-- Do NOT copy-paste the story description or diff into the prompt — the reviewer agent can read `prd.json` and run `git diff` itself. Passing data through the main agent invites copy errors and wastes context.
+- Delegate to **architecture-reviewer** with the story ID (e.g. "Review story MFG-42"). The reviewer knows how to read `prd.json`, run `git diff`, and produce a structured acceptance report. Do NOT copy-paste criteria or diffs — the reviewer fetches everything itself.
 - Parse the reviewer's verdict:
   - If **ACCEPT**: proceed to phase 6 (Finalize)
   - If **REJECT**:
