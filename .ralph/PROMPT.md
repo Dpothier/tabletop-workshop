@@ -38,24 +38,18 @@ Execute one complete TDD iteration to advance the project by making one user sto
 
 **IMPORTANT**: This phase MUST be executed in a separate context window to avoid self-assessment bias. The agent that wrote the code must NOT be the one evaluating it.
 
-- Collect the inputs for the reviewer:
-  1. The story `description` field from `prd.json` (all acceptance criteria)
-  2. The list of changed files: `git diff --name-only`
-  3. The actual diff content: `git diff` (staged + unstaged)
-- Delegate to **architecture-reviewer** (separate agent context) with this prompt:
-  > You are reviewing work done for story [STORY-ID]. Below are the story requirements and the implementation diff.
+- Delegate to **architecture-reviewer** (separate agent context) with only the story ID:
+  > Review the implementation for story [STORY-ID].
+  > Read the story description from `prd.json` to get ALL acceptance criteria.
+  > Run `git diff` to see the actual changes made.
+  > Read the new/modified test files and production code as needed.
   >
-  > **Story requirements:**
-  > [paste full description from prd.json]
-  >
-  > **Changed files and diff:**
-  > [paste git diff output]
-  >
-  > Review the implementation and produce a structured acceptance report:
+  > Produce a structured acceptance report:
   > 1. List EACH acceptance criterion from the story description
   > 2. For each criterion, state: COVERED (test + code exist) or MISSING (not implemented or not tested)
   > 3. Flag any architectural violations or design constraints not respected
   > 4. Final verdict: ACCEPT or REJECT with list of gaps
+- Do NOT copy-paste the story description or diff into the prompt — the reviewer agent can read `prd.json` and run `git diff` itself. Passing data through the main agent invites copy errors and wastes context.
 - Parse the reviewer's verdict:
   - If **ACCEPT**: proceed to phase 6 (Finalize)
   - If **REJECT**:
