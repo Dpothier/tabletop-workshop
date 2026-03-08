@@ -271,12 +271,18 @@ For each story, Ralph:
    - Run: `npm run test` (all tests)
    - Verify success
 
-5. **COMMIT**
+5. **ACCEPT** (architecture-reviewer)
+   - Re-read story acceptance criteria
+   - Compare implementation against each criterion
+   - If gaps found: return to RED/GREEN to address them
+   - Only proceed when all criteria verified
+
+6. **COMMIT**
    - `git commit -m "feat: [STORY-ID] title"`
    - Update `prd.json`: `passes: true`
    - Append to `progress.txt`
 
-6. **LOOP**
+7. **LOOP**
    - Start next story or exit if complete
 
 ## Verification Checklist

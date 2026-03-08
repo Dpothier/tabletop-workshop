@@ -214,7 +214,8 @@ Execute the full TDD cycle for story ${story_id}:
 2. [GREEN] Write minimal production code to make it pass
 3. [REFACTOR] Improve quality if needed
 4. [VERIFY] Run: npm run check && npm run test
-5. [COMMIT] Commit changes, update prd.json (set passes: true), update progress.txt
+5. [ACCEPT] Validate implementation covers ALL acceptance criteria from story description
+6. [COMMIT] Commit changes, update prd.json (set passes: true), update progress.txt
 
 When all stories are complete, output: <promise>COMPLETE</promise>
 EOF

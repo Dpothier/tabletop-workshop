@@ -100,8 +100,9 @@ For each story:
 2. **GREEN**: Writes minimal production code to pass tests
 3. **REFACTOR**: Improves code if needed
 4. **VERIFY**: Runs all checks (`npm run check && npm run test`)
-5. **COMMIT**: Git commits the story implementation
-6. **LOOP**: Repeats for next story
+5. **ACCEPT**: Validates implementation matches all story acceptance criteria
+6. **COMMIT**: Git commits the story implementation
+7. **LOOP**: Repeats for next story
 
 All with your TDD workflow intact!
 

@@ -34,7 +34,19 @@ Execute one complete TDD iteration to advance the project by making one user sto
 - Review changes via **code-writer** only if approvals given
 - Run: `npm run check && npm run test`
 
-### 5. Finalize
+### 5. Accept Phase: Validate Against Story Requirements
+- Re-read the story `description` field from `prd.json` — it contains ALL acceptance criteria
+- Review the actual work done: `git diff --name-only` to see changed files, then read the new test files and production code
+- Delegate to **architecture-reviewer** with the following prompt:
+  - "Compare the implementation against the story requirements. List each acceptance criterion from the story description and whether it is covered by tests and production code. Flag any missing criteria, architectural violations, or design constraints that were not respected."
+- If the reviewer identifies gaps:
+  - Append findings to `progress.txt`
+  - Return to phase 2 (RED) or phase 3 (GREEN) to address each gap
+  - Re-run VERIFY after fixes
+  - Re-run ACCEPT to confirm all gaps are closed
+- Only proceed to Finalize when ALL acceptance criteria are verified as covered
+
+### 6. Finalize
 - Run: `npm run check && npm run test`
 - Verify all tests pass and code is clean
 - If validation passes:
@@ -72,12 +84,13 @@ Begin each phase with a clear marker:
 - `[GREEN]` - Production code phase
 - `[REFACTOR]` - Code quality improvements
 - `[VERIFY]` - Final validation
+- `[ACCEPT]` - Story acceptance validation
 - `[COMMIT]` - Version control updates
 
 ## Progress Saves
 
-After completing each phase (RED, GREEN, REFACTOR, VERIFY), immediately append a status line to `progress.txt`:
-- Phase completed (RED/GREEN/REFACTOR/VERIFY)
+After completing each phase (RED, GREEN, REFACTOR, VERIFY, ACCEPT), immediately append a status line to `progress.txt`:
+- Phase completed (RED/GREEN/REFACTOR/VERIFY/ACCEPT)
 - Files created or modified
 - Errors encountered (if any)
 

@@ -400,6 +400,7 @@ Claude est tenu de :
 - Deleguer a `code-writer` pour la phase GREEN
 - Deleguer a `architecture-reviewer` pour la phase REFACTOR (optionnel)
 - Executer `npm run check && npm run test` pour la phase VERIFY
+- Valider via **architecture-reviewer** que l'implementation couvre TOUS les criteres d'acceptance de la story (phase ACCEPT)
 - Commiter avec le message `feat: [story-id] story title` et mettre `passes: true` dans `prd.json`
 
 ### Mecanisme du Stop Hook

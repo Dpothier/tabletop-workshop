@@ -230,12 +230,18 @@ What Ralph does for each story:
    → Run: npm run test (all tests)
    → Verify all pass
 
-5. COMMIT phase
+5. ACCEPT phase (architecture-reviewer)
+   → Re-read story acceptance criteria
+   → Compare implementation against each criterion
+   → If gaps found: return to RED/GREEN to address them
+   → Only proceed when all criteria verified
+
+6. COMMIT phase
    → git commit -m "feat: [STORY-ID] title"
    → Update prd.json: passes: true
    → Append to progress.txt
 
-6. Loop to next story
+7. Loop to next story
 ```
 
 ## Environment Variables
