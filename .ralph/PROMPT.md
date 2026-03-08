@@ -38,7 +38,7 @@ Execute one complete TDD iteration to advance the project by making one user sto
 
 **IMPORTANT**: This phase MUST be executed in a separate context window to avoid self-assessment bias.
 
-- Delegate to **architecture-reviewer** with the story ID (e.g. "Review story MFG-42"). The reviewer knows how to read `prd.json`, run `git diff`, and produce a structured acceptance report. Do NOT copy-paste criteria or diffs — the reviewer fetches everything itself.
+- Delegate to **acceptance-reviewer** with the story ID (e.g. "MFG-42"). The reviewer reads `prd.json` and runs `git diff` on its own — do NOT copy-paste criteria or diffs.
 - Parse the reviewer's verdict:
   - If **ACCEPT**: proceed to phase 6 (Finalize)
   - If **REJECT**:
