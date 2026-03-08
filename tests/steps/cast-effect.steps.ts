@@ -18,9 +18,12 @@ interface CastEffectWorld extends QuickPickleWorld {
 
 // Background: Setup
 
-Given('a cast effect grid of {int}x{int}', function (world: CastEffectWorld, width: number, height: number) {
-  world.castEffectGrid = new BattleGrid(width, height);
-});
+Given(
+  'a cast effect grid of {int}x{int}',
+  function (world: CastEffectWorld, width: number, height: number) {
+    world.castEffectGrid = new BattleGrid(width, height);
+  }
+);
 
 Given('a cast effect game context with the grid', function (world: CastEffectWorld) {
   if (!world.castEffectEntities) {
@@ -198,18 +201,13 @@ Then('the cast effect should succeed', function (world: CastEffectWorld) {
   expect(world.castEffectResult!.success).toBe(true);
 });
 
-Then(
-  'the cast effect target should take damage',
-  function (world: CastEffectWorld) {
-    expect(world.castEffectTarget).toBeDefined();
-    expect(world.castEffectResult).toBeDefined();
-    // Target took damage if current health is less than initial
-    // We assume the test set up the initial health correctly
-    expect(world.castEffectTarget!.currentHealth).toBeLessThan(
-      world.castEffectTarget!.maxHealth
-    );
-  }
-);
+Then('the cast effect target should take damage', function (world: CastEffectWorld) {
+  expect(world.castEffectTarget).toBeDefined();
+  expect(world.castEffectResult).toBeDefined();
+  // Target took damage if current health is less than initial
+  // We assume the test set up the initial health correctly
+  expect(world.castEffectTarget!.currentHealth).toBeLessThan(world.castEffectTarget!.maxHealth);
+});
 
 Then(
   'the cast effect target should have {int} health',

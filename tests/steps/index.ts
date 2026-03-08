@@ -45,7 +45,8 @@ import './attack-resolvers.steps';
 import './action-pipeline.steps';
 import './action-framework-payment.steps';
 import './entity-buffs.steps';
-// preparation-manager.steps and status-effect-manager.steps are pending MFG-56 (Entity.buffs delegation)
+import './preparation-manager.steps';
+import './status-effect-manager.steps';
 import './cast-effect.steps';
 import './weapon-attack-pipeline.steps';
 // From ralph/MFG-7 (MFG-11 to MFG-17)

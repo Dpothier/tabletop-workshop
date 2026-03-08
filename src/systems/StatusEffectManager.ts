@@ -23,80 +23,58 @@ export interface EndOfRoundDamage {
 }
 
 /**
- * StatusEffectManager manages all status effects (burn, etc.) on game entities.
- * - Tracks burn stacks per entity
+ * StatusEffectManager — stateless rule enforcer over Entity.buffs.
+ * All stack storage is delegated to the entity's buffs map.
  * - Resolves end-of-round damage: 1 damage per burn stack
- * - Consumes burn stacks after damage resolution (full consumption per MFG-14)
+ * - Full consumption of burn stacks after damage (MFG-14)
  */
 export class StatusEffectManager {
-  private burnStacks: Map<string, number> = new Map();
+  applyBurn(entity: Entity, stacks: number): void {
+    entity.addStacks('burn', stacks);
+  }
 
-  /**
-   * Apply burn stacks to an entity.
-   * Stacks accumulate.
-   */
-  applyBurn(entityId: string, stacks: number): void {
-    const current = this.burnStacks.get(entityId) || 0;
-    this.burnStacks.set(entityId, current + stacks);
+  getBurnStacks(entity: Entity): number {
+    return entity.getStacks('burn');
+  }
+
+  hasBurn(entity: Entity): boolean {
+    return entity.getStacks('burn') > 0;
+  }
+
+  clearBurn(entity: Entity): void {
+    entity.clearStacks('burn');
   }
 
   /**
-   * Get the number of burn stacks on an entity.
-   * Returns 0 if entity has no burn.
+   * Resolve all end-of-round effects for a set of entities.
+   * Each burn stack deals 1 damage. Burns are fully consumed after.
    */
-  getBurnStacks(entityId: string): number {
-    return this.burnStacks.get(entityId) || 0;
-  }
-
-  /**
-   * Check if an entity has any burn stacks.
-   */
-  hasBurn(entityId: string): boolean {
-    return this.getBurnStacks(entityId) > 0;
-  }
-
-  /**
-   * Resolve all end-of-round effects.
-   * Each burn stack deals 1 damage to the entity.
-   * Burns are fully consumed after damage is resolved.
-   *
-   * @param getEntity Callback to retrieve an entity by ID for damage application
-   * @returns Array of damage events that occurred
-   */
-  resolveEndOfRound(getEntity: (id: string) => Entity | undefined): EndOfRoundDamage[] {
+  resolveEndOfRound(entities: Entity[]): EndOfRoundDamage[] {
     const results: EndOfRoundDamage[] = [];
 
-    for (const [entityId, stacks] of this.burnStacks.entries()) {
+    for (const entity of entities) {
+      const stacks = entity.getStacks('burn');
       if (stacks > 0) {
-        const entity = getEntity(entityId);
-        if (entity) {
-          // Cap damage at entity's current health
-          const actualDamage = Math.min(stacks, entity.currentHealth);
+        const actualDamage = Math.min(stacks, entity.currentHealth);
+        entity.receiveDamage(stacks);
+        entity.clearStacks('burn');
 
-          // Apply damage
-          entity.receiveDamage(stacks);
-
-          // Record the actual damage dealt
-          results.push({
-            entityId,
-            type: 'burn',
-            damage: actualDamage,
-            consumed: true,
-          });
-        }
+        results.push({
+          entityId: entity.id,
+          type: 'burn',
+          damage: actualDamage,
+          consumed: true,
+        });
       }
     }
-
-    // Consume all burn stacks (full consumption per MFG-14)
-    this.burnStacks.clear();
 
     return results;
   }
 
   /**
-   * Get all entity IDs that have active status effects.
+   * Get all entities with active burn from a set.
    */
-  getAffectedEntities(): string[] {
-    return Array.from(this.burnStacks.keys()).filter((id) => this.burnStacks.get(id)! > 0);
+  getAffectedEntities(entities: Entity[]): string[] {
+    return entities.filter((e) => e.getStacks('burn') > 0).map((e) => e.id);
   }
 }

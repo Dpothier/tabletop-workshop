@@ -1,30 +1,36 @@
 import { Given, When, Then } from 'quickpickle';
 import { expect } from 'vitest';
 import type { QuickPickleWorld } from 'quickpickle';
+import { Entity } from '@src/entities/Entity';
+import { BattleGrid } from '@src/state/BattleGrid';
 import { PreparationManager, PREPARATION_DEFINITIONS } from '@src/systems/PreparationManager';
 import type { PreparationType } from '@src/systems/PreparationManager';
 
 interface PreparationWorld extends QuickPickleWorld {
   prepManager?: PreparationManager;
-  pairedActionsMap?: Map<string, Set<string>>;
+  prepGrid?: BattleGrid;
+  prepEntities?: Map<string, Entity>;
 }
 
 Given('a preparation manager', function (world: PreparationWorld) {
   world.prepManager = new PreparationManager();
-  world.pairedActionsMap = new Map();
-
-  // Initialize paired actions mapping
-  world.pairedActionsMap.set('windup', new Set(['attack']));
-  world.pairedActionsMap.set('aim', new Set(['shoot']));
-  world.pairedActionsMap.set('channel', new Set(['cast']));
-  world.pairedActionsMap.set('ponder', new Set());
-  world.pairedActionsMap.set('rest', new Set());
+  world.prepGrid = new BattleGrid(9, 9);
+  world.prepEntities = new Map();
 });
+
+function getOrCreateEntity(world: PreparationWorld, entityId: string): Entity {
+  if (!world.prepEntities!.has(entityId)) {
+    const entity = new Entity(entityId, 100, world.prepGrid!);
+    world.prepEntities!.set(entityId, entity);
+  }
+  return world.prepEntities!.get(entityId)!;
+}
 
 When(
   'entity {string} prepares {string} with {int} stack(s)',
   function (world: PreparationWorld, entityId: string, prepType: string, stacks: number) {
-    world.prepManager!.prepare(entityId, prepType as PreparationType, stacks);
+    const entity = getOrCreateEntity(world, entityId);
+    world.prepManager!.prepare(entity, prepType as PreparationType, stacks);
   }
 );
 
@@ -32,18 +38,17 @@ When(
   'entity {string} preparations are interrupted by {string}',
   function (world: PreparationWorld, entityId: string, interruptType: string) {
     if (interruptType === 'damage' || interruptType === 'defensive_reaction') {
-      world.prepManager!.interruptAll(entityId);
+      const entity = getOrCreateEntity(world, entityId);
+      world.prepManager!.interruptAll(entity);
     }
   }
 );
 
 When(
   'entity {string} performs action {string} which is unrelated to {string}',
-  function (world: PreparationWorld, entityId: string, actionId: string, prepType: string) {
-    const pairedSet = world.pairedActionsMap!.get(prepType as PreparationType) || new Set();
-    if (!pairedSet.has(actionId)) {
-      world.prepManager!.interruptByAction(entityId, actionId);
-    }
+  function (world: PreparationWorld, entityId: string, actionId: string, _prepType: string) {
+    const entity = getOrCreateEntity(world, entityId);
+    world.prepManager!.interruptByAction(entity, actionId);
   }
 );
 
@@ -57,14 +62,16 @@ When(
 When(
   'entity {string} consumes {string} preparation',
   function (world: PreparationWorld, entityId: string, prepType: string) {
-    world.prepManager!.consumeStacks(entityId, prepType as PreparationType);
+    const entity = getOrCreateEntity(world, entityId);
+    world.prepManager!.consumeStacks(entity, prepType as PreparationType);
   }
 );
 
 Then(
   'entity {string} should have {int} {string} preparation stack(s)',
   function (world: PreparationWorld, entityId: string, expectedStacks: number, prepType: string) {
-    const actualStacks = world.prepManager!.getStacks(entityId, prepType as PreparationType);
+    const entity = getOrCreateEntity(world, entityId);
+    const actualStacks = world.prepManager!.getStacks(entity, prepType as PreparationType);
     expect(actualStacks).toBe(expectedStacks);
   }
 );

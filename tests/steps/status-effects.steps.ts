@@ -27,14 +27,16 @@ Given('a burn status effect manager', function (world: StatusEffectsWorld) {
 When(
   'entity {string} has {int} burn stack applied',
   function (world: StatusEffectsWorld, entityId: string, stacks: number) {
-    world.statusManager!.applyBurn(entityId, stacks);
+    const entity = world.entities!.get(entityId)!;
+    world.statusManager!.applyBurn(entity, stacks);
   }
 );
 
 When(
   'entity {string} has {int} burn stacks applied',
   function (world: StatusEffectsWorld, entityId: string, stacks: number) {
-    world.statusManager!.applyBurn(entityId, stacks);
+    const entity = world.entities!.get(entityId)!;
+    world.statusManager!.applyBurn(entity, stacks);
   }
 );
 
@@ -43,34 +45,38 @@ When(
 Then(
   'entity {string} should have {int} burn stacks',
   function (world: StatusEffectsWorld, entityId: string, expectedStacks: number) {
-    const stacks = world.statusManager!.getBurnStacks(entityId);
+    const entity = world.entities!.get(entityId)!;
+    const stacks = world.statusManager!.getBurnStacks(entity);
     expect(stacks).toBe(expectedStacks);
   }
 );
 
 Then('entity {string} should have no burn', function (world: StatusEffectsWorld, entityId: string) {
-  const stacks = world.statusManager!.getBurnStacks(entityId);
+  const entity = world.entities!.get(entityId)!;
+  const stacks = world.statusManager!.getBurnStacks(entity);
   expect(stacks).toBe(0);
-  expect(world.statusManager!.hasBurn(entityId)).toBe(false);
+  expect(world.statusManager!.hasBurn(entity)).toBe(false);
 });
 
 Then(
   'entity {string} should have {int} burn stack',
   function (world: StatusEffectsWorld, entityId: string, expectedStacks: number) {
-    const stacks = world.statusManager!.getBurnStacks(entityId);
+    const entity = world.entities!.get(entityId)!;
+    const stacks = world.statusManager!.getBurnStacks(entity);
     expect(stacks).toBe(expectedStacks);
   }
 );
 
 Then('entity {string} should have burn', function (world: StatusEffectsWorld, entityId: string) {
-  expect(world.statusManager!.hasBurn(entityId)).toBe(true);
+  const entity = world.entities!.get(entityId)!;
+  expect(world.statusManager!.hasBurn(entity)).toBe(true);
 });
 
 // End-of-round resolution
 
 When('end of round is resolved', function (world: StatusEffectsWorld) {
-  const getEntity = (id: string) => world.entities!.get(id);
-  world.endOfRoundResults = world.statusManager!.resolveEndOfRound(getEntity);
+  const allEntities = Array.from(world.entities!.values());
+  world.endOfRoundResults = world.statusManager!.resolveEndOfRound(allEntities);
 });
 
 // Query end-of-round results
@@ -97,7 +103,8 @@ Then(
 Then(
   'the affected entities list should contain {string}',
   function (world: StatusEffectsWorld, entityId: string) {
-    world.affectedEntitiesList = world.statusManager!.getAffectedEntities();
+    const allEntities = Array.from(world.entities!.values());
+    world.affectedEntitiesList = world.statusManager!.getAffectedEntities(allEntities);
     expect(world.affectedEntitiesList).toContain(entityId);
   }
 );
@@ -105,7 +112,8 @@ Then(
 Then(
   'the affected entities list should not contain {string}',
   function (world: StatusEffectsWorld, entityId: string) {
-    world.affectedEntitiesList = world.statusManager!.getAffectedEntities();
+    const allEntities = Array.from(world.entities!.values());
+    world.affectedEntitiesList = world.statusManager!.getAffectedEntities(allEntities);
     expect(world.affectedEntitiesList).not.toContain(entityId);
   }
 );

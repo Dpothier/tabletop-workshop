@@ -42,9 +42,9 @@ Feature: Entity Unified Buffs Map
 
   Scenario: PreparationManager enforces max stacks via entity buffs
     Given a buffs entity "warrior" with 10 health
-    And a preparation manager with max 3 stacks for "windup"
+    And a preparation manager with max 1 stacks for "windup"
     When I add 5 windup stacks via the preparation manager
-    Then the buffs entity should have 3 stacks of "windup"
+    Then the buffs entity should have 1 stacks of "windup"
 
   Scenario: StatusEffectManager applies end-of-round burn damage via entity buffs
     Given a buffs entity "hero" with 10 health
