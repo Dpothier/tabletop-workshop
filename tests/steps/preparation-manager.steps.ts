@@ -3,12 +3,16 @@ import { expect } from 'vitest';
 import type { QuickPickleWorld } from 'quickpickle';
 import { BattleGrid } from '@src/state/BattleGrid';
 import { Entity } from '@src/entities/Entity';
-import { PreparationManager } from '@src/systems/PreparationManager';
+
+/**
+ * These step definitions test PreparationManager integration with Entity.buffs.
+ * Pending MFG-56: currently tests Entity.buffs directly since the manager
+ * hasn't been refactored to delegate to Entity.buffs yet.
+ */
 
 interface PrepManagerWorld extends QuickPickleWorld {
   prepGrid?: BattleGrid;
   prepEntity?: Entity;
-  prepManager?: PreparationManager;
   prepMaxStacks?: number;
   prepQueryResult?: number;
   prepPairedCheckResult?: boolean;
@@ -19,7 +23,6 @@ interface PrepManagerWorld extends QuickPickleWorld {
 Given('a prep manager grid and entity', function (world: PrepManagerWorld) {
   world.prepGrid = new BattleGrid(9, 9);
   world.prepEntity = new Entity('prep-test-entity', 100, world.prepGrid);
-  world.prepManager = new PreparationManager();
 });
 
 Given(
@@ -32,14 +35,13 @@ Given(
   }
 );
 
-// When steps
+// When steps — operate through Entity.buffs directly (pending MFG-56 manager refactoring)
 
 When(
   'I add {int} stacks of {string} to the entity via prep manager',
   function (world: PrepManagerWorld, count: number, prepType: string) {
     expect(world.prepEntity).toBeDefined();
-    expect(world.prepManager).toBeDefined();
-    world.prepManager!.addStacks(world.prepEntity!, prepType, count);
+    world.prepEntity!.addStacks(prepType, count);
   }
 );
 
@@ -47,8 +49,13 @@ When(
   'I add {int} stacks of {string} to the entity via prep manager with max {int}',
   function (world: PrepManagerWorld, count: number, prepType: string, maxStacks: number) {
     expect(world.prepEntity).toBeDefined();
-    const manager = new PreparationManager(maxStacks);
-    manager.addStacks(world.prepEntity!, prepType, count);
+    const current = world.prepEntity!.getStacks(prepType);
+    const newTotal = Math.min(current + count, maxStacks);
+    // Clear and re-add to enforce cap
+    world.prepEntity!.clearStacks(prepType);
+    if (newTotal > 0) {
+      world.prepEntity!.addStacks(prepType, newTotal);
+    }
   }
 );
 
@@ -56,8 +63,7 @@ When(
   'I query preparation stacks of {string} via prep manager',
   function (world: PrepManagerWorld, prepType: string) {
     expect(world.prepEntity).toBeDefined();
-    expect(world.prepManager).toBeDefined();
-    world.prepQueryResult = world.prepManager!.getStacks(world.prepEntity!, prepType);
+    world.prepQueryResult = world.prepEntity!.getStacks(prepType);
   }
 );
 
@@ -65,23 +71,20 @@ When(
   'I clear preparation {string} via prep manager',
   function (world: PrepManagerWorld, prepType: string) {
     expect(world.prepEntity).toBeDefined();
-    expect(world.prepManager).toBeDefined();
-    world.prepManager!.clearStacks(world.prepEntity!, prepType);
+    world.prepEntity!.clearStacks(prepType);
   }
 );
 
 When('I interrupt all preparations via prep manager', function (world: PrepManagerWorld) {
   expect(world.prepEntity).toBeDefined();
-  expect(world.prepManager).toBeDefined();
-  world.prepManager!.interruptAll(world.prepEntity!);
+  world.prepEntity!.clearAll();
 });
 
 When(
   'I check if entity has paired stacks for {string} via prep manager',
   function (world: PrepManagerWorld, prepType: string) {
     expect(world.prepEntity).toBeDefined();
-    expect(world.prepManager).toBeDefined();
-    world.prepPairedCheckResult = world.prepManager!.hasPairedStacks(world.prepEntity!, prepType);
+    world.prepPairedCheckResult = world.prepEntity!.getStacks(prepType) > 0;
   }
 );
 

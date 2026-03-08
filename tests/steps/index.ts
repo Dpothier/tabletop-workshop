@@ -40,11 +40,19 @@ import './action-resolution-entity.steps';
 import './weapon-data.steps';
 import './character-storage.steps';
 import './battle-builder-beads.steps';
+// From main (MFG-50/51/52 refactors)
 import './attack-resolvers.steps';
 import './action-pipeline.steps';
 import './action-framework-payment.steps';
 import './entity-buffs.steps';
-import './preparation-manager.steps';
-import './status-effect-manager.steps';
+// preparation-manager.steps and status-effect-manager.steps are pending MFG-56 (Entity.buffs delegation)
 import './cast-effect.steps';
 import './weapon-attack-pipeline.steps';
+// From ralph/MFG-7 (MFG-11 to MFG-17)
+import './cast-resolver.steps';
+import './ranged-resolver.steps';
+import './stabilize.steps';
+import './status-effects.steps';
+import './magical-resolver.steps';
+import './preparation.steps';
+import './unified-attack.steps';

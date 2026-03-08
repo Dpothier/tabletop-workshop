@@ -78,8 +78,7 @@ Given(
     const targetId = 'cast-effect-target';
     world.castEffectTarget = new Entity(targetId, health, world.castEffectGrid);
     world.castEffectTarget.currentHealth = health;
-    // Add ward as stacks on the entity
-    world.castEffectTarget.addStacks('ward', ward);
+    world.castEffectTarget.setWard(ward);
     world.castEffectEntities.set(targetId, world.castEffectTarget);
     world.castEffectGrid.register(targetId, x, y);
 
@@ -100,8 +99,7 @@ Given(
     const targetId = 'cast-effect-target';
     world.castEffectTarget = new Entity(targetId, health, world.castEffectGrid);
     world.castEffectTarget.currentHealth = health;
-    // Add ward as stacks on the entity
-    world.castEffectTarget.addStacks('ward', ward);
+    world.castEffectTarget.setWard(ward);
     world.castEffectEntities.set(targetId, world.castEffectTarget);
     world.castEffectGrid.register(targetId, x, y);
 

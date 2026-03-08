@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash scripts/ralph/context-monitor-hook.sh",
+            "timeout": 5000
+          }
+        ]
+      }
+    ]
+  }
+}

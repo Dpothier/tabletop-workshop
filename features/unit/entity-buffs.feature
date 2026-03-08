@@ -52,4 +52,4 @@ Feature: Entity Unified Buffs Map
     And a status effect manager
     When the status effect manager resolves end of round
     Then the buffs entity should have 8 health
-    And the buffs entity should have 1 stacks of "burn"
+    And the buffs entity should have 0 stacks of "burn"

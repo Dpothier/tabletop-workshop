@@ -23,6 +23,8 @@ export class Entity {
   public armor: number = 0;
   public guard: number = 0;
   public evasion: number = 0;
+  public ward: number = 0;
+  public stabilizedWounds: number = 0;
   public readonly buffs: Map<string, number> = new Map();
   protected readonly grid: BattleGrid;
 
@@ -117,11 +119,46 @@ export class Entity {
   }
 
   /**
+   * Set ward value (magical defense).
+   */
+  setWard(amount: number): void {
+    this.ward = amount;
+  }
+
+  /**
+   * Get ward value (magical defense).
+   */
+  getWard(): number {
+    return this.ward;
+  }
+
+  /**
    * Receive damage directly (bypasses combat resolution).
    * Used by CombatResolver after determining final damage.
    */
   receiveDamage(amount: number): void {
     this.currentHealth = Math.max(0, this.currentHealth - amount);
+  }
+
+  /**
+   * Get total wounds (health lost).
+   */
+  getWounds(): number {
+    return this.maxHealth - this.currentHealth;
+  }
+
+  /**
+   * Get hand size based on current health and stabilized wounds.
+   */
+  getHandSize(): number {
+    return Math.max(0, this.currentHealth + this.stabilizedWounds);
+  }
+
+  /**
+   * Stabilize wounds (cannot exceed total wounds).
+   */
+  stabilize(count: number): void {
+    this.stabilizedWounds = Math.min(count, this.getWounds());
   }
 
   /**

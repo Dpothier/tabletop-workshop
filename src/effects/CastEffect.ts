@@ -1,12 +1,11 @@
 import type { Effect, EffectResult, GameContext, ResolvedParams } from '@src/types/Effect';
 import { validateTargeting } from '@src/combat/ActionPipeline';
-import { resolveCast } from '@src/combat/CastResolver';
-import { resolveMagicalEffect } from '@src/combat/MagicalResolver';
+import { resolveSpellCast } from '@src/combat/CastResolver';
 import type { AnimationEvent, AttackEvent, HitEvent, DamageEvent } from '@src/types/AnimationEvent';
 
 /**
- * CastEffect — thin wrapper around spell resolution using Intensity vs Ward.
- * Supports both new parameter-based resolution and backward-compatible spellPower.
+ * CastEffect — thin wrapper around spell resolution using CastResolver.
+ * CastResolver handles cost reduction, intensity, damage, ward check, and ally logic.
  */
 export class CastEffect implements Effect {
   execute(
@@ -16,17 +15,16 @@ export class CastEffect implements Effect {
     _chainResults: Map<string, EffectResult>
   ): EffectResult {
     const targetId = params.targetEntity as string;
-    const range = (params.range as number) ?? 99; // Spells have unlimited range by default
+    const range = (params.range as number) ?? 99;
     const attackerId = context.actorId!;
 
-    // Spell params - support both new params and backward-compatible spellPower
     const baseDamage = (params.baseDamage as number) ?? (params.spellPower as number) ?? 1;
     const extraBeads = (params.extraBeads as number) ?? 0;
     const baseCost = (params.baseCost as number) ?? 0;
     const channelStacks = (params.channelStacks as number) ?? 0;
     const isAlly = (params.isAlly as boolean) ?? false;
 
-    // Pipeline: validate targeting (ranged)
+    // Pipeline: validate targeting
     const targeting = validateTargeting(context, attackerId, targetId, range);
     if (!targeting.valid) {
       return {
@@ -42,39 +40,47 @@ export class CastEffect implements Effect {
       return { success: false, reason: 'Target not found', data: {}, events: [] };
     }
 
-    // Get target's ward from buffs
-    const targetWard = target.getStacks('ward');
+    const targetWard = target.getWard();
 
-    // Resolve cast: compute intensity and cost
-    const castResult = resolveCast({
+    // Build spell definition for the resolver
+    const spellDef = {
+      id: (params.spellId as string) ?? 'spell',
+      name: (params.spellName as string) ?? 'Spell',
+      color: ((params.spellColor as string) ?? 'blue') as import('@src/types/Beads').BeadColor,
       baseCost,
       baseDamage,
-      channelStacks,
-      extraBeads,
-      targetWard,
-    });
+      range: range,
+      targetType: (isAlly ? 'ally' : 'enemy') as 'enemy' | 'ally' | 'any',
+      enhancements: (params.spellEnhancements as Record<string, { extraDamage?: number }>) ?? {},
+    };
 
-    // Resolve magical effect: intensity vs ward gate check
-    const magicalResult = resolveMagicalEffect({
-      intensity: castResult.intensity,
-      ward: targetWard,
-      isAlly,
-    });
+    // CastResolver handles everything: cost, intensity, damage, ward, ally logic
+    const castResult = resolveSpellCast(
+      {
+        spell: spellDef,
+        extraBeads,
+        channelStacks,
+        enhancements: (params.selectedEnhancements as string[]) ?? [],
+      },
+      { ward: targetWard },
+      isAlly ? 'ally' : 'enemy',
+      isAlly ? true : undefined
+    );
 
     const events: AnimationEvent[] = [];
+    const manifests = castResult.outcome === 'hit';
 
-    // Add attack event for backward compatibility
     events.push({
       type: 'attack',
       attackerId,
       targetId,
-      damage: magicalResult.damage,
+      damage: castResult.damage,
     } as AttackEvent);
 
     let actualDamage = 0;
 
-    if (magicalResult.manifests) {
-      actualDamage = Math.min(magicalResult.damage, target.currentHealth);
+    if (manifests) {
+      actualDamage = Math.min(castResult.damage, target.currentHealth);
 
       events.push({
         type: 'hit',
@@ -90,20 +96,19 @@ export class CastEffect implements Effect {
         maxHealth: target.maxHealth,
       } as DamageEvent);
 
-      // Apply damage
       target.receiveDamage(actualDamage);
     }
 
     return {
       success: true,
       data: {
-        hit: magicalResult.manifests,
+        hit: manifests,
         damage: actualDamage,
-        outcome: magicalResult.manifests ? 'hit' : 'blocked',
+        outcome: castResult.outcome,
         intensity: castResult.intensity,
         effectiveCost: castResult.effectiveCost,
-        manifests: magicalResult.manifests,
-        blocked: !magicalResult.manifests,
+        manifests,
+        blocked: !manifests,
       },
       events,
     };

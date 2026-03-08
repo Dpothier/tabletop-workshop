@@ -95,12 +95,11 @@ Given(
     // Create a local StatusEffectManager implementation for testing
     world.buffsStatusEffectManager = {
       resolveEndOfRound: (entity: Entity) => {
-        // Burn effect: 1 damage per stack, then decrement stacks
+        // Burn effect: 1 damage per stack, then fully consume (MFG-14)
         const burnStacks = getStacksFromEntity(entity, 'burn');
         if (burnStacks > 0) {
           entity.receiveDamage(burnStacks);
-          const newStacks = burnStacks - 1;
-          setStacksOnEntity(entity, 'burn', newStacks);
+          setStacksOnEntity(entity, 'burn', 0);
         }
       },
     };

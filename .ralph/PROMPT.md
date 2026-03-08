@@ -42,7 +42,7 @@ Execute one complete TDD iteration to advance the project by making one user sto
   - Update `prd.json`: set `passes: true` for completed story
   - Note: JIRA transition will be handled by `jira-sync.sh push` at the end of the full Ralph run (not per-story, to avoid premature transitions)
   - Append learnings to `progress.txt`
-  - Loop to step 1 for next story
+  - Exit successfully (the bash loop handles iteration to next story)
 - If validation fails:
   - Append error to `progress.txt`
   - Exit (next iteration will retry)
@@ -74,6 +74,15 @@ Begin each phase with a clear marker:
 - `[VERIFY]` - Final validation
 - `[COMMIT]` - Version control updates
 
+## Progress Saves
+
+After completing each phase (RED, GREEN, REFACTOR, VERIFY), immediately append a status line to `progress.txt`:
+- Phase completed (RED/GREEN/REFACTOR/VERIFY)
+- Files created or modified
+- Errors encountered (if any)
+
+This ensures work is preserved if the session ends unexpectedly.
+
 ## Exit Codes
 
 - `0`: Story completed successfully (loop will retry for next story)
@@ -89,3 +98,4 @@ Begin each phase with a clear marker:
 5. **Context**: Always read and update progress.txt with learnings
 6. **JIRA Optional**: JIRA integration is optional - if env vars are not set, skip JIRA commands silently
 7. **Never skip work**: Every story with `passes: false` requires NEW tests and NEW code. Read the full description — it contains the acceptance criteria. Do not mark a story as passing based on existing code alone.
+8. **Context budget**: When you receive a context budget warning, immediately save your current progress to `progress.txt` and commit any completed work. If the warning is critical (85%+), finalize and exit — the next iteration will continue where you left off.
