@@ -35,16 +35,34 @@ Execute one complete TDD iteration to advance the project by making one user sto
 - Run: `npm run check && npm run test`
 
 ### 5. Accept Phase: Validate Against Story Requirements
-- Re-read the story `description` field from `prd.json` — it contains ALL acceptance criteria
-- Review the actual work done: `git diff --name-only` to see changed files, then read the new test files and production code
-- Delegate to **architecture-reviewer** with the following prompt:
-  - "Compare the implementation against the story requirements. List each acceptance criterion from the story description and whether it is covered by tests and production code. Flag any missing criteria, architectural violations, or design constraints that were not respected."
-- If the reviewer identifies gaps:
-  - Append findings to `progress.txt`
-  - Return to phase 2 (RED) or phase 3 (GREEN) to address each gap
-  - Re-run VERIFY after fixes
-  - Re-run ACCEPT to confirm all gaps are closed
-- Only proceed to Finalize when ALL acceptance criteria are verified as covered
+
+**IMPORTANT**: This phase MUST be executed in a separate context window to avoid self-assessment bias. The agent that wrote the code must NOT be the one evaluating it.
+
+- Collect the inputs for the reviewer:
+  1. The story `description` field from `prd.json` (all acceptance criteria)
+  2. The list of changed files: `git diff --name-only`
+  3. The actual diff content: `git diff` (staged + unstaged)
+- Delegate to **architecture-reviewer** (separate agent context) with this prompt:
+  > You are reviewing work done for story [STORY-ID]. Below are the story requirements and the implementation diff.
+  >
+  > **Story requirements:**
+  > [paste full description from prd.json]
+  >
+  > **Changed files and diff:**
+  > [paste git diff output]
+  >
+  > Review the implementation and produce a structured acceptance report:
+  > 1. List EACH acceptance criterion from the story description
+  > 2. For each criterion, state: COVERED (test + code exist) or MISSING (not implemented or not tested)
+  > 3. Flag any architectural violations or design constraints not respected
+  > 4. Final verdict: ACCEPT or REJECT with list of gaps
+- Parse the reviewer's verdict:
+  - If **ACCEPT**: proceed to phase 6 (Finalize)
+  - If **REJECT**:
+    - Append the full rejection report to `progress.txt`
+    - Address each gap by returning to phase 2 (RED) or phase 3 (GREEN)
+    - Re-run phase 4 (VERIFY) after fixes
+    - Re-run phase 5 (ACCEPT) to confirm all gaps are closed
 
 ### 6. Finalize
 - Run: `npm run check && npm run test`

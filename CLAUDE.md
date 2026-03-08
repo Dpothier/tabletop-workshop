@@ -27,6 +27,7 @@ All development follows strict Test-Driven Development:
 2. **Green**: Delegate to code-writer → run tests → verify PASSES
 3. **Refactor**: Delegate to architecture-reviewer → apply approved changes via code-writer
 4. **Final Verify**: Delegate to test-verifier → confirm ready to commit
+5. **Accept**: Delegate to architecture-reviewer (separate context) → validate implementation covers ALL story acceptance criteria → REJECT loops back to Red/Green
 
 ## Planning
 
