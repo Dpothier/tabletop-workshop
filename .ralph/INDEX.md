@@ -122,7 +122,7 @@ scripts/ralph/
 
 ### "I want to customize Ralph's behavior"
 1. Edit: `.ralph/config.sh`
-2. Change: `HITL_MAX_ITERATIONS`, `AUTO_FORMAT_ON_FAILURE`, etc
+2. Change: `MAX_ITERATIONS`, `AUTO_FORMAT_ON_FAILURE`, etc
 3. Verify: `bash .ralph/config.sh` (sources without error)
 4. Run: `bash scripts/ralph/ralph.sh`
 
@@ -181,7 +181,7 @@ scripts/ralph/
 ### Workflow 2: Multiple Stories (Marathon Session)
 
 1. Edit `prd.json` - add 5-10 stories
-2. Edit `.ralph/config.sh` - set `HITL_MAX_ITERATIONS=10`
+2. Edit `.ralph/config.sh` - set `MAX_ITERATIONS=10`
 3. Run: `bash scripts/ralph/ralph.sh`
 4. Check `progress.txt` after each iteration
 5. Loop runs until all done or max iterations

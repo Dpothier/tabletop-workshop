@@ -131,7 +131,6 @@ DRY_RUN=true bash scripts/ralph/ralph.sh
 Or run one iteration manually:
 
 ```bash
-# HITL mode (Human-in-the-loop)
 bash scripts/ralph/ralph.sh
 ```
 
@@ -151,7 +150,7 @@ bash scripts/ralph/ralph.sh
 
 Ralph will continue until:
 - All stories complete, OR
-- Max iterations reached (5 for HITL, 50 for AFK)
+- Max iterations reached (50 by default)
 
 ## Configuration Reference
 
@@ -161,8 +160,7 @@ Key settings:
 
 ```bash
 # Iterations
-HITL_MAX_ITERATIONS=5          # Max per human-in-the-loop session
-AFK_MAX_ITERATIONS=50          # Max per automated session
+MAX_ITERATIONS=50             # Max per run (override with --max)
 
 # Behavior
 REQUIRE_COMMIT_APPROVAL=false  # Ask before git commits
@@ -370,19 +368,19 @@ Before running Ralph for real:
 
 ## Running Ralph
 
-### Development (HITL Mode)
+### Development (Local Mode)
 
 ```bash
 # Single iteration with feedback
 bash scripts/ralph/ralph.sh
 
-# Multiple iterations (up to 5 by default)
+# Multiple iterations (up to 50 by default)
 bash scripts/ralph/ralph.sh
 # then check progress.txt
 # then run again if stories remain
 ```
 
-### Automated (AFK Mode)
+### Automated (CI/Container Mode)
 
 Auto-detected in containers:
 

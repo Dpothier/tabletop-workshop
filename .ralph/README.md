@@ -145,12 +145,11 @@ graph TD
 | `agent-manager.sh` | `scripts/ralph/lib/agent-manager.sh` | Lifecycle des agents (creation worktree, lancement, monitoring, cleanup) |
 | `integration-branch.sh` | `scripts/ralph/lib/integration-branch.sh` | Gestion de la branche d'integration, merge, tests, creation de PR |
 | `conflict-resolver.sh` | `scripts/ralph/lib/conflict-resolver.sh` | Resolution de conflits de merge via Claude (avec retry) |
-| `hitl.sh` | `scripts/ralph/hitl.sh` | Wrapper Docker pour le mode HITL interactif |
 | `afk.sh` | `scripts/ralph/afk.sh` | Wrapper Docker pour le mode AFK autonome |
 | `swarm-afk.sh` | `scripts/ralph/swarm-afk.sh` | Wrapper Docker pour le mode Swarm |
 | `init-firewall.sh` | `scripts/ralph/init-firewall.sh` | Securite reseau container (whitelist ufw) |
 | `Dockerfile.ralph` | `Dockerfile.ralph` | Image Docker (Ubuntu 22.04 + Node.js 20 + Claude Code CLI) |
-| `docker-compose.ralph.yml` | `docker-compose.ralph.yml` | Compose pour un agent unique (HITL / AFK) |
+| `docker-compose.ralph.yml` | `docker-compose.ralph.yml` | Compose pour un agent unique (AFK) |
 | `docker-compose.swarm.yml` | `docker-compose.swarm.yml` | Compose pour l'orchestrateur Swarm |
 
 ---
@@ -171,8 +170,6 @@ graph TD
 | **Resolution de conflits** | N/A (agent unique) | Automatisee via Claude resolver (max 2 retries) |
 | **Reseau** | Firewall optionnel | Firewall optionnel |
 | **Cas d'usage** | Stories independantes overnight | Epics entiers avec dependances |
-
-> **Note** : `hitl.sh` n'est pas un mode de Ralph mais un utilitaire Docker standalone qui lance Claude Code en mode interactif avec `--dangerously-skip-permissions`. Il supporte les sessions paralleles via git worktrees (voir section 5.3).
 
 ---
 
@@ -322,45 +319,6 @@ Avec `SWARM_ENABLE_CHAINING=true`, la chaine MFG-11/13/14 est confiee a un seul 
 
 ---
 
-### 5.3 Sessions Interactives Paralleles (hitl.sh)
-
-**Concept** : `hitl.sh` est un utilitaire Docker qui lance Claude Code en mode interactif avec toutes les permissions accordees. Il n'est pas lie a la boucle TDD de Ralph — c'est un lanceur "yolo mode" containerise. La nouveaute est le support des sessions paralleles via git worktrees : chaque session obtient son propre worktree, sa propre branche, et son propre container.
-
-**Lancement**
-```bash
-# Nouvelle session (ou reprendre une existante)
-scripts/ralph/hitl.sh --session combat-system
-
-# Lister les sessions actives
-scripts/ralph/hitl.sh --list
-
-# Nettoyer une session
-scripts/ralph/hitl.sh --cleanup combat-system
-
-# Nettoyer une session avec changements non commites
-scripts/ralph/hitl.sh --cleanup combat-system --force
-
-# Nettoyer toutes les sessions
-scripts/ralph/hitl.sh --cleanup-all
-
-# Mode legacy (sans worktree, directement dans le repo)
-scripts/ralph/hitl.sh
-```
-
-**Architecture des sessions**
-
-Chaque session cree :
-- Un worktree git a `.claude/worktrees/hitl-<nom>/`
-- Une branche `hitl/<nom>`
-- Un symlink `node_modules` vers le PROJECT_ROOT
-- Un container Docker isole qui monte le worktree a `/workspace`
-
-Les sessions sont persistantes : quitter le container ne supprime pas le worktree. On peut reprendre une session existante avec le meme `--session <nom>`.
-
-**Quand l'utiliser** : exploration interactive, prototypage rapide, travail parallele sur plusieurs branches sans conflits git.
-
----
-
 ## 6. Inventaire des Fichiers
 
 | Fichier | Lignes | Role |
@@ -369,7 +327,6 @@ Les sessions sont persistantes : quitter le container ne supprime pas le worktre
 | `scripts/ralph/ralph-swarm.sh` | 470 | Orchestrateur Swarm, boucle de scheduling, coordination |
 | `scripts/ralph/stop-hook.sh` | 215 | Hook de continuation de session Claude |
 | `scripts/ralph/jira-sync.sh` | 465 | Synchronisation bidirectionnelle JIRA ↔ prd.json |
-| `scripts/ralph/hitl.sh` | 368 | Wrapper Docker — Claude Code interactif en mode yolo avec sessions paralleles via worktrees |
 | `scripts/ralph/afk.sh` | 24 | Wrapper Docker — mode AFK autonome |
 | `scripts/ralph/swarm-afk.sh` | 67 | Wrapper Docker — mode Swarm |
 | `scripts/ralph/init-firewall.sh` | 132 | Securite reseau container (whitelist ufw) |
@@ -460,7 +417,6 @@ Ralph cree un worktree isole pour travailler sans contaminer la branche principa
 - Mode AFK : `.claude/worktrees/ralph` sur la branche `ralph/{epic}`
 - Mode Swarm : `.claude/worktrees/ralph-{agent_id}` sur la branche `ralph-swarm/{agent_id}`
 - Branche d'integration Swarm : `.claude/worktrees/integration-{epic}` sur `integration/{epic}`
-- Sessions HITL : `.claude/worktrees/hitl-{nom}` sur la branche `hitl/{nom}`
 
 Les `node_modules` sont symlinkes depuis `PROJECT_ROOT` pour eviter de les reinstaller dans chaque worktree.
 

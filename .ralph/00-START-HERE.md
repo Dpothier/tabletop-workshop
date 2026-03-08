@@ -167,7 +167,7 @@ bash scripts/ralph/ralph.sh
 cp .ralph/EXAMPLE.json prd.json
 
 # Edit config for more iterations
-# .ralph/config.sh: HITL_MAX_ITERATIONS=10
+# .ralph/config.sh: MAX_ITERATIONS=10
 
 # Run Ralph - will keep going for all stories
 bash scripts/ralph/ralph.sh
@@ -225,15 +225,11 @@ bash .ralph/config.sh
 
 ## Modes
 
-### HITL (Human-In-The-Loop) - Default Locally
-- Max 5 iterations per session
-- You review progress and feedback between iterations
-- Use for interactive development
-
-### AFK (Away-From-Keyboard) - Automatic in Containers
-- Max 50 iterations
+### Automated Mode
+- Max 50 iterations by default
 - Runs until all stories complete or timeout
 - Use for CI/CD pipelines and overnight runs
+- Configurable via `MAX_ITERATIONS`
 
 ## Story Requirements
 

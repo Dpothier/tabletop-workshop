@@ -122,8 +122,8 @@ Skip JIRA for now. Start simple with prd.json only.
 Edit `.ralph/config.sh`:
 
 ```bash
-# Change max iterations (default 5 HITL, 50 AFK)
-HITL_MAX_ITERATIONS=10
+# Change max iterations (default 50)
+MAX_ITERATIONS=10
 
 # Auto-fix linting on retry
 AUTO_LINT_FIX_ON_FAILURE=true
