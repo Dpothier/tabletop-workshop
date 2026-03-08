@@ -36,3 +36,5 @@ mockups/
 # Ralph runtime state
 .ralph/swarm-state/
 .ralph/logs/
+.ralph/.context_pct
+.ralph/.iteration_count
