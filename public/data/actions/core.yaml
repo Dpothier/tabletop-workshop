@@ -67,6 +67,16 @@ actions:
         modifies: baseAttack
         modifier:
           quickStrike: true
+      strength:
+        cost:
+          red: 1
+        alternativeCost:
+          windup: 1
+        condition:
+          weaponTag: melee
+        modifies: baseAttack
+        modifier:
+          damage: 1
 
   - id: rest
     name: Rest

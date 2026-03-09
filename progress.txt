@@ -420,3 +420,23 @@ Total tests added: 91 unit scenarios across 7 stories
   - Cannot be paid via preparation stacks (only checks bead hand)
   - Backward compatibility preserved: undefined attackType still uses old guard-N/evade-N behavior
 - Test count: 705 unit tests passing
+
+[ITERATION 18] Story: MFG-18 — 9.2.1 Strength
+- Result: SUCCESS
+- Phase RED: 6 unit scenarios written (strength-modifier.feature)
+- Phase GREEN: Added strength option to YAML (no production code changes needed)
+- Key files created:
+  - features/unit/strength-modifier.feature (6 scenarios)
+  - tests/steps/strength-modifier.steps.ts (step definitions)
+- Key files modified:
+  - data/actions/core.yaml (added strength option on attack: cost red:1, alternativeCost windup:1, condition weaponTag:melee, modifier damage:1)
+  - public/data/actions/core.yaml (same)
+  - tests/steps/index.ts (added strength-modifier.steps import)
+- Key logic:
+  - Strength is an attack modifier option requiring a "melee" weapon tag
+  - Cost: 1 red bead or 1 windup stack
+  - Effect: +1 Power via modifier.damage (already handled by AttackEffect.ts modifiers.damage)
+  - Condition filtering in resolveSourcedOptions checks equipment tags against weaponTag:melee
+  - Per sourcing rules: 1 instance per equipment source, off-hand excluded
+  - No production code changes — all infrastructure already existed (AttackEffect, ModifierSourcing, YAML option system)
+- Test count: 711 unit tests passing

@@ -70,5 +70,7 @@ import './assess-effect.steps';
 import './strategize.steps';
 // MFG-20: Quick Strike modifier
 import './quick-strike.steps';
+// MFG-18: Strength modifier
+import './strength-modifier.steps';
 // MFG-19: Guard reaction
 import './guard-reaction.steps';
