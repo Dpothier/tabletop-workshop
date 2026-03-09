@@ -295,3 +295,22 @@ Total tests added: 91 unit scenarios across 7 stories
   - Each modifier instance paired with source, display label "Name (Source)"
   - Pure function, integration with ActionResolution deferred to dependent stories
 - Test count: 667 unit tests passing
+
+[ITERATION 12] Story: MFG-24 — 9.2.7 Coordinate
+- Result: SUCCESS
+- Phase RED: 5 unit scenarios written (coordinate.feature)
+- Phase GREEN: CoordinateEffect class, YAML action definition, BattleBuilder registration
+- Key files created:
+  - src/effects/CoordinateEffect.ts (grants 1 prep stack to allied entity, range check 1-6)
+  - features/unit/coordinate.feature (5 scenarios)
+  - tests/steps/coordinate.steps.ts (step definitions)
+- Key files modified:
+  - data/actions/core.yaml (added coordinate action: category other, cost time:1 white:1, range 6)
+  - src/builders/BattleBuilder.ts (registered CoordinateEffect in EffectRegistry)
+- Key logic:
+  - CoordinateEffect targets allied entity (not actor) for preparation stacks
+  - Validates range via grid.getDistance (Chebyshev distance 1-6)
+  - Supports both Windup and Aim preparation types
+  - Respects maxStacks cap from PREPARATION_DEFINITIONS
+  - Granted stacks follow standard interruption rules
+- Test count: 672 unit tests passing

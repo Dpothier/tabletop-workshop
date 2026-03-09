@@ -60,3 +60,5 @@ import './prepare-effect.steps';
 import './dodge-reaction.steps';
 // MFG-57: Modifier Sourcing System
 import './modifier-sourcing.steps';
+// MFG-24: Coordinate action
+import './coordinate.steps';

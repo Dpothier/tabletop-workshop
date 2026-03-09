@@ -57,3 +57,20 @@ actions:
         type: drawBeads
         params:
           count: 2
+
+  - id: coordinate
+    name: Coordinate
+    category: other
+    description: "Grant an ally a preparation stack"
+    cost:
+      time: 1
+      white: 1
+    parameters:
+      - key: target
+        type: entity
+        range: 6
+    effects:
+      - id: coordinate-1
+        type: coordinate
+        params:
+          targetEntity: $target
