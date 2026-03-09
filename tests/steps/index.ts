@@ -64,3 +64,5 @@ import './resist-reaction.steps';
 import './modifier-sourcing.steps';
 // MFG-24: Coordinate action
 import './coordinate.steps';
+// MFG-22: Assess action
+import './assess-effect.steps';

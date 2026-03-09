@@ -15,6 +15,7 @@ import { MoveEffect } from '@src/effects/MoveEffect';
 import { AttackEffect } from '@src/effects/AttackEffect';
 import { DrawBeadsEffect } from '@src/effects/DrawBeadsEffect';
 import { CoordinateEffect } from '@src/effects/CoordinateEffect';
+import { AssessEffect } from '@src/effects/AssessEffect';
 import { BattleStateObserver } from '@src/systems/BattleStateObserver';
 
 /**
@@ -96,6 +97,7 @@ export class BattleBuilder {
     effectRegistry.register('attack', new AttackEffect());
     effectRegistry.register('drawBeads', new DrawBeadsEffect());
     effectRegistry.register('coordinate', new CoordinateEffect());
+    effectRegistry.register('assess', new AssessEffect());
 
     // 3. Build entity map (needed for character construction)
     const entityMap: Map<string, Entity> = new Map();

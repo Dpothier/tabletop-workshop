@@ -83,6 +83,20 @@ export class BeadPool {
   }
 
   /**
+   * Peek at the next bead that would be drawn, without removing it from the pool.
+   * @returns The color of the next bead that would be drawn, or undefined if pool is empty
+   */
+  peek(): BeadColor | undefined {
+    if (this.isEmpty()) {
+      this.reshuffle();
+    }
+    if (this.isEmpty()) {
+      return undefined;
+    }
+    return selectRandomBead(this.getRemainingCounts(), this.randomFn) ?? undefined;
+  }
+
+  /**
    * Reshuffle all beads from the discard pile back into the pool.
    */
   private reshuffle(): void {

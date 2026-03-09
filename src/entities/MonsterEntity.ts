@@ -29,6 +29,7 @@ export interface StateConfig {
   wheel_cost?: number;
   range?: number;
   area?: string;
+  cunning?: number;
   transitions: Record<string, string>;
 }
 
@@ -53,6 +54,7 @@ export class MonsterEntity extends Entity {
   private beadDiscard?: BeadPile;
   private stateMachine?: MonsterStateMachine;
   private previousStateName?: string;
+  private lastCompletedStateCunning: number = 0;
 
   constructor(id: string, maxHealth: number, grid: BattleGrid) {
     super(id, maxHealth, grid);
@@ -77,6 +79,7 @@ export class MonsterEntity extends Entity {
       wheel_cost: state.wheel_cost,
       range: state.range,
       area: state.area,
+      cunning: state.cunning,
       transitions: state.transitions,
     }));
 
@@ -138,6 +141,9 @@ export class MonsterEntity extends Entity {
     const drawnBead = this.beadPool.draw();
     const state = this.stateMachine.transition(drawnBead);
 
+    // Store the cunning from the completed action
+    this.lastCompletedStateCunning = state.cunning ?? 0;
+
     // Discard the bead after using it for state transition
     this.beadDiscard.add(drawnBead);
 
@@ -187,7 +193,10 @@ export class MonsterEntity extends Entity {
    * This method applies state changes and returns events describing what happened.
    * Prompts player characters for defensive reactions before combat resolution.
    */
-  async executeDecision(decision: MonsterAction, adapter?: BattleAdapter): Promise<AnimationEvent[]> {
+  async executeDecision(
+    decision: MonsterAction,
+    adapter?: BattleAdapter
+  ): Promise<AnimationEvent[]> {
     const events: AnimationEvent[] = [];
 
     // Add bead draw event if a bead was drawn
@@ -371,6 +380,42 @@ export class MonsterEntity extends Entity {
     if (beadsSpent) {
       adapter.notifyBeadsChanged(target.id, beadHand.getHandCounts());
     }
+  }
+
+  /**
+   * Get the cunning value of the last completed action.
+   * Returns 0 if monster hasn't acted yet.
+   */
+  getLastActionCunning(): number {
+    return this.lastCompletedStateCunning;
+  }
+
+  /**
+   * Peek at what the monster's next action will be.
+   * Peeks at the next bead in the pool and determines the resulting state.
+   * Returns the next bead color and the state it would transition to.
+   */
+  getNextPlannedAction(): { nextBead: string; nextState: string; nextStateDamage: number } | undefined {
+    if (!this.beadPool || !this.stateMachine) {
+      return undefined;
+    }
+
+    const nextBead = this.beadPool.peek();
+    if (!nextBead) {
+      return undefined;
+    }
+
+    // Use peekTransition to see what state we'd transition to
+    const nextState = this.stateMachine.peekTransition(nextBead);
+    if (!nextState) {
+      return undefined;
+    }
+
+    return {
+      nextBead,
+      nextState: nextState.name,
+      nextStateDamage: nextState.damage ?? 0,
+    };
   }
 
   /**

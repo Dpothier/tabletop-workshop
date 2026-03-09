@@ -332,3 +332,27 @@ Total tests added: 91 unit scenarios across 7 stories
   - Only one resist option per source (sourcing rules)
   - Cannot be paid via preparation stacks (only checks bead hand)
 - Test count: 679 unit tests passing
+
+[ITERATION 14] Story: MFG-22 — 9.2.5 Assess
+- Result: SUCCESS
+- Phase RED: 7 unit scenarios written (assess-effect.feature)
+- Phase GREEN: Created AssessEffect, extended MonsterEntity and MonsterStateMachine
+- Key files created:
+  - src/effects/AssessEffect.ts (new effect: validates range, reads monster state, returns next action info)
+  - features/unit/assess-effect.feature (7 scenarios)
+  - tests/steps/assess-effect.steps.ts (step definitions)
+- Key files modified:
+  - data/actions/core.yaml (added assess action: category other, cost time:1 blue:1, range 6)
+  - src/builders/BattleBuilder.ts (registered AssessEffect in EffectRegistry)
+  - src/systems/MonsterStateMachine.ts (added cunning field to MonsterState/MonsterStateDefinition, added peekTransition method)
+  - src/systems/BeadPool.ts (added peek() method)
+  - src/entities/MonsterEntity.ts (added cunning to StateConfig, getLastActionCunning(), getNextPlannedAction(), lastCompletedStateCunning tracking in decideTurn)
+- Key logic:
+  - AssessEffect peeks at monster's bead pool and state machine to reveal next action
+  - Cunning is a per-state attribute in the monster action graph
+  - Additional cost = cunning of last completed action (0 if monster hasn't acted)
+  - Can be paid with 1 blue bead or 1 ponder stack
+  - Range validation: 1-6 tiles
+  - Revealed information marked as public (isPublic: true)
+  - Additional cost is reported but not enforced (dynamic cost mechanism deferred per story notes)
+- Test count: 686 unit tests passing

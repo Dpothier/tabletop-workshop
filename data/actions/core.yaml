@@ -74,3 +74,20 @@ actions:
         type: coordinate
         params:
           targetEntity: $target
+
+  - id: assess
+    name: Assess
+    category: other
+    description: "Reveal a monster's next planned action"
+    cost:
+      time: 1
+      blue: 1
+    parameters:
+      - key: target
+        type: entity
+        range: 6
+    effects:
+      - id: assess-1
+        type: assess
+        params:
+          targetEntity: $target

@@ -10,6 +10,7 @@ export interface MonsterState {
   readonly wheel_cost?: number;
   readonly range?: number;
   readonly area?: string;
+  readonly cunning?: number;
   readonly transitions: Record<BeadColor, string>;
 }
 
@@ -23,6 +24,7 @@ export interface MonsterStateDefinition {
   wheel_cost?: number;
   range?: number;
   area?: string;
+  cunning?: number;
   transitions: Record<string, string>;
 }
 
@@ -55,6 +57,7 @@ export class MonsterStateMachine {
         wheel_cost: def.wheel_cost,
         range: def.range,
         area: def.area,
+        cunning: def.cunning,
         transitions: {
           red: def.transitions.red || '',
           blue: def.transitions.blue || '',
@@ -116,5 +119,17 @@ export class MonsterStateMachine {
    */
   reset(): void {
     this.currentStateName = this.startStateName;
+  }
+
+  /**
+   * Look up what state a bead color would transition to, without actually transitioning.
+   * @param color - The bead color to peek at
+   * @returns The state that would be transitioned to, or undefined if no transition exists
+   */
+  peekTransition(color: BeadColor): MonsterState | undefined {
+    const currentState = this.getCurrentState();
+    const targetStateName = currentState.transitions[color];
+    if (!targetStateName) return undefined;
+    return this.states.get(targetStateName);
   }
 }
