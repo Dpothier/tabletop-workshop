@@ -46,10 +46,9 @@ Feature: Entity Unified Buffs Map
     When I add 5 windup stacks via the preparation manager
     Then the buffs entity should have 1 stacks of "windup"
 
-  Scenario: StatusEffectManager applies end-of-round burn damage via entity buffs
+  Scenario: End-of-round burn damage resolves via entity buffs
     Given a buffs entity "hero" with 10 health
     And the buffs entity has 2 stacks of "burn"
-    And a status effect manager
-    When the status effect manager resolves end of round
+    When end-of-round burn is resolved on the buffs entity
     Then the buffs entity should have 8 health
     And the buffs entity should have 0 stacks of "burn"

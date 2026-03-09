@@ -17,6 +17,8 @@ export interface WheelEntry {
 export class ActionWheel {
   private readonly entries: Map<string, WheelEntry> = new Map();
   private arrivalCounter = 0;
+  private activeSegment: number = 0;
+  private roundCompleted: boolean = false;
 
   /**
    * Add an entity to the wheel at a specific position.
@@ -57,6 +59,7 @@ export class ActionWheel {
     }
     entry.position = (entry.position + cost) % 8;
     entry.arrivalOrder = this.arrivalCounter++;
+    this.updateActiveSegment();
   }
 
   /**
@@ -131,5 +134,56 @@ export class ActionWheel {
    */
   hasEntity(id: string): boolean {
     return this.entries.has(id);
+  }
+
+  /**
+   * Get the currently active segment on the wheel.
+   * @returns Current active segment (0-7)
+   */
+  getActiveSegment(): number {
+    return this.activeSegment;
+  }
+
+  /**
+   * Set the active segment to a specific position.
+   * @param position - Segment position (0-7)
+   */
+  setActiveSegment(position: number): void {
+    this.activeSegment = position % 8;
+  }
+
+  /**
+   * Check if a round was completed and reset the flag.
+   * @returns True if a round was completed since last call, false otherwise
+   */
+  didCompleteRound(): boolean {
+    const result = this.roundCompleted;
+    this.roundCompleted = false;
+    return result;
+  }
+
+  /**
+   * Update the active segment based on entity positions.
+   * Moves to the next occupied segment if current one is empty.
+   * Sets roundCompleted flag when scanning wraps past segment 0.
+   */
+  private updateActiveSegment(): void {
+    if (this.getEntitiesAtPosition(this.activeSegment).length > 0) {
+      return;
+    }
+
+    let candidate = (this.activeSegment + 1) % 8;
+    let passedZero = false;
+
+    for (let i = 0; i < 8; i++) {
+      if (candidate === 0) passedZero = true;
+      if (this.getEntitiesAtPosition(candidate).length > 0) break;
+      candidate = (candidate + 1) % 8;
+    }
+
+    if (passedZero) {
+      this.roundCompleted = true;
+    }
+    this.activeSegment = candidate;
   }
 }

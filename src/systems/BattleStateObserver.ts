@@ -107,4 +107,13 @@ export class BattleStateObserver {
       subscriber.monsterMoved?.(worldX, worldY);
     }
   }
+
+  /**
+   * Emit roundEnded event to all subscribers.
+   */
+  emitRoundEnded(): void {
+    for (const subscriber of this.subscribers.values()) {
+      subscriber.roundEnded?.();
+    }
+  }
 }

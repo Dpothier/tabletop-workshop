@@ -106,6 +106,34 @@ export class TurnFlowController {
   }
 
   /**
+   * Resolve end-of-round effects.
+   * - Apply burn damage to all characters
+   * - Apply burn damage to monster
+   * - Emit roundEnded event
+   */
+  resolveEndOfRound(): void {
+    // Resolve burn for all characters
+    for (const character of this.state.characters) {
+      const burnStacks = character.getStacks('burn');
+      if (burnStacks > 0) {
+        character.receiveDamage(burnStacks);
+        character.clearStacks('burn');
+      }
+    }
+
+    // Resolve burn for monster
+    const monster = this.state.monsterEntity;
+    const monsterBurn = monster.getStacks('burn');
+    if (monsterBurn > 0) {
+      monster.receiveDamage(monsterBurn);
+      monster.clearStacks('burn');
+    }
+
+    // Emit round ended event
+    this.state.stateObserver.emitRoundEnded();
+  }
+
+  /**
    * Start the battle loop.
    * Runs the main game loop with turn alternation between monster and player.
    * Checks for victory/defeat at each iteration and transitions to end scene when needed.
@@ -147,6 +175,11 @@ export class TurnFlowController {
         await this.executeMonsterTurn();
       } else {
         await this.executePlayerTurn(actorId);
+      }
+
+      // Check for round completion
+      if (this.state.wheel.didCompleteRound()) {
+        this.resolveEndOfRound();
       }
     }
   }

@@ -3,15 +3,12 @@ import { expect } from 'vitest';
 import type { QuickPickleWorld } from 'quickpickle';
 import { BattleGrid } from '@src/state/BattleGrid';
 import { Entity } from '@src/entities/Entity';
-import { PreparationManager } from '@src/systems/PreparationManager';
-import { StatusEffectManager } from '@src/systems/StatusEffectManager';
-import type { PreparationType } from '@src/systems/PreparationManager';
+import { PREPARATION_DEFINITIONS } from '@src/data/PreparationDefinitions';
+import type { PreparationType } from '@src/data/PreparationDefinitions';
 
 interface BuffsWorld extends QuickPickleWorld {
   buffsGrid?: BattleGrid;
   buffsEntity?: Entity;
-  buffsPreparationManager?: PreparationManager;
-  buffsStatusEffectManager?: StatusEffectManager;
 }
 
 // Given steps
@@ -40,17 +37,11 @@ Given(
 
 Given(
   'a preparation manager with max {int} stacks for {string}',
-  function (world: BuffsWorld, _maxStacks: number, _effectName: string) {
-    world.buffsPreparationManager = new PreparationManager();
+  function (_world: BuffsWorld, _maxStacks: number, _effectName: string) {
+    // maxStacks is defined in PREPARATION_DEFINITIONS, nothing to initialize
   }
 );
 
-Given(
-  'a status effect manager',
-  function (world: BuffsWorld) {
-    world.buffsStatusEffectManager = new StatusEffectManager();
-  }
-);
 
 // When steps
 
@@ -91,17 +82,27 @@ When(
   'I add {int} windup stacks via the preparation manager',
   function (world: BuffsWorld, count: number) {
     expect(world.buffsEntity).toBeDefined();
-    expect(world.buffsPreparationManager).toBeDefined();
-    world.buffsPreparationManager!.prepare(world.buffsEntity!, 'windup' as PreparationType, count);
+    const entity = world.buffsEntity!;
+    const definition = PREPARATION_DEFINITIONS['windup' as PreparationType];
+    const current = entity.getStacks('windup');
+    const newTotal = definition.maxStacks !== null ? Math.min(current + count, definition.maxStacks) : current + count;
+    entity.clearStacks('windup');
+    if (newTotal > 0) {
+      entity.addStacks('windup', newTotal);
+    }
   }
 );
 
 When(
-  'the status effect manager resolves end of round',
+  'end-of-round burn is resolved on the buffs entity',
   function (world: BuffsWorld) {
     expect(world.buffsEntity).toBeDefined();
-    expect(world.buffsStatusEffectManager).toBeDefined();
-    world.buffsStatusEffectManager!.resolveEndOfRound([world.buffsEntity!]);
+    const entity = world.buffsEntity!;
+    const stacks = entity.getStacks('burn');
+    if (stacks > 0) {
+      entity.receiveDamage(stacks);
+      entity.clearStacks('burn');
+    }
   }
 );
 

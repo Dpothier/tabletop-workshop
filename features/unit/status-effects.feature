@@ -5,7 +5,6 @@ Feature: Status Effects - Burn
 
   Background:
     Given a battle grid of size 9x9
-    And a burn status effect manager
 
   # Basic Burn Stack Management
 

@@ -139,3 +139,65 @@ Feature: Action Wheel
     Then entity "hero-a" should be at position 3
     # Hero B and Monster tied at 2, but Monster arrived before Hero B moved there
     And the next actor should be "monster"
+
+  # Active segment tracking
+  Scenario: Wheel starts with active segment at 0
+    Given an empty action wheel
+    When I add entity "hero-1" at position 0
+    Then the active segment should be 0
+
+  Scenario: Active segment advances when current segment becomes empty
+    Given an action wheel with entities:
+      | id      | position |
+      | hero-1  | 0        |
+      | hero-2  | 3        |
+    When entity "hero-1" takes action with cost 2
+    Then entity "hero-1" should be at position 2
+    And the active segment should be 2
+
+  Scenario: Active segment skips empty segments
+    Given an action wheel with entities:
+      | id      | position |
+      | hero-1  | 0        |
+      | hero-2  | 5        |
+    When entity "hero-1" takes action with cost 5
+    Then the active segment should be 5
+
+  Scenario: Active segment stays if other entities remain on it
+    Given an action wheel with entities:
+      | id      | position |
+      | hero-1  | 0        |
+      | hero-2  | 0        |
+      | hero-3  | 3        |
+    When entity "hero-1" takes action with cost 3
+    Then the active segment should be 0
+
+  Scenario: Round completes when active segment wraps past 0
+    Given an action wheel with entities:
+      | id      | position |
+      | hero-1  | 5        |
+      | hero-2  | 7        |
+    And the active segment is set to 5
+    When entity "hero-1" takes action with cost 3
+    And entity "hero-2" takes action with cost 2
+    Then the wheel should have completed a round
+
+  Scenario: No round completed within same segment range
+    Given an action wheel with entities:
+      | id      | position |
+      | hero-1  | 0        |
+      | hero-2  | 3        |
+    When entity "hero-1" takes action with cost 3
+    Then the wheel should not have completed a round
+
+  Scenario: Active segment tracks correctly through full cycle
+    Given an action wheel with entities:
+      | id      | position |
+      | hero-1  | 0        |
+      | hero-2  | 4        |
+    When entity "hero-1" takes action with cost 4
+    Then the active segment should be 4
+    When entity "hero-1" takes action with cost 4
+    And entity "hero-2" takes action with cost 4
+    Then the active segment should be 0
+    And the wheel should have completed a round

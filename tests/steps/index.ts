@@ -45,8 +45,6 @@ import './attack-resolvers.steps';
 import './action-pipeline.steps';
 import './action-framework-payment.steps';
 import './entity-buffs.steps';
-import './preparation-manager.steps';
-import './status-effect-manager.steps';
 import './cast-effect.steps';
 import './weapon-attack-pipeline.steps';
 // From ralph/MFG-7 (MFG-11 to MFG-17)
@@ -57,3 +55,4 @@ import './status-effects.steps';
 import './magical-resolver.steps';
 import './preparation.steps';
 import './unified-attack.steps';
+import './prepare-effect.steps';

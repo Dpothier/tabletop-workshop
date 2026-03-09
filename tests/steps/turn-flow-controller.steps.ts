@@ -9,6 +9,8 @@ import { TurnController, type AliveQueryable } from '@src/systems/TurnController
 import { ActionWheel } from '@src/systems/ActionWheel';
 import type { AnimationEvent } from '@src/types/AnimationEvent';
 import type { MonsterAction } from '@src/entities/MonsterEntity';
+import { Entity } from '@src/entities/Entity';
+import { BattleGrid } from '@src/state/BattleGrid';
 
 interface TurnFlowControllerWorld extends QuickPickleWorld {
   turnFlowController?: TurnFlowController;
@@ -34,6 +36,8 @@ interface TurnFlowControllerWorld extends QuickPickleWorld {
   mockActionResolution?: any;
   mockedCheckBattleStatus?: any;
   monsterName?: string;
+  roundEndEntities?: Map<string, Entity>;
+  roundEndGrid?: BattleGrid;
 }
 
 /**
@@ -594,5 +598,117 @@ Then(
   function (world: TurnFlowControllerWorld, expectedActorId: string) {
     const emitSpy = (world.battleState!.stateObserver as any).emitActorChanged as any;
     expect(emitSpy).toHaveBeenCalledWith(expectedActorId);
+  }
+);
+
+// ===== End-of-round resolution tests =====
+
+Given(
+  'a TurnFlowController with round-end resolution',
+  function (world: TurnFlowControllerWorld) {
+    // Create a real grid
+    world.roundEndGrid = new BattleGrid(9, 9);
+    world.roundEndEntities = new Map();
+
+    // Create real entities
+    const hero0 = new Entity('hero-0', 20, world.roundEndGrid);
+    const hero1 = new Entity('hero-1', 20, world.roundEndGrid);
+    world.roundEndEntities.set('hero-0', hero0);
+    world.roundEndEntities.set('hero-1', hero1);
+
+    // Create real wheel
+    const wheel = new ActionWheel();
+    wheel.addEntity('hero-0', 0);
+    wheel.addEntity('hero-1', 2);
+    wheel.addEntity('monster', 4);
+
+    // Create turn controller
+    const monsterMock = createAliveMock(true);
+    const characterMocks = [createAliveMock(true), createAliveMock(true)];
+    world.turnController = new TurnController(wheel, monsterMock, characterMocks);
+
+    // Create state with real wheel and entities
+    world.battleState = {
+      ...createBattleStateMock(world.turnController),
+      wheel,
+      characters: [hero0, hero1] as any,
+      monsterEntity: {
+        id: 'monster',
+        getStacks: () => 0,
+        clearStacks: () => {},
+        receiveDamage: () => {},
+        isAlive: () => true,
+      } as any,
+      stateObserver: {
+        emitActorChanged: vi.fn(),
+        emitRoundEnded: vi.fn(),
+      } as any,
+    };
+
+    world.battleAdapter = createBattleAdapterMock();
+    world.turnFlowController = new TurnFlowController(world.battleState, world.battleAdapter);
+  }
+);
+
+Given(
+  'entity {string} has {int} burn stacks',
+  function (world: TurnFlowControllerWorld, entityId: string, stacks: number) {
+    const entity = world.roundEndEntities?.get(entityId);
+    if (entity && stacks > 0) {
+      entity.addStacks('burn', stacks);
+    }
+  }
+);
+
+When('a round completes', function (world: TurnFlowControllerWorld) {
+  // Mock didCompleteRound to return true
+  const wheel = world.battleState!.wheel;
+  vi.spyOn(wheel, 'didCompleteRound').mockReturnValue(true);
+
+  // Get the resolve method and call it directly
+  const resolveMethod = (world.turnFlowController as any).resolveEndOfRound;
+  if (resolveMethod && typeof resolveMethod === 'function') {
+    resolveMethod.call(world.turnFlowController);
+  }
+});
+
+When('a turn completes without completing a round', function (_world: TurnFlowControllerWorld) {
+  // This is a no-op - the wheel hasn't completed a round
+  // so resolveEndOfRound is not called
+  // This step verifies nothing happens
+});
+
+Then(
+  'entity {string} should have taken {int} burn damage',
+  function (world: TurnFlowControllerWorld, entityId: string, expectedDamage: number) {
+    const entity = world.roundEndEntities?.get(entityId);
+    expect(entity).toBeDefined();
+    expect(entity!.currentHealth).toBe(20 - expectedDamage);
+  }
+);
+
+Then(
+  'entity {string} should have {int} burn stacks remaining',
+  function (world: TurnFlowControllerWorld, entityId: string, expectedStacks: number) {
+    const entity = world.roundEndEntities?.get(entityId);
+    expect(entity).toBeDefined();
+    expect(entity!.getStacks('burn')).toBe(expectedStacks);
+  }
+);
+
+Then(
+  'entity {string} should still have {int} burn stacks',
+  function (world: TurnFlowControllerWorld, entityId: string, expectedStacks: number) {
+    const entity = world.roundEndEntities?.get(entityId);
+    expect(entity).toBeDefined();
+    expect(entity!.getStacks('burn')).toBe(expectedStacks);
+  }
+);
+
+Then(
+  'the stateObserver should have emitted roundEnded',
+  function (world: TurnFlowControllerWorld) {
+    const emitSpy = (world.battleState!.stateObserver as any).emitRoundEnded as any;
+    expect(emitSpy).toHaveBeenCalled();
   }
 );

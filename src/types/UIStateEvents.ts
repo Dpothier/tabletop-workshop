@@ -14,6 +14,9 @@ export interface UIStateEvents {
   // Wheel state
   wheelAdvanced: (entityId: string, newPosition: number) => void;
 
+  // Round state
+  roundEnded: () => void;
+
   // Character state
   heroHealthChanged: (heroId: string, current: number, max: number) => void;
   heroBeadsChanged: (heroId: string, counts: BeadCounts) => void;

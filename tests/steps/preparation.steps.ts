@@ -3,17 +3,15 @@ import { expect } from 'vitest';
 import type { QuickPickleWorld } from 'quickpickle';
 import { Entity } from '@src/entities/Entity';
 import { BattleGrid } from '@src/state/BattleGrid';
-import { PreparationManager, PREPARATION_DEFINITIONS } from '@src/systems/PreparationManager';
-import type { PreparationType } from '@src/systems/PreparationManager';
+import { PREPARATION_DEFINITIONS } from '@src/data/PreparationDefinitions';
+import type { PreparationType } from '@src/data/PreparationDefinitions';
 
 interface PreparationWorld extends QuickPickleWorld {
-  prepManager?: PreparationManager;
   prepGrid?: BattleGrid;
   prepEntities?: Map<string, Entity>;
 }
 
 Given('a preparation manager', function (world: PreparationWorld) {
-  world.prepManager = new PreparationManager();
   world.prepGrid = new BattleGrid(9, 9);
   world.prepEntities = new Map();
 });
@@ -30,7 +28,13 @@ When(
   'entity {string} prepares {string} with {int} stack(s)',
   function (world: PreparationWorld, entityId: string, prepType: string, stacks: number) {
     const entity = getOrCreateEntity(world, entityId);
-    world.prepManager!.prepare(entity, prepType as PreparationType, stacks);
+    const definition = PREPARATION_DEFINITIONS[prepType as PreparationType];
+    const current = entity.getStacks(prepType);
+    const newTotal = definition.maxStacks !== null ? Math.min(current + stacks, definition.maxStacks) : current + stacks;
+    entity.clearStacks(prepType);
+    if (newTotal > 0) {
+      entity.addStacks(prepType, newTotal);
+    }
   }
 );
 
@@ -39,7 +43,9 @@ When(
   function (world: PreparationWorld, entityId: string, interruptType: string) {
     if (interruptType === 'damage' || interruptType === 'defensive_reaction') {
       const entity = getOrCreateEntity(world, entityId);
-      world.prepManager!.interruptAll(entity);
+      Object.keys(PREPARATION_DEFINITIONS).forEach((prepType: string) => {
+        entity.clearStacks(prepType);
+      });
     }
   }
 );
@@ -48,7 +54,12 @@ When(
   'entity {string} performs action {string} which is unrelated to {string}',
   function (world: PreparationWorld, entityId: string, actionId: string, _prepType: string) {
     const entity = getOrCreateEntity(world, entityId);
-    world.prepManager!.interruptByAction(entity, actionId);
+    // interruptByAction: clear all preps that don't have actionId in pairedActions
+    Object.entries(PREPARATION_DEFINITIONS).forEach(([prepType, definition]) => {
+      if (!definition.pairedActions.includes(actionId)) {
+        entity.clearStacks(prepType);
+      }
+    });
   }
 );
 
@@ -63,7 +74,7 @@ When(
   'entity {string} consumes {string} preparation',
   function (world: PreparationWorld, entityId: string, prepType: string) {
     const entity = getOrCreateEntity(world, entityId);
-    world.prepManager!.consumeStacks(entity, prepType as PreparationType);
+    entity.clearStacks(prepType as PreparationType);
   }
 );
 
@@ -71,7 +82,7 @@ Then(
   'entity {string} should have {int} {string} preparation stack(s)',
   function (world: PreparationWorld, entityId: string, expectedStacks: number, prepType: string) {
     const entity = getOrCreateEntity(world, entityId);
-    const actualStacks = world.prepManager!.getStacks(entity, prepType as PreparationType);
+    const actualStacks = entity.getStacks(prepType as PreparationType);
     expect(actualStacks).toBe(expectedStacks);
   }
 );
