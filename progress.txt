@@ -280,3 +280,18 @@ Total tests added: 91 unit scenarios across 7 stories
   - features/unit/dodge-reaction.feature (6 scenarios)
   - tests/steps/dodge-reaction.steps.ts (step definitions)
 - Test count: 661 unit tests passing
+
+[ITERATION 11] Story: MFG-57 — 9.1.15 Modifier Sourcing System
+- Result: SUCCESS
+- Phase RED+GREEN: 6 unit scenarios written (modifier-sourcing.feature)
+- Key files created:
+  - src/types/ModifierSource.ts (ModifierSource, SourcedOption, EquipmentSource interfaces)
+  - src/systems/ModifierSourcing.ts (resolveSourcedOptions function)
+  - features/unit/modifier-sourcing.feature (6 scenarios)
+  - tests/steps/modifier-sourcing.steps.ts (step definitions)
+- Key logic:
+  - Equipment sources declare which modifiers they grant
+  - Off-hand weapons filtered out (main-hand only)
+  - Each modifier instance paired with source, display label "Name (Source)"
+  - Pure function, integration with ActionResolution deferred to dependent stories
+- Test count: 667 unit tests passing

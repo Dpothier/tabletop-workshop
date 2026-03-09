@@ -58,3 +58,5 @@ import './unified-attack.steps';
 import './prepare-effect.steps';
 // MFG-58: Dodge reaction
 import './dodge-reaction.steps';
+// MFG-57: Modifier Sourcing System
+import './modifier-sourcing.steps';
