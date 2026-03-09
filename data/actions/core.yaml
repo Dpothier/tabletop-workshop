@@ -57,6 +57,15 @@ actions:
         type: drawBeads
         params:
           count: 2
+    options:
+      strategize:
+        cost:
+          blue: 1
+        alternativeCost:
+          ponder: 1
+        modifies: rest-1
+        modifier:
+          strategize: true
 
   - id: coordinate
     name: Coordinate

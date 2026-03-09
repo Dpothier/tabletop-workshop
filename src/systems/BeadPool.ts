@@ -97,6 +97,14 @@ export class BeadPool {
   }
 
   /**
+   * Add a bead of a specific color back to the pool.
+   * @param color - Color of bead to add
+   */
+  add(color: BeadColor): void {
+    this.remaining.set(color, (this.remaining.get(color) ?? 0) + 1);
+  }
+
+  /**
    * Reshuffle all beads from the discard pile back into the pool.
    */
   private reshuffle(): void {

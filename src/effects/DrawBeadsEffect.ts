@@ -9,10 +9,10 @@ export class DrawBeadsEffect implements Effect {
   execute(
     context: GameContext,
     params: ResolvedParams,
-    _modifiers: Record<string, unknown>,
+    modifiers: Record<string, unknown>,
     _chainResults: Map<string, EffectResult>
   ): EffectResult {
-    const count = (params.count as number) || 0;
+    let count = (params.count as number) || 0;
     const entityId = params.entityId as string;
 
     const beadHand = context.getBeadHand(entityId);
@@ -24,6 +24,11 @@ export class DrawBeadsEffect implements Effect {
       };
     }
 
+    // If strategize modifier is active, draw 4 beads instead
+    if (modifiers.strategize === true) {
+      count = 4;
+    }
+
     const drawn = beadHand.drawToHand(count);
 
     const restEvent: RestEvent = {
@@ -32,12 +37,19 @@ export class DrawBeadsEffect implements Effect {
       beadsDrawn: drawn,
     };
 
+    const data: Record<string, unknown> = {
+      count: drawn.length,
+      beads: drawn,
+    };
+
+    // Add mustReturn flag when strategize is active
+    if (modifiers.strategize === true) {
+      data.mustReturn = 1;
+    }
+
     return {
       success: true,
-      data: {
-        count: drawn.length,
-        beads: drawn,
-      },
+      data,
       events: [restEvent],
     };
   }

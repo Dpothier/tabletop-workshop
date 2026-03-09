@@ -68,6 +68,11 @@ actions:
         params:
           entityId: hero-0
           count: 2
+    options:
+      strategize:
+        modifies: drawBeads
+        modifier:
+          strategize: true
 
   - id: feint_attack
     name: Feint Attack

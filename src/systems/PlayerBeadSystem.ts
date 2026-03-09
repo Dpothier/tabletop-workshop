@@ -127,4 +127,17 @@ export class PlayerBeadSystem {
   isEmpty(): boolean {
     return this.pool.isEmpty();
   }
+
+  /**
+   * Return a bead from hand back to the pool.
+   * @param color - Color of bead to return
+   * @returns True if return succeeded, false if bead not in hand
+   */
+  returnToPool(color: BeadColor): boolean {
+    if (!this.hand.remove(color)) {
+      return false;
+    }
+    this.pool.add(color);
+    return true;
+  }
 }

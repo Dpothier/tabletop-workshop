@@ -66,3 +66,5 @@ import './modifier-sourcing.steps';
 import './coordinate.steps';
 // MFG-22: Assess action
 import './assess-effect.steps';
+// MFG-21: Strategize modifier
+import './strategize.steps';

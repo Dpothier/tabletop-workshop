@@ -356,3 +356,23 @@ Total tests added: 91 unit scenarios across 7 stories
   - Revealed information marked as public (isPublic: true)
   - Additional cost is reported but not enforced (dynamic cost mechanism deferred per story notes)
 - Test count: 686 unit tests passing
+
+[ITERATION 15] Story: MFG-21 — 9.2.4 Strategize
+- Result: SUCCESS
+- Phase RED: 6 unit scenarios written (strategize.feature)
+- Phase GREEN: Modified DrawBeadsEffect, added returnToPool to PlayerBeadSystem/BeadPool
+- Key files created:
+  - features/unit/strategize.feature (6 scenarios)
+  - tests/steps/strategize.steps.ts (step definitions)
+- Key files modified:
+  - data/actions/core.yaml (added strategize option on rest: cost blue:1, alternativeCost ponder:1)
+  - public/data/actions/core.yaml (same)
+  - src/effects/DrawBeadsEffect.ts (strategize modifier: draw 4, mustReturn:1)
+  - src/systems/BeadPool.ts (added add() method)
+  - src/systems/PlayerBeadSystem.ts (added returnToPool() method)
+- Key logic:
+  - DrawBeadsEffect checks modifiers.strategize, overrides count to 4, sets data.mustReturn=1
+  - PlayerBeadSystem.returnToPool removes from hand, adds back to pool via BeadPool.add
+  - YAML defines strategize as option on rest with cost {blue:1} and alternativeCost {ponder:1}
+  - Modifier sourcing handled generically by MFG-57
+- Test count: 692 unit tests passing
