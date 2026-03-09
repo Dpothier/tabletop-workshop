@@ -314,3 +314,21 @@ Total tests added: 91 unit scenarios across 7 stories
   - Respects maxStacks cap from PREPARATION_DEFINITIONS
   - Granted stacks follow standard interruption rules
 - Test count: 672 unit tests passing
+
+[ITERATION 13] Story: MFG-23 — 9.2.6 Resist
+- Result: SUCCESS
+- Phase RED: 7 unit scenarios written (resist-reaction.feature)
+- Phase GREEN: Modified buildDefensiveOptions and applyDefensiveReaction, added resist handling to ActionPipeline
+- Key files created:
+  - features/unit/resist-reaction.feature (7 scenarios)
+  - tests/steps/resist-reaction.steps.ts (step definitions)
+- Key files modified:
+  - src/combat/AttackResolvers.ts (added resist-1 option for magical attacks, resist type in applyDefensiveReaction)
+  - src/combat/ActionPipeline.ts (added resist handling: spend white bead, +1 ward; white beads in hasDefensiveBeads check)
+- Key logic:
+  - Resist offered only for magical attacks (not melee/ranged)
+  - Cost: 1 white bead per instance
+  - Effect: +1 Ward (stacks with innate ward via additive stat stacking)
+  - Only one resist option per source (sourcing rules)
+  - Cannot be paid via preparation stacks (only checks bead hand)
+- Test count: 679 unit tests passing

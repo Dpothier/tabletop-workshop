@@ -16,7 +16,10 @@ export type AttackType = 'melee' | 'ranged' | 'magical';
  * Builds defensive reaction options for a player to spend beads.
  * Returns options for guard (red beads) and evasion (green beads), plus pass.
  */
-export function buildDefensiveOptions(handCounts: BeadCounts, attackType?: AttackType): OptionChoice[] {
+export function buildDefensiveOptions(
+  handCounts: BeadCounts,
+  attackType?: AttackType
+): OptionChoice[] {
   const options: OptionChoice[] = [];
 
   // Add options for red beads (guard)
@@ -36,8 +39,16 @@ export function buildDefensiveOptions(handCounts: BeadCounts, attackType?: Attac
         label: 'Spend 1 green bead for +1 Evasion (Dodge)',
       });
     }
-  } else if (attackType === 'ranged' || attackType === 'magical') {
-    // For ranged and magical attacks, do not include dodge/evade options
+  } else if (attackType === 'ranged') {
+    // For ranged attacks, do not include dodge/evade/resist options
+  } else if (attackType === 'magical') {
+    // For magical attacks, offer resist option (single, costs 1 white bead)
+    if (handCounts.white > 0) {
+      options.push({
+        id: 'resist-1',
+        label: 'Spend 1 white bead for +1 Ward (Resist)',
+      });
+    }
   } else {
     // Backward compatibility: undefined attackType uses original evade behavior
     for (let i = 1; i <= handCounts.green; i++) {
@@ -61,7 +72,7 @@ export function buildDefensiveOptions(handCounts: BeadCounts, attackType?: Attac
  * Parses a defensive reaction ID string into its type and count.
  */
 export function applyDefensiveReaction(reactionId: string): {
-  type: 'guard' | 'evade' | 'dodge' | 'pass';
+  type: 'guard' | 'evade' | 'dodge' | 'resist' | 'pass';
   count: number;
 } {
   if (reactionId.startsWith('guard-')) {
@@ -77,6 +88,11 @@ export function applyDefensiveReaction(reactionId: string): {
   if (reactionId.startsWith('dodge-')) {
     const count = parseInt(reactionId.substring(6), 10);
     return { type: 'dodge', count };
+  }
+
+  if (reactionId.startsWith('resist-')) {
+    const count = parseInt(reactionId.substring(7), 10);
+    return { type: 'resist', count };
   }
 
   return { type: 'pass', count: 0 };

@@ -65,7 +65,7 @@ export async function handleDefensiveReaction(
   }
 
   const handCounts = beadHand.getHandCounts();
-  const hasDefensiveBeads = handCounts.red > 0 || handCounts.green > 0;
+  const hasDefensiveBeads = handCounts.red > 0 || handCounts.green > 0 || handCounts.white > 0;
 
   if (!hasDefensiveBeads || !context.adapter) {
     return;
@@ -117,6 +117,15 @@ export async function handleDefensiveReaction(
       beadHand.spend('green');
     }
     target.setEvasion(target.evasion + reaction.count);
+    beadsSpent = true;
+  }
+
+  // Handle resist reaction
+  if (reaction.type === 'resist') {
+    for (let i = 0; i < reaction.count; i++) {
+      beadHand.spend('white');
+    }
+    target.setWard(target.getWard() + reaction.count);
     beadsSpent = true;
   }
 

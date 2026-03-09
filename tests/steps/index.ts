@@ -58,6 +58,8 @@ import './unified-attack.steps';
 import './prepare-effect.steps';
 // MFG-58: Dodge reaction
 import './dodge-reaction.steps';
+// MFG-23: Resist reaction
+import './resist-reaction.steps';
 // MFG-57: Modifier Sourcing System
 import './modifier-sourcing.steps';
 // MFG-24: Coordinate action
