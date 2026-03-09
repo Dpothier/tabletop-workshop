@@ -19,7 +19,7 @@ import {
 } from '@src/combat/AttackResolvers';
 
 interface DefensiveReaction {
-  type: 'guard' | 'evade' | 'pass';
+  type: 'guard' | 'evade' | 'dodge' | 'pass';
   count: number;
 }
 

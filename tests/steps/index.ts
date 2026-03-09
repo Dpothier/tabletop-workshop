@@ -56,3 +56,5 @@ import './magical-resolver.steps';
 import './preparation.steps';
 import './unified-attack.steps';
 import './prepare-effect.steps';
+// MFG-58: Dodge reaction
+import './dodge-reaction.steps';

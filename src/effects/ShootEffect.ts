@@ -2,7 +2,11 @@ import type { Effect, EffectResult, GameContext, ResolvedParams } from '@src/typ
 import type { AttackModifier } from '@src/types/Combat';
 import { resolveAttack } from '@src/combat/CombatResolver';
 import { buildAttackEvents } from '@src/combat/AttackResolvers';
-import { validateTargeting, applyStateMutation, handleDefensiveReaction } from '@src/combat/ActionPipeline';
+import {
+  validateTargeting,
+  applyStateMutation,
+  handleDefensiveReaction,
+} from '@src/combat/ActionPipeline';
 
 /**
  * ShootEffect — thin wrapper around resolveAttack for ranged attacks.
@@ -38,8 +42,8 @@ export class ShootEffect implements Effect {
       return { success: false, reason: 'Target not found', data: {}, events: [] };
     }
 
-    // Prompt for defensive reaction
-    await handleDefensiveReaction(context, target, power, agility);
+    // Prompt for defensive reaction (ranged attack — no dodge available)
+    await handleDefensiveReaction(context, target, power, agility, 'ranged');
 
     // Thin resolver call
     const defenseStats = target.getDefenseStats();

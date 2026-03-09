@@ -55,8 +55,8 @@ export class AttackEffect implements Effect {
       };
     }
 
-    // Prompt for defensive reaction if target is a Character
-    await handleDefensiveReaction(context, target, power, agility);
+    // Prompt for defensive reaction if target is a Character (melee attack)
+    await handleDefensiveReaction(context, target, power, agility, 'melee');
 
     // Get target's defense stats
     const defenseStats = target.getDefenseStats();

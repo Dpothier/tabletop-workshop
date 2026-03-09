@@ -262,3 +262,21 @@ Total tests added: 91 unit scenarios across 7 stories
 - Added validateTargeting, handleDefensiveReaction, applyStateMutation
 - 10 new test scenarios
 - Tests: 508 unit tests passing
+
+---
+
+## Ralph Session — Epic MFG-8 (Step 9.2 — Actions & Reactions)
+
+[ITERATION 11] Story: MFG-58 — 9.2.8 Dodge
+- Result: SUCCESS
+- Phase RED: 6 unit scenarios written (dodge-reaction.feature)
+- Phase GREEN: Modified buildDefensiveOptions to accept attackType, added dodge reaction type
+- Key files modified:
+  - src/combat/AttackResolvers.ts (added AttackType, dodge option for melee, applyDefensiveReaction handles dodge)
+  - src/combat/ActionPipeline.ts (handleDefensiveReaction accepts attackType, handles dodge reaction)
+  - src/effects/AttackEffect.ts (passes 'melee' to handleDefensiveReaction)
+  - src/effects/ShootEffect.ts (passes 'ranged' to handleDefensiveReaction)
+- Key files created:
+  - features/unit/dodge-reaction.feature (6 scenarios)
+  - tests/steps/dodge-reaction.steps.ts (step definitions)
+- Test count: 661 unit tests passing

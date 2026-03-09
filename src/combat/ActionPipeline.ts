@@ -3,10 +3,8 @@ import type { CombatResult } from '@src/types/Combat';
 import type { Entity } from '@src/entities/Entity';
 import type { OptionPrompt } from '@src/types/ParameterPrompt';
 import { Character } from '@src/entities/Character';
-import {
-  buildDefensiveOptions,
-  applyDefensiveReaction,
-} from '@src/combat/AttackResolvers';
+import type { AttackType } from '@src/combat/AttackResolvers';
+import { buildDefensiveOptions, applyDefensiveReaction } from '@src/combat/AttackResolvers';
 
 export interface TargetingResult {
   valid: boolean;
@@ -54,7 +52,8 @@ export async function handleDefensiveReaction(
   context: GameContext,
   target: Entity,
   power: number,
-  agility: number
+  agility: number,
+  attackType?: AttackType
 ): Promise<void> {
   if (!(target instanceof Character)) {
     return;
@@ -73,7 +72,7 @@ export async function handleDefensiveReaction(
   }
 
   // Build options for defensive reaction
-  const options = buildDefensiveOptions(handCounts);
+  const options = buildDefensiveOptions(handCounts, attackType);
 
   const prompt: OptionPrompt = {
     type: 'option',
@@ -105,6 +104,15 @@ export async function handleDefensiveReaction(
 
   // Handle evasion reaction
   if (reaction.type === 'evade') {
+    for (let i = 0; i < reaction.count; i++) {
+      beadHand.spend('green');
+    }
+    target.setEvasion(target.evasion + reaction.count);
+    beadsSpent = true;
+  }
+
+  // Handle dodge reaction
+  if (reaction.type === 'dodge') {
     for (let i = 0; i < reaction.count; i++) {
       beadHand.spend('green');
     }
