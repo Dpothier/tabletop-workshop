@@ -22,17 +22,14 @@ export function buildDefensiveOptions(
 ): OptionChoice[] {
   const options: OptionChoice[] = [];
 
-  // Add options for red beads (guard)
-  for (let i = 1; i <= handCounts.red; i++) {
-    options.push({
-      id: `guard-${i}`,
-      label: `Spend ${i} red bead${i > 1 ? 's' : ''} for +${i} Guard`,
-    });
-  }
-
-  // Add options for green beads (evasion/dodge)
   if (attackType === 'melee') {
-    // For melee attacks, offer only dodge option (single, costs 1 green bead)
+    // For melee attacks, offer guard (1 red bead) and dodge (1 green bead)
+    if (handCounts.red > 0) {
+      options.push({
+        id: 'guard-1',
+        label: 'Spend 1 red bead for +1 Guard',
+      });
+    }
     if (handCounts.green > 0) {
       options.push({
         id: 'dodge-1',
@@ -40,7 +37,7 @@ export function buildDefensiveOptions(
       });
     }
   } else if (attackType === 'ranged') {
-    // For ranged attacks, do not include dodge/evade/resist options
+    // For ranged attacks, no defensive reactions available
   } else if (attackType === 'magical') {
     // For magical attacks, offer resist option (single, costs 1 white bead)
     if (handCounts.white > 0) {
@@ -51,6 +48,12 @@ export function buildDefensiveOptions(
     }
   } else {
     // Backward compatibility: undefined attackType uses original evade behavior
+    for (let i = 1; i <= handCounts.red; i++) {
+      options.push({
+        id: `guard-${i}`,
+        label: `Spend ${i} red bead${i > 1 ? 's' : ''} for +${i} Guard`,
+      });
+    }
     for (let i = 1; i <= handCounts.green; i++) {
       options.push({
         id: `evade-${i}`,

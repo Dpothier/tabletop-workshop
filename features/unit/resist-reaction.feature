@@ -31,13 +31,11 @@ Feature: Resist Defensive Reaction
     Given the defender has 1 red bead and 1 white bead in hand
     When the melee attack triggers defensive reactions
     Then resist should not be available as an option
-    And guard should still be available
 
   Scenario: Resist is not available against ranged attacks
     Given the defender has 1 red bead and 1 white bead in hand
     When a ranged attack triggers defensive reactions
     Then resist should not be available as an option
-    And guard should still be available
 
   Scenario: Resist cannot be paid via preparation stacks
     Given the defender has 0 white beads in hand

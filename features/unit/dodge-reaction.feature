@@ -37,7 +37,6 @@ Feature: Dodge Defensive Reaction
     Given the defender has 1 red bead and 1 green bead in hand
     When a ranged attack triggers defensive reactions
     Then dodge should not be available as an option
-    And guard should still be available
 
   Scenario: Dodge follows sourcing rules - one per attack
     Given the defender has 3 green beads in hand

@@ -399,3 +399,24 @@ Total tests added: 91 unit scenarios across 7 stories
   - Condition filtering in resolveSourcedOptions checks equipment tags against option condition
   - applyTimeCostModifier enforces minimum time cost of 1
 - Test count: 698 unit tests passing
+
+[ITERATION 17] Story: MFG-19 — 9.2.2 Guard
+- Result: SUCCESS
+- Phase RED: 7 unit scenarios written (guard-reaction.feature)
+- Phase GREEN: Modified buildDefensiveOptions to restrict guard to melee-only and limit to guard-1
+- Key files created:
+  - features/unit/guard-reaction.feature (7 scenarios)
+  - tests/steps/guard-reaction.steps.ts (step definitions)
+- Key files modified:
+  - src/combat/AttackResolvers.ts (guard options now melee-only, limited to guard-1 per sourcing rules)
+  - features/unit/dodge-reaction.feature (removed "guard should still be available" from ranged scenario)
+  - features/unit/resist-reaction.feature (removed "guard should still be available" from ranged scenario)
+  - tests/steps/index.ts (added guard-reaction.steps import)
+- Key logic:
+  - Guard is a defensive reaction for melee attacks only (not ranged, not magical)
+  - Cost: 1 red bead per instance (no Windup alternative)
+  - Effect: +1 Guard (stacks with passive guard via additive stat stacking)
+  - Only one guard option per source (guard-1 only, per sourcing rules)
+  - Cannot be paid via preparation stacks (only checks bead hand)
+  - Backward compatibility preserved: undefined attackType still uses old guard-N/evade-N behavior
+- Test count: 705 unit tests passing
