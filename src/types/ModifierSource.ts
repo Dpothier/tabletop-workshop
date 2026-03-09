@@ -41,4 +41,6 @@ export interface EquipmentSource {
   slot: 'main-hand' | 'off-hand' | 'accessory';
   /** List of option IDs this equipment grants as modifiers */
   grantedModifiers: string[];
+  /** Optional tags for weapon classification (e.g., "light", "heavy") */
+  tags?: string[];
 }

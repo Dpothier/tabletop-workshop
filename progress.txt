@@ -376,3 +376,26 @@ Total tests added: 91 unit scenarios across 7 stories
   - YAML defines strategize as option on rest with cost {blue:1} and alternativeCost {ponder:1}
   - Modifier sourcing handled generically by MFG-57
 - Test count: 692 unit tests passing
+
+[ITERATION 16] Story: MFG-20 — 9.2.3 Quick Strike
+- Result: SUCCESS
+- Phase RED: 6 unit scenarios written (quick-strike.feature)
+- Phase GREEN: Added quickStrike option to YAML, condition filtering, time cost modifier
+- Key files created:
+  - features/unit/quick-strike.feature (6 scenarios)
+  - tests/steps/quick-strike.steps.ts (step definitions)
+  - src/systems/ActionCostModifier.ts (applyTimeCostModifier utility)
+- Key files modified:
+  - data/actions/core.yaml (added quickStrike option on attack: cost green:1, alternativeCost windup:1, condition weaponTag:light, costModifier time:-1)
+  - public/data/actions/core.yaml (same)
+  - src/types/ActionDefinition.ts (added cost, alternativeCost, condition, costModifier to OptionDefinition)
+  - src/types/ModifierSource.ts (added tags? to EquipmentSource)
+  - src/systems/ModifierSourcing.ts (added weaponTag condition filtering in resolveSourcedOptions)
+  - tests/steps/index.ts (added quick-strike.steps import)
+- Key logic:
+  - Quick Strike is an attack modifier option requiring a "light" weapon tag
+  - Reduces time cost by 1w (min 1w) via costModifier field
+  - Cost: 1 green bead or 1 windup stack
+  - Condition filtering in resolveSourcedOptions checks equipment tags against option condition
+  - applyTimeCostModifier enforces minimum time cost of 1
+- Test count: 698 unit tests passing

@@ -44,6 +44,19 @@ actions:
         params:
           targetEntity: monster
           damage: 1
+    options:
+      quickStrike:
+        cost:
+          green: 1
+        alternativeCost:
+          windup: 1
+        condition:
+          weaponTag: light
+        costModifier:
+          time: -1
+        modifies: attack-1
+        modifier:
+          quickStrike: true
 
   - id: rest
     name: Rest

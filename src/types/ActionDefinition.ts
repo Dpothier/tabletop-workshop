@@ -23,6 +23,10 @@ export interface OptionDefinition {
   modifies?: string | string[];
   modifier?: Record<string, unknown>;
   adds?: EffectDefinition[];
+  cost?: Partial<ActionCost>;
+  alternativeCost?: Record<string, number>;
+  condition?: { weaponTag: string };
+  costModifier?: Partial<ActionCost>;
 }
 
 /**

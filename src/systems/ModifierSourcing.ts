@@ -16,7 +16,7 @@ import type { EquipmentSource, SourcedOption, ModifierSource } from '@src/types/
  */
 export function resolveSourcedOptions(
   actionOptions: Record<string, OptionDefinition>,
-  equipment: EquipmentSource[],
+  equipment: EquipmentSource[]
 ): SourcedOption[] {
   const sourcedOptions: SourcedOption[] = [];
 
@@ -31,6 +31,14 @@ export function resolveSourcedOptions(
       if (!optionDef) {
         // Option not available in this action, skip it
         continue;
+      }
+
+      // Check condition - if option has a weaponTag condition, equipment must have that tag
+      if (optionDef.condition?.weaponTag) {
+        const requiredTag = optionDef.condition.weaponTag;
+        if (!eq.tags || !eq.tags.includes(requiredTag)) {
+          continue;
+        }
       }
 
       // Create the modifier source info

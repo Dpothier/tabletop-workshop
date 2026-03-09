@@ -68,3 +68,5 @@ import './coordinate.steps';
 import './assess-effect.steps';
 // MFG-21: Strategize modifier
 import './strategize.steps';
+// MFG-20: Quick Strike modifier
+import './quick-strike.steps';
