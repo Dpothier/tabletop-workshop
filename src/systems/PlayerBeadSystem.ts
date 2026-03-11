@@ -174,4 +174,14 @@ export class PlayerBeadSystem {
     this.goldCount--;
     return true;
   }
+
+  /**
+   * Spend a bead from another hand (for cross-entity bead sharing).
+   * @param otherHand - The other player's bead system
+   * @param color - Color of bead to spend
+   * @returns True if spend succeeded, false otherwise
+   */
+  spendFromOther(otherHand: PlayerBeadSystem, color: BeadColor): boolean {
+    return otherHand.spend(color);
+  }
 }

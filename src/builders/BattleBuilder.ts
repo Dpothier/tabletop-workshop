@@ -27,6 +27,7 @@ import { TemporalShiftEffect } from '@src/effects/TemporalShiftEffect';
 import { BlessEffect } from '@src/effects/BlessEffect';
 import { RenewEffect } from '@src/effects/RenewEffect';
 import { OverwriteEffect } from '@src/effects/OverwriteEffect';
+import { CommandEffect } from '@src/effects/CommandEffect';
 import { BattleStateObserver } from '@src/systems/BattleStateObserver';
 
 /**
@@ -133,6 +134,7 @@ export class BattleBuilder {
     effectRegistry.register('bless', new BlessEffect());
     effectRegistry.register('renew', new RenewEffect());
     effectRegistry.register('overwrite', new OverwriteEffect());
+    effectRegistry.register('command', new CommandEffect());
 
     // 3. Build entity map (needed for character construction)
     const entityMap: Map<string, Entity> = new Map();

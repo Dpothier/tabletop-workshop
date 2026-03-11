@@ -225,3 +225,19 @@ actions:
       - id: overwrite-effect
         type: overwrite
         params: {}
+  - id: command
+    name: Command
+    category: other
+    description: Share a bead from bearer's hand with an ally in range
+    cost:
+      time: 0
+    parameters:
+      - name: target
+        type: entity
+        selection:
+          type: ally
+          range: 6
+    effects:
+      - id: command-effect
+        type: command
+        params: {}

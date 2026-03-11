@@ -88,3 +88,5 @@ import './temporal-shift.steps';
 import './censer.steps';
 // MFG-41: Tome - Support item with Bestiary passive and Overwrite reaction
 import './tome.steps';
+// MFG-40: Horn - Support item with Command bead sharing
+import './horn.steps';
