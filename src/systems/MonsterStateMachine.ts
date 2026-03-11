@@ -132,4 +132,12 @@ export class MonsterStateMachine {
     if (!targetStateName) return undefined;
     return this.states.get(targetStateName);
   }
+
+  /**
+   * Get all state names in this state machine.
+   * @returns Array of all state names
+   */
+  getAllStateNames(): string[] {
+    return Array.from(this.states.keys());
+  }
 }

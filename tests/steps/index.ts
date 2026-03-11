@@ -76,3 +76,5 @@ import './strength-modifier.steps';
 import './guard-reaction.steps';
 // MFG-60: CombatRecorder
 import './combat-recorder.steps';
+// MFG-61: Battle Snapshot
+import './battle-snapshot.steps';

@@ -121,6 +121,30 @@ export class MonsterEntity extends Entity {
   }
 
   /**
+   * Get the remaining bead counts in the bead bag pool.
+   */
+  getBeadBagCounts(): BeadCounts | undefined {
+    return this.beadPool?.getRemainingCounts();
+  }
+
+  /**
+   * Get the state machine configuration (states and current state).
+   */
+  getStateMachineConfig(): { states: string[]; currentState: string } | undefined {
+    if (!this.stateMachine) {
+      return undefined;
+    }
+
+    const currentState = this.stateMachine.getCurrentState();
+    const states = this.stateMachine.getAllStateNames();
+
+    return {
+      states,
+      currentState: currentState.name,
+    };
+  }
+
+  /**
    * Decide what action to take this turn.
    * Draws a bead, transitions state, and determines attack or move.
    * Does NOT execute the action - call executeDecision() for that.
