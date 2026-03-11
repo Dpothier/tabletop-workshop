@@ -92,3 +92,5 @@ import './tome.steps';
 import './horn.steps';
 // MFG-39: Banner - Support item with Rally and Inspire
 import './banner.steps';
+// MFG-38: Great Shield - Shield with Great Guard and Shield Wall
+import './great-shield.steps';

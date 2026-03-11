@@ -194,3 +194,20 @@ equipment:
     passiveStats: {}
     rangeBands: []
     startsLoaded: false
+  - id: great-shield
+    name: Great Shield
+    category: shield
+    slot: off-hand
+    power: 0
+    agility: 0
+    range: 0
+    penetration: 0
+    tags: [shield, greatshield]
+    inventorySlots: 3
+    twoHanded: false
+    grantedModifiers: [block, greatGuard, rebuke, shieldWall]
+    grantedActions: []
+    passiveStats:
+      guard: 1
+    rangeBands: []
+    startsLoaded: false

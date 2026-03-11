@@ -117,6 +117,14 @@ export class Character extends Entity {
       }
     }
 
+    // Great Shield restricts attack action
+    for (const equipment of this.equipment.values()) {
+      if (equipment.tags.includes('greatshield')) {
+        actionIds.delete('attack');
+        break;
+      }
+    }
+
     return Array.from(actionIds);
   }
 

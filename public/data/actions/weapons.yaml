@@ -277,3 +277,38 @@ actions:
       - id: inspire-effect
         type: inspire
         params: {}
+  - id: greatGuard
+    name: Great Guard
+    category: reaction
+    description: Add +1 Guard to bearer when attacked
+    cost:
+      time: 0
+      beads:
+        red: 1
+    parameters:
+      - name: target
+        type: entity
+        selection:
+          type: self
+    effects:
+      - id: great-guard-effect
+        type: greatGuard
+        params: {}
+  - id: shieldWall
+    name: Shield Wall
+    category: reaction
+    description: Grant +1 Guard to an adjacent ally when they are attacked
+    cost:
+      time: 0
+      beads:
+        red: 1
+    parameters:
+      - name: target
+        type: entity
+        selection:
+          type: ally
+          range: 1
+    effects:
+      - id: shield-wall-effect
+        type: shieldWall
+        params: {}
