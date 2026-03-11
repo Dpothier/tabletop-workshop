@@ -9,6 +9,7 @@ import type { ActionRegistry } from '@src/systems/ActionRegistry';
 import type { TurnController } from '@src/systems/TurnController';
 import type { EffectRegistry } from '@src/systems/EffectRegistry';
 import type { ZoneSystem } from '@src/systems/ZoneSystem';
+import type { PassiveAuraSystem } from '@src/systems/PassiveAuraSystem';
 import type { BattleStateObserver } from '@src/systems/BattleStateObserver';
 import type { GameContext } from '@src/types/Effect';
 
@@ -35,6 +36,7 @@ export interface BattleState {
   readonly turnController: TurnController;
   readonly effectRegistry: EffectRegistry;
   readonly zoneSystem: ZoneSystem;
+  readonly passiveAuraSystem: PassiveAuraSystem;
   readonly stateObserver: BattleStateObserver;
 
   // Factory function for creating game context

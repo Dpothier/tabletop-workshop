@@ -86,3 +86,5 @@ import './phoenix-heart.steps';
 import './temporal-shift.steps';
 // MFG-42: Censer - Support item with Bless and Renew
 import './censer.steps';
+// MFG-41: Tome - Support item with Bestiary passive and Overwrite reaction
+import './tome.steps';

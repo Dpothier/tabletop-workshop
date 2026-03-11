@@ -207,3 +207,21 @@ actions:
       - id: renew-1
         type: renew
         params: {}
+  - id: overwrite
+    name: Overwrite
+    category: reaction
+    description: Cancel a monster's bead draw and force a redraw
+    cost:
+      time: 0
+      beads:
+        blue: 3
+    parameters:
+      - name: target
+        type: entity
+        selection:
+          type: enemy
+          range: 6
+    effects:
+      - id: overwrite-effect
+        type: overwrite
+        params: {}

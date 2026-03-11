@@ -13,6 +13,7 @@ import { ActionRegistry } from '@src/systems/ActionRegistry';
 import { TurnController } from '@src/systems/TurnController';
 import { EffectRegistry } from '@src/systems/EffectRegistry';
 import { ZoneSystem } from '@src/systems/ZoneSystem';
+import { PassiveAuraSystem } from '@src/systems/PassiveAuraSystem';
 import { MoveEffect } from '@src/effects/MoveEffect';
 import { AttackEffect } from '@src/effects/AttackEffect';
 import { DrawBeadsEffect } from '@src/effects/DrawBeadsEffect';
@@ -25,6 +26,7 @@ import { PhoenixBurstEffect } from '@src/effects/PhoenixBurstEffect';
 import { TemporalShiftEffect } from '@src/effects/TemporalShiftEffect';
 import { BlessEffect } from '@src/effects/BlessEffect';
 import { RenewEffect } from '@src/effects/RenewEffect';
+import { OverwriteEffect } from '@src/effects/OverwriteEffect';
 import { BattleStateObserver } from '@src/systems/BattleStateObserver';
 
 /**
@@ -113,6 +115,9 @@ export class BattleBuilder {
     const zoneSystem = new ZoneSystem();
     grid.setZoneSystem(zoneSystem);
 
+    // 2a. Create PassiveAuraSystem
+    const passiveAuraSystem = new PassiveAuraSystem();
+
     // 2b. Create EffectRegistry with effects
     const effectRegistry = new EffectRegistry();
     effectRegistry.register('move', new MoveEffect());
@@ -127,6 +132,7 @@ export class BattleBuilder {
     effectRegistry.register('temporalShift', new TemporalShiftEffect());
     effectRegistry.register('bless', new BlessEffect());
     effectRegistry.register('renew', new RenewEffect());
+    effectRegistry.register('overwrite', new OverwriteEffect());
 
     // 3. Build entity map (needed for character construction)
     const entityMap: Map<string, Entity> = new Map();
@@ -184,6 +190,7 @@ export class BattleBuilder {
       stateObserver,
       createGameContext,
       zoneSystem,
+      passiveAuraSystem,
     };
   }
 
