@@ -1,6 +1,8 @@
 import type { BattleState } from '@src/state/BattleState';
 import type { BattleAdapter } from '@src/types/BattleAdapter';
 import type { BattleStatus } from '@src/systems/TurnController';
+import { CombatLogStorage } from '@src/recording/CombatLogStorage';
+import { createBattleSnapshot } from '@src/recording/BattleSnapshot';
 
 /**
  * TurnFlowController orchestrates the battle turn flow.
@@ -14,6 +16,56 @@ export class TurnFlowController {
     private readonly state: BattleState,
     private readonly adapter: BattleAdapter
   ) {}
+
+  private buildRecording(): {
+    snapshot: ReturnType<typeof createBattleSnapshot>;
+    entries: any[];
+  } | null {
+    try {
+      const snapshot = createBattleSnapshot(this.state);
+      const entries = this.state.recorder?.getEntries() || [];
+      return { snapshot, entries };
+    } catch {
+      return null;
+    }
+  }
+
+  private autoSaveRecording(recording: {
+    snapshot: ReturnType<typeof createBattleSnapshot>;
+    entries: any[];
+  }): void {
+    try {
+      const storage = new CombatLogStorage(localStorage);
+      const recordingId = `${this.state.monster.name}-${Date.now()}`;
+      storage.saveToLocalStorage(recordingId, recording as any);
+    } catch {
+      // Silently fail if localStorage save fails
+    }
+  }
+
+  private recordTurnEnd(entityId: string, entityName: string, cost: number): void {
+    const segmentBefore = this.state.wheel.getActiveSegment();
+    this.state.turnController.advanceTurn(entityId, cost);
+    const segmentAfter = this.state.wheel.getActiveSegment();
+
+    if (segmentBefore !== segmentAfter) {
+      this.state.recorder?.record({
+        type: 'segment-change',
+        seq: 0,
+        previousSegment: segmentBefore.toString(),
+        newSegment: segmentAfter.toString(),
+      } as any);
+    }
+
+    this.state.recorder?.record({
+      type: 'wheel-advance',
+      seq: 0,
+      entityId,
+      entityName,
+      cost,
+      newPosition: 0,
+    } as any);
+  }
 
   /**
    * Check the current battle status.
@@ -68,29 +120,7 @@ export class TurnFlowController {
 
     // Phase 4: Advance turn
     const wheelCost = decision.wheelCost;
-    const segmentBefore = this.state.wheel.getActiveSegment();
-    this.state.turnController.advanceTurn('monster', wheelCost);
-    const segmentAfter = this.state.wheel.getActiveSegment();
-
-    // Record segment change if it occurred
-    if (segmentBefore !== segmentAfter) {
-      this.state.recorder?.record({
-        type: 'segment-change',
-        seq: 0,
-        previousSegment: segmentBefore.toString(),
-        newSegment: segmentAfter.toString(),
-      } as any);
-    }
-
-    // Record wheel advance
-    this.state.recorder?.record({
-      type: 'wheel-advance',
-      seq: 0,
-      entityId: 'monster',
-      entityName: 'monster',
-      cost: wheelCost,
-      newPosition: 0,
-    } as any);
+    this.recordTurnEnd('monster', 'monster', wheelCost);
 
     await this.adapter.delay(300);
   }
@@ -145,29 +175,7 @@ export class TurnFlowController {
 
       // Advance turn with action's time cost and exit loop
       const cost = result.cost.time;
-      const segmentBefore = this.state.wheel.getActiveSegment();
-      this.state.turnController.advanceTurn(actorId, cost);
-      const segmentAfter = this.state.wheel.getActiveSegment();
-
-      // Record segment change if it occurred
-      if (segmentBefore !== segmentAfter) {
-        this.state.recorder?.record({
-          type: 'segment-change',
-          seq: 0,
-          previousSegment: segmentBefore.toString(),
-          newSegment: segmentAfter.toString(),
-        } as any);
-      }
-
-      // Record wheel advance
-      this.state.recorder?.record({
-        type: 'wheel-advance',
-        seq: 0,
-        entityId: actorId,
-        entityName: actorId,
-        cost,
-        newPosition: 0,
-      } as any);
+      this.recordTurnEnd(actorId, actorId, cost);
 
       await this.adapter.delay(300);
       return;
@@ -267,34 +275,25 @@ export class TurnFlowController {
     while (true) {
       const status = this.checkBattleStatus();
 
-      if (status === 'victory') {
-        // Record battle end
+      if (status === 'victory' || status === 'defeat') {
+        const isVictory = status === 'victory';
+
         this.state.recorder?.record({
           type: 'battle-end',
           seq: 0,
-          outcome: 'victory',
+          outcome: status,
         } as any);
 
-        this.adapter.transition('VictoryScene', {
-          victory: true,
-          monster: this.state.monster.name,
-          turns: 0,
-        });
-        return;
-      }
-
-      if (status === 'defeat') {
-        // Record battle end
-        this.state.recorder?.record({
-          type: 'battle-end',
-          seq: 0,
-          outcome: 'defeat',
-        } as any);
+        const recording = this.buildRecording();
+        if (recording) {
+          this.autoSaveRecording(recording);
+        }
 
         this.adapter.transition('VictoryScene', {
-          victory: false,
+          victory: isVictory,
           monster: this.state.monster.name,
           turns: 0,
+          recording: recording ?? undefined,
         });
         return;
       }

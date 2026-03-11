@@ -123,7 +123,10 @@ export class ReplayScene extends Phaser.Scene {
     if (monsterPos) {
       const worldX = this.gridSystem.gridToWorld(monsterPos.x);
       const worldY = this.gridSystem.gridToWorld(monsterPos.y);
-      const mockMonster = { stats: { health: this.snapshot.monster.maxHealth } } as any;
+      const mockMonster = {
+        name: this.snapshot.monster.name,
+        stats: { health: this.snapshot.monster.maxHealth },
+      } as any;
       this.monsterVisual = new MonsterVisual(this, worldX, worldY, mockMonster);
       this.monsterVisual.updateHealth(
         this.snapshot.monster.health,
