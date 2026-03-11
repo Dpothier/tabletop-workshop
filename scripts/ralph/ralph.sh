@@ -33,7 +33,7 @@ WORKTREE_BRANCH=""
 setup_worktree() {
     local epic_key="${1:-ralph}"
     WORKTREE_BRANCH="ralph/${epic_key}"
-    WORKTREE_DIR="${PROJECT_ROOT}/.claude/worktrees/ralph"
+    WORKTREE_DIR="${PROJECT_ROOT}/.claude/worktrees/ralph-${epic_key}"
 
     # Worktree already exists from previous run
     if [ -d "$WORKTREE_DIR" ]; then
