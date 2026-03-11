@@ -82,3 +82,5 @@ import './sanctuary.steps';
 import './warp.steps';
 // MFG-44: Phoenix Heart - Phoenix Rebirth spell
 import './phoenix-heart.steps';
+// MFG-43: Temporal Shift - Hourglass of Time spell
+import './temporal-shift.steps';

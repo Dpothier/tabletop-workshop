@@ -113,3 +113,19 @@ equipment:
     passiveStats: {}
     rangeBands: []
     startsLoaded: false
+  - id: hourglass-of-time
+    name: Hourglass of Time
+    category: magical
+    slot: main-hand
+    power: 0
+    agility: 0
+    range: 0
+    penetration: 0
+    tags: [magical, catalyst]
+    inventorySlots: 1
+    twoHanded: false
+    grantedModifiers: []
+    grantedActions: [temporal_shift]
+    passiveStats: {}
+    rangeBands: []
+    startsLoaded: false

@@ -135,3 +135,44 @@ actions:
             white: 1
         effect:
           range: true
+  - id: temporal_shift
+    name: Temporal Shift
+    category: spell
+    description: Advance or delay targets on the action wheel
+    cost:
+      time: 2
+      beads:
+        blue: 1
+    parameters:
+      - name: target
+        type: entity
+        range: 1
+      - name: direction
+        type: select
+        options: [advance, delay]
+    effects:
+      - id: temporal-shift-1
+        type: temporalShift
+        params: {}
+    enhancements:
+      - id: aoe-3x3
+        name: AoE 3x3
+        cost:
+          beads:
+            blue: 1
+        effect:
+          aoe3x3: true
+      - id: aoe-5x5
+        name: AoE 5x5
+        cost:
+          beads:
+            blue: 1
+        effect:
+          aoe5x5: true
+      - id: intensity
+        name: Intensity
+        cost:
+          beads:
+            blue: 1
+        effect:
+          intensity: true

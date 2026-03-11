@@ -63,6 +63,23 @@ export class ActionWheel {
   }
 
   /**
+   * Delay an entity's position by a cost amount with wrap-around at 8.
+   * Also updates the entity's arrival order.
+   * @param id - Entity identifier
+   * @param cost - Number of segments to delay (move backwards)
+   * @throws Error if entity does not exist
+   */
+  delayEntity(id: string, cost: number): void {
+    const entry = this.entries.get(id);
+    if (!entry) {
+      throw new Error(`Entity with id "${id}" does not exist on the wheel`);
+    }
+    entry.position = (((entry.position - cost) % 8) + 8) % 8;
+    entry.arrivalOrder = this.arrivalCounter++;
+    this.updateActiveSegment();
+  }
+
+  /**
    * Get the next actor (entity at lowest position, FIFO on ties).
    * @returns Entity ID of next actor, or null if wheel is empty
    */

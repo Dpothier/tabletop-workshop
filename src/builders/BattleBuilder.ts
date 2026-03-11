@@ -22,6 +22,7 @@ import { SanctuaryEffect } from '@src/effects/SanctuaryEffect';
 import { WarpEffect } from '@src/effects/WarpEffect';
 import { StabilizeEffect } from '@src/effects/StabilizeEffect';
 import { PhoenixBurstEffect } from '@src/effects/PhoenixBurstEffect';
+import { TemporalShiftEffect } from '@src/effects/TemporalShiftEffect';
 import { BattleStateObserver } from '@src/systems/BattleStateObserver';
 
 /**
@@ -121,6 +122,7 @@ export class BattleBuilder {
     effectRegistry.register('warp', new WarpEffect());
     effectRegistry.register('stabilize', new StabilizeEffect());
     effectRegistry.register('phoenixBurst', new PhoenixBurstEffect());
+    effectRegistry.register('temporalShift', new TemporalShiftEffect());
 
     // 3. Build entity map (needed for character construction)
     const entityMap: Map<string, Entity> = new Map();
@@ -152,6 +154,7 @@ export class BattleBuilder {
         const char = characters.find((c) => c.id === entityId);
         return char?.getBeadHand();
       },
+      getWheel: () => wheel,
     });
 
     // 10. Create action systems with hydration dependencies

@@ -3,6 +3,7 @@ import type { Entity } from '@src/entities/Entity';
 import type { AnimationEvent } from '@src/types/AnimationEvent';
 import type { PlayerBeadSystem } from '@src/systems/PlayerBeadSystem';
 import type { BattleAdapter } from '@src/types/BattleAdapter';
+import type { ActionWheel } from '@src/systems/ActionWheel';
 
 /**
  * EffectResult indicates the outcome of an effect execution.
@@ -45,6 +46,7 @@ export interface GameContext {
   grid: BattleGrid;
   getEntity(id: string): Entity | undefined;
   getBeadHand(entityId: string): PlayerBeadSystem | undefined;
+  getWheel?(): ActionWheel | undefined;
   actorId?: string;
   adapter?: BattleAdapter;
 }

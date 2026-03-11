@@ -497,3 +497,10 @@ Total tests added: 91 unit scenarios across 7 stories
 - PhoenixBurstEffect: AoE relative to target, ward checks, ignite/burn
 - YAML: phoenix_rebirth action + phoenix-heart equipment
 - 10 scenarios (9 unit + 1 integration), all passing
+
+## MFG-43: Hourglass of Time (Magical) — DONE
+- TemporalShiftEffect: advance/delay targets on action wheel
+- ActionWheel.delayEntity: new method for backward movement
+- GameContext.getWheel: optional wheel access for effects
+- AoE 3x3/5x5, intensity, ward checks, ally acceptance
+- 10 scenarios (9 unit + 1 integration), all passing
