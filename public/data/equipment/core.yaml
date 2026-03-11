@@ -1,1 +1,67 @@
-equipment: []
+equipment:
+  - id: sword
+    name: Sword
+    category: light
+    slot: main-hand
+    power: 1
+    agility: 1
+    range: 1
+    penetration: 0
+    tags: [melee, light]
+    inventorySlots: 1
+    twoHanded: false
+    grantedModifiers: [strength, quickStrike]
+    grantedActions: [attack]
+    passiveStats: {}
+    rangeBands: []
+    startsLoaded: false
+  - id: shield
+    name: Shield
+    category: shield
+    slot: off-hand
+    power: 0
+    agility: 0
+    range: 0
+    penetration: 0
+    tags: [shield]
+    inventorySlots: 1
+    twoHanded: false
+    grantedModifiers: []
+    grantedActions: [guard-stance]
+    passiveStats:
+      guard: 1
+    rangeBands: []
+    startsLoaded: false
+  - id: greatsword
+    name: Greatsword
+    category: heavy
+    slot: main-hand
+    power: 3
+    agility: 0
+    range: 1
+    penetration: 1
+    tags: [melee, heavy]
+    inventorySlots: 2
+    twoHanded: true
+    grantedModifiers: [strength]
+    grantedActions: [attack]
+    passiveStats: {}
+    rangeBands: []
+    startsLoaded: false
+  - id: armor
+    name: Plate Armor
+    category: heavy
+    slot: main-hand
+    power: 0
+    agility: -1
+    range: 0
+    penetration: 0
+    tags: [armor]
+    inventorySlots: 1
+    twoHanded: false
+    grantedModifiers: []
+    grantedActions: []
+    passiveStats:
+      armor: 2
+    rangeBands: []
+    startsLoaded: false

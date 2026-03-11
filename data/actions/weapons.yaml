@@ -1,0 +1,16 @@
+# Weapon-specific actions granted by equipment
+# Registered in ActionRegistry alongside core actions
+actions:
+  - id: guard-stance
+    name: Guard Stance
+    category: defense
+    description: Adopt a defensive guard position
+    cost:
+      time: 1
+    parameters: []
+    effects:
+      - id: guard-1
+        type: modifyStat
+        params:
+          stat: guard
+          value: 1

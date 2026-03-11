@@ -440,3 +440,32 @@ Total tests added: 91 unit scenarios across 7 stories
   - Per sourcing rules: 1 instance per equipment source, off-hand excluded
   - No production code changes — all infrastructure already existed (AttackEffect, ModifierSourcing, YAML option system)
 - Test count: 711 unit tests passing
+
+---
+
+## Ralph Session — Epic MFG-9 (Step 9.3 — Equipment Data)
+
+[ITERATION 19] Story: MFG-62 — 9.3.0 Equipment Data System
+- Result: SUCCESS
+- Phase RED: 13 unit scenarios written (equipment-data.feature)
+- Phase GREEN: EquipmentLoader, EquipmentDefinition type, Character equip with passiveStats
+- Key files created:
+  - src/data/EquipmentLoader.ts (loadFromYAML, getById)
+  - features/unit/equipment-data.feature (13 scenarios)
+  - tests/steps/equipment-data.steps.ts (step definitions)
+  - public/data/actions/weapons.yaml (weapon-specific actions)
+  - public/data/equipment/core.yaml (sword, shield, greatsword, plate armor)
+- Key files modified:
+  - src/types/Equipment.ts (EquipmentSlot: main-hand|off-hand|accessory, PassiveStats, RangeBand, full EquipmentDefinition)
+  - src/entities/Character.ts (equip: passiveStats application + two-handed blocking, getAvailableActionIds: grantedActions)
+  - src/builders/BattleBuilder.ts (withEquipmentLoader, equips characters by weaponId)
+  - tests/steps/index.ts (added equipment-data.steps import)
+- Key logic:
+  - EquipmentDefinition unified type: id, name, category, slot, power, agility, range, penetration, tags, inventorySlots, twoHanded, grantedModifiers, grantedActions, passiveStats, rangeBands, startsLoaded
+  - EquipmentLoader loads YAML directly into EquipmentDefinition[] without transformation
+  - Character.equip() applies passiveStats (guard, armor, evasion, ward) and blocks off-hand when main-hand is twoHanded
+  - ModifierSourcing reads grantedModifiers and tags directly from EquipmentDefinition
+  - BattleBuilder integrates EquipmentLoader to equip characters by weaponId
+  - Weapon-specific actions in public/data/actions/weapons.yaml (separate from core.yaml)
+  - Categories supported: light, heavy, ranged, shield, support, magical (string type)
+- Test count: 724 unit tests passing

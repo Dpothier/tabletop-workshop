@@ -51,9 +51,35 @@ export class Character extends Entity {
   /**
    * Equip an item to this character.
    * Replaces any existing item in the same slot.
+   * Blocks off-hand equip if main-hand is two-handed.
+   * Applies passive stats to character.
    */
   equip(equipment: EquipmentDefinition): void {
+    // Block off-hand if main-hand is two-handed
+    if (equipment.slot === 'off-hand') {
+      const mainHand = this.equipment.get('main-hand');
+      if (mainHand && mainHand.twoHanded) {
+        throw new Error('Cannot equip off-hand while wielding two-handed weapon');
+      }
+    }
+
     this.equipment.set(equipment.slot, equipment);
+
+    // Apply passive stats
+    if (equipment.passiveStats) {
+      if (equipment.passiveStats.guard !== undefined) {
+        this.guard += equipment.passiveStats.guard;
+      }
+      if (equipment.passiveStats.armor !== undefined) {
+        this.armor += equipment.passiveStats.armor;
+      }
+      if (equipment.passiveStats.evasion !== undefined) {
+        this.evasion += equipment.passiveStats.evasion;
+      }
+      if (equipment.passiveStats.ward !== undefined) {
+        this.ward += equipment.passiveStats.ward;
+      }
+    }
   }
 
   /**
@@ -86,7 +112,7 @@ export class Character extends Entity {
 
     // Add actions from all equipped items
     for (const equipment of this.equipment.values()) {
-      for (const actionId of equipment.actions) {
+      for (const actionId of equipment.grantedActions) {
         actionIds.add(actionId);
       }
     }

@@ -4,6 +4,7 @@ import type { BattleState } from '@src/state/BattleState';
 import type { Entity } from '@src/entities/Entity';
 import type { GameContext } from '@src/types/Effect';
 import type { CharacterData } from '@src/types/CharacterData';
+import type { EquipmentLoader } from '@src/data/EquipmentLoader';
 import { BattleGrid } from '@src/state/BattleGrid';
 import { ActionWheel } from '@src/systems/ActionWheel';
 import { Character } from '@src/entities/Character';
@@ -29,6 +30,7 @@ export class BattleBuilder {
   private classes: CharacterClass[] = [];
   private actions: ActionDefinition[] = [];
   private characterData?: CharacterData[];
+  private equipmentLoader?: EquipmentLoader;
 
   /**
    * Set the monster for this battle
@@ -77,6 +79,14 @@ export class BattleBuilder {
   withCharacterData(characters: CharacterData[]): this {
     this.characterData = characters;
     this.partySize = characters.length;
+    return this;
+  }
+
+  /**
+   * Set the equipment loader for equipping characters by weaponId.
+   */
+  withEquipmentLoader(loader: EquipmentLoader): this {
+    this.equipmentLoader = loader;
     return this;
   }
 
@@ -188,6 +198,14 @@ export class BattleBuilder {
       if (this.characterData && this.characterData[i]) {
         const data = this.characterData[i];
         character.setCharacterData(data.name, data.attributes, data.weapon);
+
+        // Equip weapon via EquipmentLoader if available
+        if (this.equipmentLoader && data.weapon) {
+          const equipment = this.equipmentLoader.getById(data.weapon);
+          if (equipment) {
+            character.equip(equipment);
+          }
+        }
       }
 
       characters.push(character);

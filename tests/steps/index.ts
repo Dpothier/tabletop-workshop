@@ -74,3 +74,5 @@ import './quick-strike.steps';
 import './strength-modifier.steps';
 // MFG-19: Guard reaction
 import './guard-reaction.steps';
+// MFG-62: Equipment Data System
+import './equipment-data.steps';
