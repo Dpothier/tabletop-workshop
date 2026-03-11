@@ -28,6 +28,8 @@ import { BlessEffect } from '@src/effects/BlessEffect';
 import { RenewEffect } from '@src/effects/RenewEffect';
 import { OverwriteEffect } from '@src/effects/OverwriteEffect';
 import { CommandEffect } from '@src/effects/CommandEffect';
+import { RallyEffect } from '@src/effects/RallyEffect';
+import { InspireEffect } from '@src/effects/InspireEffect';
 import { BattleStateObserver } from '@src/systems/BattleStateObserver';
 
 /**
@@ -135,6 +137,8 @@ export class BattleBuilder {
     effectRegistry.register('renew', new RenewEffect());
     effectRegistry.register('overwrite', new OverwriteEffect());
     effectRegistry.register('command', new CommandEffect());
+    effectRegistry.register('rally', new RallyEffect());
+    effectRegistry.register('inspire', new InspireEffect());
 
     // 3. Build entity map (needed for character construction)
     const entityMap: Map<string, Entity> = new Map();

@@ -241,3 +241,39 @@ actions:
       - id: command-effect
         type: command
         params: {}
+  - id: rally
+    name: Rally
+    category: reaction
+    description: Preserve ally's preparation stacks when they would be interrupted
+    cost:
+      time: 0
+      beads:
+        white: 1
+    parameters:
+      - name: target
+        type: entity
+        selection:
+          type: ally
+          range: 6
+    effects:
+      - id: rally-effect
+        type: rally
+        params: {}
+  - id: inspire
+    name: Inspire
+    category: reaction
+    description: Grant +1 Guard to an ally when they are attacked
+    cost:
+      time: 0
+      beads:
+        white: 1
+    parameters:
+      - name: target
+        type: entity
+        selection:
+          type: ally
+          range: 6
+    effects:
+      - id: inspire-effect
+        type: inspire
+        params: {}

@@ -90,3 +90,5 @@ import './censer.steps';
 import './tome.steps';
 // MFG-40: Horn - Support item with Command bead sharing
 import './horn.steps';
+// MFG-39: Banner - Support item with Rally and Inspire
+import './banner.steps';
