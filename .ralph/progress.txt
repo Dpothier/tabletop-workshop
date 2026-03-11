@@ -1,0 +1,25 @@
+# Ralph Progress - Epic MFG-59
+
+## Completed Stories
+- MFG-60: CombatLogEntry Types & CombatRecorder Core ✓ (committed: 725a7b0)
+- MFG-61: Initial Battle State Snapshot ✓ (committed: 1efbb5b)
+- MFG-64: JSONL Serialization & Storage ✓ (pending commit)
+
+## Current Phase: COMMIT for MFG-64
+
+## Files Created (MFG-64)
+- src/recording/CombatLogSerializer.ts — toJSONL/fromJSONL static methods
+- src/recording/CombatLogStorage.ts — localStorage wrapper (save/load/list/delete)
+- features/unit/combat-log-serializer.feature — 11 scenarios
+- features/unit/combat-log-storage.feature — 15 scenarios
+- tests/steps/combat-log-serializer.steps.ts — step definitions
+- tests/steps/combat-log-storage.steps.ts — step definitions
+
+## Test Results
+- All 773 tests pass
+- npm run check passes (typecheck + lint + format)
+
+## Next Stories (by dependency order)
+- MFG-63: Instrumentation du flux de combat (blocked by MFG-60 ✓, MFG-61 ✓)
+- MFG-65: ReplayScene (blocked by MFG-60 ✓, MFG-61 ✓, MFG-64 ✓)
+- MFG-66: Integration UI (blocked by MFG-64 ✓, MFG-65)

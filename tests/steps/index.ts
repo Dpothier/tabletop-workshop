@@ -78,3 +78,6 @@ import './guard-reaction.steps';
 import './combat-recorder.steps';
 // MFG-61: Battle Snapshot
 import './battle-snapshot.steps';
+// MFG-64: Combat Log Serialization & Storage
+import './combat-log-serializer.steps';
+import './combat-log-storage.steps';
