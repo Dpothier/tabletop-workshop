@@ -81,3 +81,19 @@ equipment:
     passiveStats: {}
     rangeBands: []
     startsLoaded: false
+  - id: warping-stone
+    name: Warping Stone
+    category: magical
+    slot: main-hand
+    power: 0
+    agility: 0
+    range: 0
+    penetration: 0
+    tags: [magical, catalyst]
+    inventorySlots: 1
+    twoHanded: false
+    grantedModifiers: []
+    grantedActions: [warp]
+    passiveStats: {}
+    rangeBands: []
+    startsLoaded: false

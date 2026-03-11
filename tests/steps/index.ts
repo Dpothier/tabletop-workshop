@@ -78,3 +78,5 @@ import './guard-reaction.steps';
 import './equipment-data.steps';
 // MFG-46: Sanctuary - Tear of Light zone spell
 import './sanctuary.steps';
+// MFG-45: Warp - Warping Stone teleportation spell
+import './warp.steps';

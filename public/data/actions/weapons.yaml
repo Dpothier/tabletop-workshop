@@ -47,3 +47,49 @@ actions:
         requires: zone-5x5
         effect:
           size: 7
+  - id: warp
+    name: Warp
+    category: spell
+    description: Teleport yourself or others to a distant location
+    cost:
+      time: 2
+      beads:
+        blue: 1
+    parameters:
+      - name: destination
+        type: position
+        range: 6
+    effects:
+      - id: warp-1
+        type: warp
+        params: {}
+    enhancements:
+      - id: swap
+        name: Swap
+        cost:
+          beads:
+            blue: 1
+        effect:
+          swap: true
+      - id: other
+        name: Other
+        cost:
+          beads:
+            blue: 1
+        effect:
+          other: true
+      - id: extended-selection
+        name: Extended Selection
+        cost:
+          beads:
+            blue: 1
+        requires: other
+        effect:
+          extendedSelection: true
+      - id: extended-range
+        name: Extended Range
+        cost:
+          beads:
+            blue: 1
+        effect:
+          extendedRange: true

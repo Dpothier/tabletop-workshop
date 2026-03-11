@@ -223,6 +223,28 @@ export class BattleGrid {
   }
 
   /**
+   * Swap the positions of two entities.
+   * @param entityId1 First entity ID
+   * @param entityId2 Second entity ID
+   * @returns True if swap was successful, false if either entity not found
+   */
+  swapEntities(entityId1: string, entityId2: string): boolean {
+    const pos1 = this.positions.get(entityId1);
+    const pos2 = this.positions.get(entityId2);
+    if (!pos1 || !pos2) return false;
+
+    // Update positions
+    this.positions.set(entityId1, { ...pos2 });
+    this.positions.set(entityId2, { ...pos1 });
+
+    // Update occupancy
+    this.occupancy.set(this.positionKey(pos2.x, pos2.y), entityId1);
+    this.occupancy.set(this.positionKey(pos1.x, pos1.y), entityId2);
+
+    return true;
+  }
+
+  /**
    * Check if a position is within grid bounds.
    * @param x X coordinate
    * @param y Y coordinate
