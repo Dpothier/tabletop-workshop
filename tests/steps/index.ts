@@ -96,3 +96,5 @@ import './banner.steps';
 import './great-shield.steps';
 // MFG-37: Shield - Shield with Block and Rebuke
 import './shield.steps';
+// MFG-36: Buckler - Shield with Block and Riposte
+import './buckler.steps';

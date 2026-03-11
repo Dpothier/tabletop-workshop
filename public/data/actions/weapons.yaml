@@ -330,3 +330,21 @@ actions:
       - id: rebuke-effect
         type: rebuke
         params: {}
+  - id: riposte
+    name: Riposte
+    category: reaction
+    description: Counter-attack after a successful block, dealing 1 damage
+    cost:
+      time: 0
+      beads:
+        green: 1
+    parameters:
+      - name: target
+        type: entity
+        selection:
+          type: enemy
+          range: 1
+    effects:
+      - id: riposte-effect
+        type: riposte
+        params: {}
