@@ -76,3 +76,5 @@ import './strength-modifier.steps';
 import './guard-reaction.steps';
 // MFG-62: Equipment Data System
 import './equipment-data.steps';
+// MFG-46: Sanctuary - Tear of Light zone spell
+import './sanctuary.steps';

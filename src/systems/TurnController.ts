@@ -1,4 +1,5 @@
 import type { ActionWheel } from '@src/systems/ActionWheel';
+import type { ZoneSystem } from '@src/systems/ZoneSystem';
 
 /**
  * Interface for entities that can be queried for alive status.
@@ -24,7 +25,8 @@ export class TurnController {
   constructor(
     private readonly wheel: ActionWheel,
     private readonly monster: AliveQueryable,
-    private readonly characters: AliveQueryable[]
+    private readonly characters: AliveQueryable[],
+    private readonly zoneSystem?: ZoneSystem
   ) {}
 
   /**
@@ -73,5 +75,45 @@ export class TurnController {
       return 'defeat';
     }
     return 'ongoing';
+  }
+
+  /**
+   * Handle zone maintenance when an action is performed.
+   * Non-Channel actions cause zone collapse for the actor.
+   */
+  handleActionPerformed(entityId: string, actionType: string): void {
+    if (!this.zoneSystem) return;
+    if (actionType !== 'Channel') {
+      this.zoneSystem.removeZonesByOwner(entityId);
+    }
+  }
+
+  /**
+   * Handle zone maintenance when an entity takes damage.
+   * Damage causes zone collapse for the entity.
+   */
+  handleDamageTaken(entityId: string): void {
+    if (!this.zoneSystem) return;
+    this.zoneSystem.removeZonesByOwner(entityId);
+  }
+
+  /**
+   * Handle zone maintenance when an entity uses a defensive reaction.
+   * Defensive reactions cause zone collapse for the entity.
+   */
+  handleReactionUsed(entityId: string): void {
+    if (!this.zoneSystem) return;
+    this.zoneSystem.removeZonesByOwner(entityId);
+  }
+
+  /**
+   * Check if an entity has enough Channel stacks to maintain zones.
+   * 0 Channel stacks causes zone collapse.
+   */
+  checkChannelMaintenance(entityId: string, channelStacks: number): void {
+    if (!this.zoneSystem) return;
+    if (channelStacks <= 0) {
+      this.zoneSystem.removeZonesByOwner(entityId);
+    }
   }
 }

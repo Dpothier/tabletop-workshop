@@ -1,3 +1,5 @@
+import type { ZoneSystem } from '@src/systems/ZoneSystem';
+
 /**
  * Represents a 2D position on the battle grid.
  */
@@ -23,10 +25,15 @@ export class BattleGrid {
   private readonly height: number;
   private readonly positions = new Map<string, Position>();
   private readonly occupancy = new Map<string, string>(); // "x,y" -> entityId
+  private zoneSystem?: ZoneSystem;
 
   constructor(width: number, height: number) {
     this.width = width;
     this.height = height;
+  }
+
+  setZoneSystem(zoneSystem: ZoneSystem): void {
+    this.zoneSystem = zoneSystem;
   }
 
   /**
@@ -89,6 +96,11 @@ export class BattleGrid {
     // Check occupancy
     const occupant = this.getEntityAt(dest.x, dest.y);
     if (occupant !== null && occupant !== entityId) {
+      return { success: false, reason: 'occupied' };
+    }
+
+    // Check zone entry
+    if (this.zoneSystem && !this.zoneSystem.canEnterAny(entityId, dest.x, dest.y)) {
       return { success: false, reason: 'occupied' };
     }
 

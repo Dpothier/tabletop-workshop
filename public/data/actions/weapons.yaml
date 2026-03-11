@@ -14,3 +14,36 @@ actions:
         params:
           stat: guard
           value: 1
+  - id: sanctuary
+    name: Sanctuary
+    category: spell
+    description: Create a barrier zone that pushes enemies away and prevents entry
+    cost:
+      time: 2
+      beads:
+        white: 1
+    parameters:
+      - name: size
+        type: select
+        options: [3]
+    effects:
+      - id: sanctuary-1
+        type: sanctuary
+        params:
+          size: "{size}"
+    enhancements:
+      - id: zone-5x5
+        name: Zone 5x5
+        cost:
+          beads:
+            white: 1
+        effect:
+          size: 5
+      - id: zone-7x7
+        name: Zone 7x7
+        cost:
+          beads:
+            white: 1
+        requires: zone-5x5
+        effect:
+          size: 7

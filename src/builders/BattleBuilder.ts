@@ -12,11 +12,13 @@ import { MonsterEntity, StateConfig } from '@src/entities/MonsterEntity';
 import { ActionRegistry } from '@src/systems/ActionRegistry';
 import { TurnController } from '@src/systems/TurnController';
 import { EffectRegistry } from '@src/systems/EffectRegistry';
+import { ZoneSystem } from '@src/systems/ZoneSystem';
 import { MoveEffect } from '@src/effects/MoveEffect';
 import { AttackEffect } from '@src/effects/AttackEffect';
 import { DrawBeadsEffect } from '@src/effects/DrawBeadsEffect';
 import { CoordinateEffect } from '@src/effects/CoordinateEffect';
 import { AssessEffect } from '@src/effects/AssessEffect';
+import { SanctuaryEffect } from '@src/effects/SanctuaryEffect';
 import { BattleStateObserver } from '@src/systems/BattleStateObserver';
 
 /**
@@ -101,13 +103,18 @@ export class BattleBuilder {
     // 1. Create grid (single source of truth for positions)
     const grid = new BattleGrid(this.arena.width, this.arena.height);
 
-    // 2. Create EffectRegistry with effects
+    // 2. Create ZoneSystem
+    const zoneSystem = new ZoneSystem();
+    grid.setZoneSystem(zoneSystem);
+
+    // 2b. Create EffectRegistry with effects
     const effectRegistry = new EffectRegistry();
     effectRegistry.register('move', new MoveEffect());
     effectRegistry.register('attack', new AttackEffect());
     effectRegistry.register('drawBeads', new DrawBeadsEffect());
     effectRegistry.register('coordinate', new CoordinateEffect());
     effectRegistry.register('assess', new AssessEffect());
+    effectRegistry.register('sanctuary', new SanctuaryEffect(zoneSystem));
 
     // 3. Build entity map (needed for character construction)
     const entityMap: Map<string, Entity> = new Map();
@@ -125,7 +132,7 @@ export class BattleBuilder {
     this.initializeBeadHands(characters);
 
     // 8. Create TurnController
-    const turnController = new TurnController(wheel, monsterEntity, characters);
+    const turnController = new TurnController(wheel, monsterEntity, characters, zoneSystem);
 
     // 9. Create GameContext factory function (now has access to grid, characters, monsterEntity)
     const createGameContext = (actorId: string): GameContext => ({
@@ -163,6 +170,7 @@ export class BattleBuilder {
       effectRegistry,
       stateObserver,
       createGameContext,
+      zoneSystem,
     };
   }
 

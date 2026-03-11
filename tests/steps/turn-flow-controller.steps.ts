@@ -86,6 +86,7 @@ function createBattleStateMock(turnController: TurnController, monsterName?: str
     effectRegistry: {} as any,
     stateObserver: {} as any,
     createGameContext: () => ({}) as any,
+    zoneSystem: {} as any,
   };
 }
 

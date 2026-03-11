@@ -65,3 +65,19 @@ equipment:
       armor: 2
     rangeBands: []
     startsLoaded: false
+  - id: tear-of-light
+    name: Tear of Light
+    category: magical
+    slot: main-hand
+    power: 0
+    agility: 0
+    range: 0
+    penetration: 0
+    tags: [magical, catalyst]
+    inventorySlots: 1
+    twoHanded: false
+    grantedModifiers: []
+    grantedActions: [sanctuary]
+    passiveStats: {}
+    rangeBands: []
+    startsLoaded: false
