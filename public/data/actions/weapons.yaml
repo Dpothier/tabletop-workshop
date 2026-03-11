@@ -93,3 +93,45 @@ actions:
             blue: 1
         effect:
           extendedRange: true
+  - id: phoenix_rebirth
+    name: Phoenix Rebirth
+    category: spell
+    description: Stabilize an ally and trigger a fire burst around them
+    cost:
+      time: 2
+      beads:
+        white: 1
+    parameters:
+      - name: target
+        type: entity
+        range: 1
+    effects:
+      - id: phoenix-stabilize-1
+        type: stabilize
+        params: {}
+      - id: phoenix-burst-1
+        type: phoenixBurst
+        params: {}
+    enhancements:
+      - id: phoenix-burst
+        name: Phoenix Burst
+        cost:
+          beads:
+            white: 1
+        effect:
+          burst: true
+      - id: ignite
+        name: Ignite
+        cost:
+          beads:
+            white: 1
+        requires: phoenix-burst
+        effect:
+          ignite: true
+      - id: range
+        name: Range
+        cost:
+          beads:
+            white: 1
+        effect:
+          range: true

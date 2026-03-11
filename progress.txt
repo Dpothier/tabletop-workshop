@@ -491,3 +491,9 @@ Total tests added: 91 unit scenarios across 7 stories
   - public/data/actions/weapons.yaml (added sanctuary action: cost 2w+1white, enhancements zone-5x5/7x7 with prerequisite)
   - tests/steps/index.ts (added sanctuary.steps import)
 - Test count: 741 unit tests passing
+
+## MFG-44: Phoenix Heart (Magical) — DONE
+- StabilizeEffect: stabilizes 1 wound on ally, range check (adjacent/6)
+- PhoenixBurstEffect: AoE relative to target, ward checks, ignite/burn
+- YAML: phoenix_rebirth action + phoenix-heart equipment
+- 10 scenarios (9 unit + 1 integration), all passing

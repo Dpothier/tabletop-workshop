@@ -97,3 +97,19 @@ equipment:
     passiveStats: {}
     rangeBands: []
     startsLoaded: false
+  - id: phoenix-heart
+    name: Phoenix Heart
+    category: magical
+    slot: main-hand
+    power: 0
+    agility: 0
+    range: 0
+    penetration: 0
+    tags: [magical, catalyst]
+    inventorySlots: 1
+    twoHanded: false
+    grantedModifiers: []
+    grantedActions: [phoenix_rebirth]
+    passiveStats: {}
+    rangeBands: []
+    startsLoaded: false

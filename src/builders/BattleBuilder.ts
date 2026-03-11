@@ -20,6 +20,8 @@ import { CoordinateEffect } from '@src/effects/CoordinateEffect';
 import { AssessEffect } from '@src/effects/AssessEffect';
 import { SanctuaryEffect } from '@src/effects/SanctuaryEffect';
 import { WarpEffect } from '@src/effects/WarpEffect';
+import { StabilizeEffect } from '@src/effects/StabilizeEffect';
+import { PhoenixBurstEffect } from '@src/effects/PhoenixBurstEffect';
 import { BattleStateObserver } from '@src/systems/BattleStateObserver';
 
 /**
@@ -117,6 +119,8 @@ export class BattleBuilder {
     effectRegistry.register('assess', new AssessEffect());
     effectRegistry.register('sanctuary', new SanctuaryEffect(zoneSystem));
     effectRegistry.register('warp', new WarpEffect());
+    effectRegistry.register('stabilize', new StabilizeEffect());
+    effectRegistry.register('phoenixBurst', new PhoenixBurstEffect());
 
     // 3. Build entity map (needed for character construction)
     const entityMap: Map<string, Entity> = new Map();

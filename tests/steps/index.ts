@@ -80,3 +80,5 @@ import './equipment-data.steps';
 import './sanctuary.steps';
 // MFG-45: Warp - Warping Stone teleportation spell
 import './warp.steps';
+// MFG-44: Phoenix Heart - Phoenix Rebirth spell
+import './phoenix-heart.steps';
