@@ -98,3 +98,5 @@ import './great-shield.steps';
 import './shield.steps';
 // MFG-36: Buckler - Shield with Block and Riposte
 import './buckler.steps';
+// MFG-35: Shield System - Foundation
+import './shield-system.steps';

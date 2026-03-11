@@ -348,3 +348,20 @@ actions:
       - id: riposte-effect
         type: riposte
         params: {}
+  - id: block
+    name: Block
+    category: reaction
+    description: Shield reaction granting +1 Guard against the current attack
+    cost:
+      time: 0
+      beads:
+        anyColor: 1
+    parameters:
+      - name: target
+        type: entity
+        selection:
+          type: self
+    effects:
+      - id: block-effect
+        type: block
+        params: {}
