@@ -312,3 +312,21 @@ actions:
       - id: shield-wall-effect
         type: shieldWall
         params: {}
+  - id: rebuke
+    name: Rebuke
+    category: reaction
+    description: Push attacker back after a successful block
+    cost:
+      time: 0
+      beads:
+        red: 1
+    parameters:
+      - name: target
+        type: entity
+        selection:
+          type: enemy
+          range: 1
+    effects:
+      - id: rebuke-effect
+        type: rebuke
+        params: {}

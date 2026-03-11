@@ -24,9 +24,9 @@ equipment:
     range: 0
     penetration: 0
     tags: [shield]
-    inventorySlots: 1
+    inventorySlots: 2
     twoHanded: false
-    grantedModifiers: []
+    grantedModifiers: [block, rebuke]
     grantedActions: [guard-stance]
     passiveStats:
       guard: 1

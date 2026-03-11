@@ -94,3 +94,5 @@ import './horn.steps';
 import './banner.steps';
 // MFG-38: Great Shield - Shield with Great Guard and Shield Wall
 import './great-shield.steps';
+// MFG-37: Shield - Shield with Block and Rebuke
+import './shield.steps';

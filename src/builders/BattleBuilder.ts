@@ -32,6 +32,7 @@ import { RallyEffect } from '@src/effects/RallyEffect';
 import { InspireEffect } from '@src/effects/InspireEffect';
 import { GreatGuardEffect } from '@src/effects/GreatGuardEffect';
 import { ShieldWallEffect } from '@src/effects/ShieldWallEffect';
+import { RebukeEffect } from '@src/effects/RebukeEffect';
 import { BattleStateObserver } from '@src/systems/BattleStateObserver';
 
 /**
@@ -143,6 +144,7 @@ export class BattleBuilder {
     effectRegistry.register('inspire', new InspireEffect());
     effectRegistry.register('greatGuard', new GreatGuardEffect());
     effectRegistry.register('shieldWall', new ShieldWallEffect());
+    effectRegistry.register('rebuke', new RebukeEffect());
 
     // 3. Build entity map (needed for character construction)
     const entityMap: Map<string, Entity> = new Map();
