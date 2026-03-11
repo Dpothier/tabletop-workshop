@@ -119,7 +119,9 @@ Then(
   'the result should have type {string}',
   function (world: AttackResolversWorld, expectedType: string) {
     expect(world.defensiveReaction).toBeDefined();
-    expect(world.defensiveReaction!.type).toBe(expectedType as 'guard' | 'evade' | 'dodge' | 'resist' | 'pass');
+    expect(world.defensiveReaction!.type).toBe(
+      expectedType as 'guard' | 'evade' | 'dodge' | 'resist' | 'pass'
+    );
   }
 );
 

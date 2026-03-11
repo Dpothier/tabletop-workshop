@@ -40,10 +40,13 @@ export class CharacterCreationScene extends Phaser.Scene {
     spr: 1,
   };
   private pointsRemaining: number = 8;
-  private attributeButtons: Map<string, { plus: Phaser.GameObjects.Rectangle; minus: Phaser.GameObjects.Rectangle }> =
-    new Map();
+  private attributeButtons: Map<
+    string,
+    { plus: Phaser.GameObjects.Rectangle; minus: Phaser.GameObjects.Rectangle }
+  > = new Map();
   private attributeValueTexts: Map<string, Phaser.GameObjects.Text> = new Map();
-  private attributeDomButtons: Map<string, { plus: HTMLButtonElement; minus: HTMLButtonElement }> = new Map();
+  private attributeDomButtons: Map<string, { plus: HTMLButtonElement; minus: HTMLButtonElement }> =
+    new Map();
   private pointsRemainingText!: Phaser.GameObjects.Text;
   private beadPreviewContainer!: Phaser.GameObjects.Container;
   private beadPreviewDomElement!: HTMLDivElement;
@@ -51,7 +54,13 @@ export class CharacterCreationScene extends Phaser.Scene {
   private continueDomButton!: HTMLButtonElement;
 
   // Step 8.5: Weapon Selection & Save
-  private weapons: Array<{ id: string; name: string; power: number; agility: number; range: number | string }> = [];
+  private weapons: Array<{
+    id: string;
+    name: string;
+    power: number;
+    agility: number;
+    range: number | string;
+  }> = [];
   private selectedWeaponId: string | null = null;
   private showWeaponSelection: boolean = false;
   private saveDomButton!: HTMLButtonElement;
@@ -281,7 +290,8 @@ export class CharacterCreationScene extends Phaser.Scene {
     if (this.editCharacter) {
       this.attributes = { ...this.editCharacter.attributes };
       // Recalculate points remaining (total = 12, base = 4*1=4, so remaining = 12 - sum)
-      const sum = this.attributes.str + this.attributes.dex + this.attributes.mnd + this.attributes.spr;
+      const sum =
+        this.attributes.str + this.attributes.dex + this.attributes.mnd + this.attributes.spr;
       this.pointsRemaining = 12 - sum;
     }
 
@@ -766,7 +776,11 @@ export class CharacterCreationScene extends Phaser.Scene {
     cancelButton.on('pointerdown', () => this.handleCancel());
   }
 
-  private createWeaponRow(weapon: { id: string; name: string; power: number; agility: number; range: number | string }, y: number, centerX: number): void {
+  private createWeaponRow(
+    weapon: { id: string; name: string; power: number; agility: number; range: number | string },
+    y: number,
+    centerX: number
+  ): void {
     const rectWidth = 300;
     const rectHeight = 60;
 
@@ -882,7 +896,13 @@ export class CharacterCreationScene extends Phaser.Scene {
   }
 
   public get weaponSelectionState(): {
-    weapons: Array<{ id: string; name: string; power: number; agility: number; range: number | string }>;
+    weapons: Array<{
+      id: string;
+      name: string;
+      power: number;
+      agility: number;
+      range: number | string;
+    }>;
     selectedWeaponId: string | null;
     canSave: boolean;
   } | null {

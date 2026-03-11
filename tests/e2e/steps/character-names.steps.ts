@@ -31,9 +31,7 @@ Then('the hero card names should be Warrior, Mage, Rogue, Cleric', async ({ page
   expect(cards.length, 'Should have 4 hero cards').toBe(4);
 
   for (let i = 0; i < expectedNames.length; i++) {
-    expect(cards[i].name, `Hero ${i} should be named ${expectedNames[i]}`).toBe(
-      expectedNames[i]
-    );
+    expect(cards[i].name, `Hero ${i} should be named ${expectedNames[i]}`).toBe(expectedNames[i]);
   }
 });
 
@@ -42,20 +40,22 @@ Then('the selected hero panel should show a hero name', async ({ page }) => {
   const state = await getGameState(page);
   expect(state.selectedHeroPanel?.heroName, 'Panel should have a hero name').toBeDefined();
   expect(state.selectedHeroPanel?.heroName).not.toBeNull();
+  expect(typeof state.selectedHeroPanel?.heroName, 'Hero name should be a string').toBe('string');
   expect(
-    typeof state.selectedHeroPanel?.heroName,
-    'Hero name should be a string'
-  ).toBe('string');
-  expect(state.selectedHeroPanel?.heroName?.length, 'Hero name should not be empty').toBeGreaterThan(0);
+    state.selectedHeroPanel?.heroName?.length,
+    'Hero name should not be empty'
+  ).toBeGreaterThan(0);
 });
 
-Then('the selected hero panel hero name should match the first hero card name', async ({ page }) => {
-  const state = await getGameState(page);
-  const firstCardName = state.heroBar?.cards?.[0]?.name;
-  const panelHeroName = state.selectedHeroPanel?.heroName;
+Then(
+  'the selected hero panel hero name should match the first hero card name',
+  async ({ page }) => {
+    const state = await getGameState(page);
+    const firstCardName = state.heroBar?.cards?.[0]?.name;
+    const panelHeroName = state.selectedHeroPanel?.heroName;
 
-  expect(firstCardName, 'First hero card should have a name').toBeDefined();
-  expect(panelHeroName, 'Panel should show a hero name').toBeDefined();
-  expect(panelHeroName, 'Panel hero name should match first card name').toBe(firstCardName);
-});
-
+    expect(firstCardName, 'First hero card should have a name').toBeDefined();
+    expect(panelHeroName, 'Panel should show a hero name').toBeDefined();
+    expect(panelHeroName, 'Panel hero name should match first card name').toBe(firstCardName);
+  }
+);

@@ -30,7 +30,10 @@ When(
     const entity = getOrCreateEntity(world, entityId);
     const definition = PREPARATION_DEFINITIONS[prepType as PreparationType];
     const current = entity.getStacks(prepType);
-    const newTotal = definition.maxStacks !== null ? Math.min(current + stacks, definition.maxStacks) : current + stacks;
+    const newTotal =
+      definition.maxStacks !== null
+        ? Math.min(current + stacks, definition.maxStacks)
+        : current + stacks;
     entity.clearStacks(prepType);
     if (newTotal > 0) {
       entity.addStacks(prepType, newTotal);

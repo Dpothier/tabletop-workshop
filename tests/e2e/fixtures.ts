@@ -833,7 +833,10 @@ export async function setHeroBeadHand(
       if (!activeScene) return false;
 
       const battle = activeScene as {
-        setHeroBeadHand?: (heroId: string, counts: { red: number; blue: number; green: number; white: number }) => void;
+        setHeroBeadHand?: (
+          heroId: string,
+          counts: { red: number; blue: number; green: number; white: number }
+        ) => void;
       };
 
       if (battle.setHeroBeadHand) {
@@ -858,32 +861,24 @@ export async function setHeroBeadHand(
  * @param size Desired party size (1-4)
  * @returns true if setup succeeded
  */
-export async function setPartySize(
-  page: Page,
-  size: number
-): Promise<boolean> {
-  return await page.evaluate(
-    (partySize) => {
-      const game = window.__PHASER_GAME__;
-      if (!game) return false;
+export async function setPartySize(page: Page, size: number): Promise<boolean> {
+  return await page.evaluate((partySize) => {
+    const game = window.__PHASER_GAME__;
+    if (!game) return false;
 
-      const menuScene = game.scene.scenes.find(
-        (s) => s.sys.settings.key === 'MenuScene'
-      );
-      if (!menuScene) return false;
+    const menuScene = game.scene.scenes.find((s) => s.sys.settings.key === 'MenuScene');
+    if (!menuScene) return false;
 
-      const menu = menuScene as {
-        selectedCharacters?: (unknown | null)[];
-      };
+    const menu = menuScene as {
+      selectedCharacters?: (unknown | null)[];
+    };
 
-      if (!menu.selectedCharacters) return false;
+    if (!menu.selectedCharacters) return false;
 
-      // Keep only the first N characters, null the rest
-      for (let i = partySize; i < menu.selectedCharacters.length; i++) {
-        menu.selectedCharacters[i] = null;
-      }
-      return true;
-    },
-    size
-  );
+    // Keep only the first N characters, null the rest
+    for (let i = partySize; i < menu.selectedCharacters.length; i++) {
+      menu.selectedCharacters[i] = null;
+    }
+    return true;
+  }, size);
 }

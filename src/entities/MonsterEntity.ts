@@ -395,7 +395,9 @@ export class MonsterEntity extends Entity {
    * Peeks at the next bead in the pool and determines the resulting state.
    * Returns the next bead color and the state it would transition to.
    */
-  getNextPlannedAction(): { nextBead: string; nextState: string; nextStateDamage: number } | undefined {
+  getNextPlannedAction():
+    | { nextBead: string; nextState: string; nextStateDamage: number }
+    | undefined {
     if (!this.beadPool || !this.stateMachine) {
       return undefined;
     }

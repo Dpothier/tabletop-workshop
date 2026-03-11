@@ -4,6 +4,7 @@ import type { QuickPickleWorld } from 'quickpickle';
 import type { EffectResult } from '@src/types/Effect';
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
+import * as path from 'path';
 
 interface CoordinateEffectWorld extends QuickPickleWorld {
   coordinateEffectResult?: EffectResult;
@@ -63,7 +64,7 @@ When(
 When(
   'I load the action {string} from actions yaml',
   function (world: CoordinateEffectWorld, actionId: string) {
-    const yamlPath = '/workspace/data/actions/core.yaml';
+    const yamlPath = path.join(process.cwd(), 'public/data/actions/core.yaml');
     const fileContent = fs.readFileSync(yamlPath, 'utf-8');
     const parsed = yaml.load(fileContent) as { actions: Array<{ id: string; [key: string]: any }> };
 
@@ -94,7 +95,7 @@ Then(
     expect(parameters).toBeDefined();
     expect(parameters.length).toBeGreaterThan(0);
 
-    const [_minStr, maxStr] = expectedRange.split('-');
+    const [, maxStr] = expectedRange.split('-');
     const max = parseInt(maxStr, 10);
 
     const rangeParam = parameters.find((p: any) => p.range !== undefined);

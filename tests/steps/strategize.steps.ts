@@ -7,6 +7,7 @@ import type { BeadColor } from '@src/types/Beads';
 import type { EffectResult } from '@src/types/Effect';
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
+import * as path from 'path';
 
 interface StrategizeWorld extends QuickPickleWorld {
   gameContext?: any;
@@ -48,7 +49,7 @@ When('I return the first drawn bead to pool', function (world: StrategizeWorld) 
 });
 
 When('I load the rest action definition from YAML', function (world: StrategizeWorld) {
-  const yamlPath = '/workspace/data/actions/core.yaml';
+  const yamlPath = path.join(process.cwd(), 'public/data/actions/core.yaml');
   const fileContent = fs.readFileSync(yamlPath, 'utf-8');
   const parsed = yaml.load(fileContent) as { actions: Array<{ id: string; [key: string]: any }> };
 
@@ -70,11 +71,14 @@ Then(
   }
 );
 
-Then('the effect result data should indicate must return {int} bead', function (world: StrategizeWorld, returnCount: number) {
-  expect(world.effectResult).toBeDefined();
-  expect(world.effectResult!.data).toBeDefined();
-  expect(world.effectResult!.data.mustReturn).toBe(returnCount);
-});
+Then(
+  'the effect result data should indicate must return {int} bead',
+  function (world: StrategizeWorld, returnCount: number) {
+    expect(world.effectResult).toBeDefined();
+    expect(world.effectResult!.data).toBeDefined();
+    expect(world.effectResult!.data.mustReturn).toBe(returnCount);
+  }
+);
 
 Then('the pool should contain the returned bead', function (world: StrategizeWorld) {
   expect(world.returnedBead).toBeDefined();

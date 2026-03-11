@@ -77,21 +77,9 @@ Then('I should see 4 character slots', async ({ page }) => {
   expect(slotsState?.slots.length).toBe(4);
 });
 
-Then('slot {int} should display {string}', async ({ page }, slotNumber: number, expectedName: string) => {
-  const slotsState = await getCharacterSlotsState(page);
-  expect(slotsState).not.toBeNull();
-
-  const slotIndex = slotNumber - 1;
-  expect(slotIndex).toBeGreaterThanOrEqual(0);
-  expect(slotIndex).toBeLessThan(4);
-
-  const slot = slotsState!.slots[slotIndex];
-  expect(slot).not.toBeNull();
-  expect(slot?.name).toBe(expectedName);
-});
-
-Then('slot {int} should show the letter {string}', async ({ page }, slotNumber: number, expectedLetter: string) => {
-  await expect(async () => {
+Then(
+  'slot {int} should display {string}',
+  async ({ page }, slotNumber: number, expectedName: string) => {
     const slotsState = await getCharacterSlotsState(page);
     expect(slotsState).not.toBeNull();
 
@@ -101,9 +89,27 @@ Then('slot {int} should show the letter {string}', async ({ page }, slotNumber: 
 
     const slot = slotsState!.slots[slotIndex];
     expect(slot).not.toBeNull();
-    expect(slot?.name?.[0]).toBe(expectedLetter);
-  }).toPass({ timeout: 5000 });
-});
+    expect(slot?.name).toBe(expectedName);
+  }
+);
+
+Then(
+  'slot {int} should show the letter {string}',
+  async ({ page }, slotNumber: number, expectedLetter: string) => {
+    await expect(async () => {
+      const slotsState = await getCharacterSlotsState(page);
+      expect(slotsState).not.toBeNull();
+
+      const slotIndex = slotNumber - 1;
+      expect(slotIndex).toBeGreaterThanOrEqual(0);
+      expect(slotIndex).toBeLessThan(4);
+
+      const slot = slotsState!.slots[slotIndex];
+      expect(slot).not.toBeNull();
+      expect(slot?.name?.[0]).toBe(expectedLetter);
+    }).toPass({ timeout: 5000 });
+  }
+);
 
 Then(
   'slot {int} should show attributes {string}',

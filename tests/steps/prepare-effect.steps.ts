@@ -109,7 +109,12 @@ Then(
 // Entity stacks assertions for prepare effect
 Then(
   'the entity {string} should have {int} stacks of {string}',
-  function (world: PrepareEffectWorld, entityId: string, expectedStacks: number, stackType: string) {
+  function (
+    world: PrepareEffectWorld,
+    entityId: string,
+    expectedStacks: number,
+    stackType: string
+  ) {
     const entity = world.entities!.get(entityId);
     expect(entity).toBeDefined();
     expect(entity!.getStacks(stackType)).toBe(expectedStacks);

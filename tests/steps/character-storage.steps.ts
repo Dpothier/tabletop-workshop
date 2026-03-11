@@ -203,10 +203,13 @@ Given('the character storage service is initialized', function (world: Character
   world.service = createCharacterStorageService();
 });
 
-Given('a fresh character storage service with no prior data', function (world: CharacterStorageWorld) {
-  clearInMemoryStorage();
-  world.service = createCharacterStorageService();
-});
+Given(
+  'a fresh character storage service with no prior data',
+  function (world: CharacterStorageWorld) {
+    clearInMemoryStorage();
+    world.service = createCharacterStorageService();
+  }
+);
 
 Given(
   'I save a custom character named {string} with attributes str={int}, dex={int}, mnd={int}, spr={int}',
@@ -231,21 +234,24 @@ Given(
   }
 );
 
-Given('I already have {int} custom characters', function (world: CharacterStorageWorld, count: number) {
-  if (!world.service) {
-    throw new Error('Service not initialized');
+Given(
+  'I already have {int} custom characters',
+  function (world: CharacterStorageWorld, count: number) {
+    if (!world.service) {
+      throw new Error('Service not initialized');
+    }
+    const existing = world.service.getAll().filter((c) => !c.isDefault).length;
+    const needed = count - existing;
+    for (let i = 0; i < needed; i++) {
+      world.service.save({
+        name: `CustomChar${i}`,
+        attributes: { str: 1, dex: 1, mnd: 1, spr: 1 },
+        weapon: 'sword',
+        isDefault: false,
+      });
+    }
   }
-  const existing = world.service.getAll().filter((c) => !c.isDefault).length;
-  const needed = count - existing;
-  for (let i = 0; i < needed; i++) {
-    world.service.save({
-      name: `CustomChar${i}`,
-      attributes: { str: 1, dex: 1, mnd: 1, spr: 1 },
-      weapon: 'sword',
-      isDefault: false,
-    });
-  }
-});
+);
 
 // When steps
 When('I get all characters', function (world: CharacterStorageWorld) {
@@ -319,39 +325,48 @@ When('I check if {string} is a unique name', function (world: CharacterStorageWo
   world.isUnique = world.service.isNameUnique(name);
 });
 
-When('I check if {string} is unique excluding its own id', function (world: CharacterStorageWorld, name: string) {
-  if (!world.service) {
-    throw new Error('Service not initialized');
+When(
+  'I check if {string} is unique excluding its own id',
+  function (world: CharacterStorageWorld, name: string) {
+    if (!world.service) {
+      throw new Error('Service not initialized');
+    }
+    const char = world.service.getByName(name);
+    if (!char) {
+      throw new Error(`Character not found: ${name}`);
+    }
+    world.isUnique = world.service.isNameUnique(name, char.id);
   }
-  const char = world.service.getByName(name);
-  if (!char) {
-    throw new Error(`Character not found: ${name}`);
-  }
-  world.isUnique = world.service.isNameUnique(name, char.id);
-});
+);
 
-When('I check if {string} is unique excluding the character\'s own id', function (world: CharacterStorageWorld, name: string) {
-  if (!world.service) {
-    throw new Error('Service not initialized');
+When(
+  "I check if {string} is unique excluding the character's own id",
+  function (world: CharacterStorageWorld, name: string) {
+    if (!world.service) {
+      throw new Error('Service not initialized');
+    }
+    const char = world.service.getByName(name);
+    if (!char) {
+      throw new Error(`Character not found: ${name}`);
+    }
+    world.isUnique = world.service.isNameUnique(name, char.id);
   }
-  const char = world.service.getByName(name);
-  if (!char) {
-    throw new Error(`Character not found: ${name}`);
-  }
-  world.isUnique = world.service.isNameUnique(name, char.id);
-});
+);
 
-When('I can rename the character to {string} without conflict', function (world: CharacterStorageWorld, newName: string) {
-  if (!world.service) {
-    throw new Error('Service not initialized');
+When(
+  'I can rename the character to {string} without conflict',
+  function (world: CharacterStorageWorld, newName: string) {
+    if (!world.service) {
+      throw new Error('Service not initialized');
+    }
+    const char = world.service.getAll().find((c) => c.name === newName && !c.isDefault);
+    if (!char) {
+      throw new Error(`Character not found: ${newName}`);
+    }
+    // This is just verifying state, actual rename would happen via update
+    expect(world.isUnique).toBe(true);
   }
-  const char = world.service.getAll().find((c) => c.name === newName && !c.isDefault);
-  if (!char) {
-    throw new Error(`Character not found: ${newName}`);
-  }
-  // This is just verifying state, actual rename would happen via update
-  expect(world.isUnique).toBe(true);
-});
+);
 
 When('I save {int} custom characters', function (world: CharacterStorageWorld, count: number) {
   if (!world.service) {
@@ -388,36 +403,45 @@ When('I create a new service instance', function (world: CharacterStorageWorld) 
 });
 
 // Then steps - Assertions
-Then('the total character count should be {int}', function (world: CharacterStorageWorld, expected: number) {
-  expect(world.service!.getAll()).toHaveLength(expected);
-});
+Then(
+  'the total character count should be {int}',
+  function (world: CharacterStorageWorld, expected: number) {
+    expect(world.service!.getAll()).toHaveLength(expected);
+  }
+);
 
-Then('all loaded characters should have isDefault set to true', function (world: CharacterStorageWorld) {
-  if (!world.charactersBefore) {
-    world.charactersBefore = world.service!.getAll();
+Then(
+  'all loaded characters should have isDefault set to true',
+  function (world: CharacterStorageWorld) {
+    if (!world.charactersBefore) {
+      world.charactersBefore = world.service!.getAll();
+    }
+    for (const char of world.charactersBefore) {
+      expect(char.isDefault).toBe(true);
+    }
   }
-  for (const char of world.charactersBefore) {
-    expect(char.isDefault).toBe(true);
-  }
-});
+);
 
-Then('each character should have: id, name, attributes, weapon, createdAt, updatedAt', function (world: CharacterStorageWorld) {
-  if (!world.charactersBefore) {
-    world.charactersBefore = world.service!.getAll();
+Then(
+  'each character should have: id, name, attributes, weapon, createdAt, updatedAt',
+  function (world: CharacterStorageWorld) {
+    if (!world.charactersBefore) {
+      world.charactersBefore = world.service!.getAll();
+    }
+    for (const char of world.charactersBefore) {
+      expect(char).toHaveProperty('id');
+      expect(char).toHaveProperty('name');
+      expect(char).toHaveProperty('attributes');
+      expect(char).toHaveProperty('weapon');
+      expect(char).toHaveProperty('createdAt');
+      expect(char).toHaveProperty('updatedAt');
+      expect(char.attributes).toHaveProperty('str');
+      expect(char.attributes).toHaveProperty('dex');
+      expect(char.attributes).toHaveProperty('mnd');
+      expect(char.attributes).toHaveProperty('spr');
+    }
   }
-  for (const char of world.charactersBefore) {
-    expect(char).toHaveProperty('id');
-    expect(char).toHaveProperty('name');
-    expect(char).toHaveProperty('attributes');
-    expect(char).toHaveProperty('weapon');
-    expect(char).toHaveProperty('createdAt');
-    expect(char).toHaveProperty('updatedAt');
-    expect(char.attributes).toHaveProperty('str');
-    expect(char.attributes).toHaveProperty('dex');
-    expect(char.attributes).toHaveProperty('mnd');
-    expect(char.attributes).toHaveProperty('spr');
-  }
-});
+);
 
 Then(
   'the custom character {string} should have isDefault set to false',
@@ -433,10 +457,13 @@ Then('the default characters should still be present', function (world: Characte
   expect(defaults).toHaveLength(4);
 });
 
-Then('the retrieved character should have name {string}', function (world: CharacterStorageWorld, name: string) {
-  expect(world.lastRetrievedCharacter).toBeDefined();
-  expect(world.lastRetrievedCharacter!.name).toBe(name);
-});
+Then(
+  'the retrieved character should have name {string}',
+  function (world: CharacterStorageWorld, name: string) {
+    expect(world.lastRetrievedCharacter).toBeDefined();
+    expect(world.lastRetrievedCharacter!.name).toBe(name);
+  }
+);
 
 Then(
   'the retrieved character {word} attribute should be {int}',
@@ -446,50 +473,71 @@ Then(
   }
 );
 
-Then('the retrieved character should have isDefault set to false', function (world: CharacterStorageWorld) {
-  expect(world.lastRetrievedCharacter).toBeDefined();
-  expect(world.lastRetrievedCharacter!.isDefault).toBe(false);
-});
+Then(
+  'the retrieved character should have isDefault set to false',
+  function (world: CharacterStorageWorld) {
+    expect(world.lastRetrievedCharacter).toBeDefined();
+    expect(world.lastRetrievedCharacter!.isDefault).toBe(false);
+  }
+);
 
 Then('the result should be null', function (world: CharacterStorageWorld) {
   expect(world.lastRetrievedCharacter).toBeNull();
 });
 
-Then('the saved character should have an auto-generated id', function (world: CharacterStorageWorld) {
-  expect(world.lastSavedCharacter).toBeDefined();
-  expect(world.lastSavedCharacter!.id).toBeDefined();
-  expect(world.lastSavedCharacter!.id.length).toBeGreaterThan(0);
-  expect(world.lastSavedCharacter!.id).toMatch(/^char-/);
-});
+Then(
+  'the saved character should have an auto-generated id',
+  function (world: CharacterStorageWorld) {
+    expect(world.lastSavedCharacter).toBeDefined();
+    expect(world.lastSavedCharacter!.id).toBeDefined();
+    expect(world.lastSavedCharacter!.id.length).toBeGreaterThan(0);
+    expect(world.lastSavedCharacter!.id).toMatch(/^char-/);
+  }
+);
 
-Then('the saved character should have createdAt timestamp', function (world: CharacterStorageWorld) {
-  expect(world.lastSavedCharacter).toBeDefined();
-  expect(world.lastSavedCharacter!.createdAt).toBeGreaterThan(0);
-  expect(typeof world.lastSavedCharacter!.createdAt).toBe('number');
-});
+Then(
+  'the saved character should have createdAt timestamp',
+  function (world: CharacterStorageWorld) {
+    expect(world.lastSavedCharacter).toBeDefined();
+    expect(world.lastSavedCharacter!.createdAt).toBeGreaterThan(0);
+    expect(typeof world.lastSavedCharacter!.createdAt).toBe('number');
+  }
+);
 
-Then('the saved character should have updatedAt timestamp', function (world: CharacterStorageWorld) {
-  expect(world.lastSavedCharacter).toBeDefined();
-  expect(world.lastSavedCharacter!.updatedAt).toBeGreaterThan(0);
-  expect(typeof world.lastSavedCharacter!.updatedAt).toBe('number');
-});
+Then(
+  'the saved character should have updatedAt timestamp',
+  function (world: CharacterStorageWorld) {
+    expect(world.lastSavedCharacter).toBeDefined();
+    expect(world.lastSavedCharacter!.updatedAt).toBeGreaterThan(0);
+    expect(typeof world.lastSavedCharacter!.updatedAt).toBe('number');
+  }
+);
 
-Then('the saved character should have isDefault set to false', function (world: CharacterStorageWorld) {
-  expect(world.lastSavedCharacter).toBeDefined();
-  expect(world.lastSavedCharacter!.isDefault).toBe(false);
-});
+Then(
+  'the saved character should have isDefault set to false',
+  function (world: CharacterStorageWorld) {
+    expect(world.lastSavedCharacter).toBeDefined();
+    expect(world.lastSavedCharacter!.isDefault).toBe(false);
+  }
+);
 
-Then('the character {string} should now have str={int}', function (world: CharacterStorageWorld, name: string, str: number) {
-  const char = world.service!.getByName(name);
-  expect(char).toBeDefined();
-  expect(char!.attributes.str).toBe(str);
-});
+Then(
+  'the character {string} should now have str={int}',
+  function (world: CharacterStorageWorld, name: string, str: number) {
+    const char = world.service!.getByName(name);
+    expect(char).toBeDefined();
+    expect(char!.attributes.str).toBe(str);
+  }
+);
 
-Then('the character {string} should have the same id', function (world: CharacterStorageWorld, name: string) {
-  const char = world.service!.getByName(name);
-  expect(char).toBeDefined();
-  expect(char!.id).toBe(world.lastSavedCharacter!.id);
-});
+Then(
+  'the character {string} should have the same id',
+  function (world: CharacterStorageWorld, name: string) {
+    const char = world.service!.getByName(name);
+    expect(char).toBeDefined();
+    expect(char!.id).toBe(world.lastSavedCharacter!.id);
+  }
+);
 
 Then(
   'the character {string} createdAt should not change',
@@ -509,15 +557,21 @@ Then(
   }
 );
 
-Then('the character {string} should no longer exist', function (world: CharacterStorageWorld, name: string) {
-  const char = world.service!.getByName(name);
-  expect(char).toBeNull();
-});
+Then(
+  'the character {string} should no longer exist',
+  function (world: CharacterStorageWorld, name: string) {
+    const char = world.service!.getByName(name);
+    expect(char).toBeNull();
+  }
+);
 
-Then('a storage error should be thrown with message {string}', function (world: CharacterStorageWorld, message: string) {
-  expect(world.lastError).toBeDefined();
-  expect(world.lastError!.message).toBe(message);
-});
+Then(
+  'a storage error should be thrown with message {string}',
+  function (world: CharacterStorageWorld, message: string) {
+    expect(world.lastError).toBeDefined();
+    expect(world.lastError!.message).toBe(message);
+  }
+);
 
 Then('the result should be true', function (world: CharacterStorageWorld) {
   expect(world.isUnique).toBe(true);
@@ -527,25 +581,34 @@ Then('the result should be false', function (world: CharacterStorageWorld) {
   expect(world.isUnique).toBe(false);
 });
 
-Then('all {int} custom characters should be saved', function (world: CharacterStorageWorld, count: number) {
-  const customs = world.service!.getAll().filter((c) => !c.isDefault);
-  expect(customs).toHaveLength(count);
-});
+Then(
+  'all {int} custom characters should be saved',
+  function (world: CharacterStorageWorld, count: number) {
+    const customs = world.service!.getAll().filter((c) => !c.isDefault);
+    expect(customs).toHaveLength(count);
+  }
+);
 
-Then('the total character count should remain {int}', function (world: CharacterStorageWorld, expected: number) {
-  const all = world.service!.getAll();
-  expect(all).toHaveLength(expected);
-});
+Then(
+  'the total character count should remain {int}',
+  function (world: CharacterStorageWorld, expected: number) {
+    const all = world.service!.getAll();
+    expect(all).toHaveLength(expected);
+  }
+);
 
 Then('the saved character should have id', function (world: CharacterStorageWorld) {
   expect(world.lastSavedCharacter).toBeDefined();
   expect(world.lastSavedCharacter!.id).toBeDefined();
 });
 
-Then('the saved character should have name {string}', function (world: CharacterStorageWorld, name: string) {
-  expect(world.lastSavedCharacter).toBeDefined();
-  expect(world.lastSavedCharacter!.name).toBe(name);
-});
+Then(
+  'the saved character should have name {string}',
+  function (world: CharacterStorageWorld, name: string) {
+    expect(world.lastSavedCharacter).toBeDefined();
+    expect(world.lastSavedCharacter!.name).toBe(name);
+  }
+);
 
 Then(
   'the saved character should have {word} attribute = {int}',
@@ -578,31 +641,43 @@ Then('the saved character should have updatedAt', function (world: CharacterStor
   expect(world.lastSavedCharacter!.updatedAt).toBeGreaterThan(0);
 });
 
-Then('the new service should load the saved {string} character', function (world: CharacterStorageWorld, name: string) {
-  const char = world.service!.getByName(name);
-  expect(char).toBeDefined();
-  expect(char!.name).toBe(name);
-});
-
-Then('exactly {int} default characters should be loaded', function (world: CharacterStorageWorld, count: number) {
-  const defaults = world.service!.getAll().filter((c) => c.isDefault);
-  expect(defaults).toHaveLength(count);
-});
-
-Then('each default character should have valid attributes', function (world: CharacterStorageWorld) {
-  const defaults = world.service!.getAll().filter((c) => c.isDefault);
-  for (const char of defaults) {
-    expect(char.attributes.str).toBeGreaterThanOrEqual(1);
-    expect(char.attributes.dex).toBeGreaterThanOrEqual(1);
-    expect(char.attributes.mnd).toBeGreaterThanOrEqual(1);
-    expect(char.attributes.spr).toBeGreaterThanOrEqual(1);
+Then(
+  'the new service should load the saved {string} character',
+  function (world: CharacterStorageWorld, name: string) {
+    const char = world.service!.getByName(name);
+    expect(char).toBeDefined();
+    expect(char!.name).toBe(name);
   }
-});
+);
 
-Then('each default character should have a weapon assigned', function (world: CharacterStorageWorld) {
-  const defaults = world.service!.getAll().filter((c) => c.isDefault);
-  for (const char of defaults) {
-    expect(char.weapon).toBeDefined();
-    expect(char.weapon.length).toBeGreaterThan(0);
+Then(
+  'exactly {int} default characters should be loaded',
+  function (world: CharacterStorageWorld, count: number) {
+    const defaults = world.service!.getAll().filter((c) => c.isDefault);
+    expect(defaults).toHaveLength(count);
   }
-});
+);
+
+Then(
+  'each default character should have valid attributes',
+  function (world: CharacterStorageWorld) {
+    const defaults = world.service!.getAll().filter((c) => c.isDefault);
+    for (const char of defaults) {
+      expect(char.attributes.str).toBeGreaterThanOrEqual(1);
+      expect(char.attributes.dex).toBeGreaterThanOrEqual(1);
+      expect(char.attributes.mnd).toBeGreaterThanOrEqual(1);
+      expect(char.attributes.spr).toBeGreaterThanOrEqual(1);
+    }
+  }
+);
+
+Then(
+  'each default character should have a weapon assigned',
+  function (world: CharacterStorageWorld) {
+    const defaults = world.service!.getAll().filter((c) => c.isDefault);
+    for (const char of defaults) {
+      expect(char.weapon).toBeDefined();
+      expect(char.weapon.length).toBeGreaterThan(0);
+    }
+  }
+);

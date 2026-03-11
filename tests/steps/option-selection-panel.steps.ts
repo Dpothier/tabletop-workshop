@@ -1,5 +1,5 @@
 import { Given, When, Then } from 'quickpickle';
-import { expect, vi } from 'vitest';
+import { expect } from 'vitest';
 import type { QuickPickleWorld } from 'quickpickle';
 import type { OptionChoice } from '@src/types/ParameterPrompt';
 import type { BeadCounts } from '@src/types/Beads';
@@ -23,8 +23,6 @@ interface OptionSelectionPanelWorld extends QuickPickleWorld {
  * Helper to create a mock Phaser scene for testing
  */
 function createMockScene(): any {
-  const eventListeners = new Map<string, any>();
-
   return {
     add: {
       container: (x: number, y: number) => {
@@ -33,7 +31,7 @@ function createMockScene(): any {
           y,
           visible: false,
           depth: 0,
-          children: [],
+          children: [] as any[],
           setVisible: (visible: boolean) => {
             container.visible = visible;
             return container;
@@ -61,7 +59,7 @@ function createMockScene(): any {
             container.children = [];
             return container;
           },
-          destroy: (removeFromDisplay?: boolean) => {
+          destroy: (_removeFromDisplay?: boolean) => {
             container.children = [];
           },
         };
@@ -78,6 +76,7 @@ function createMockScene(): any {
           strokeStyle: { width: 0, color: 0 },
           interactive: false,
           listeners: {} as Record<string, () => void>,
+          interactiveOptions: undefined as any,
           setStrokeStyle: function (width: number, color: number) {
             this.strokeStyle = { width, color };
             return this;
@@ -99,7 +98,7 @@ function createMockScene(): any {
             this.fillStyle = color;
             return this;
           },
-          destroy: function (removeFromDisplay?: boolean) {
+          destroy: function (_removeFromDisplay?: boolean) {
             // no-op
           },
         };
@@ -121,7 +120,7 @@ function createMockScene(): any {
             this.color = color;
             return this;
           },
-          destroy: function (removeFromDisplay?: boolean) {
+          destroy: function (_removeFromDisplay?: boolean) {
             // no-op
           },
         };
@@ -216,10 +215,7 @@ When('I click option {string}', function (world: OptionSelectionPanelWorld, opti
 });
 
 // Step: Verify confirm callback was called with pass selected
-Then(
-  'onConfirm should be called with pass selected',
-  function (world: OptionSelectionPanelWorld) {
-    expect(world.confirmCallbackFired, 'onConfirm should have been called').toBe(true);
-    expect(world.confirmCallbackArgs).toEqual(['pass']);
-  }
-);
+Then('onConfirm should be called with pass selected', function (world: OptionSelectionPanelWorld) {
+  expect(world.confirmCallbackFired, 'onConfirm should have been called').toBe(true);
+  expect(world.confirmCallbackArgs).toEqual(['pass']);
+});

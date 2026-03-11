@@ -106,11 +106,13 @@ export class SelectedHeroPanel {
     this.container.add(bg);
 
     // Hero name display
-    this.nameText = this.scene.add.text(PANEL_WIDTH / 2, 8, '', {
-      fontSize: '14px',
-      color: '#ffffff',
-      fontStyle: 'bold',
-    }).setOrigin(0.5);
+    this.nameText = this.scene.add
+      .text(PANEL_WIDTH / 2, 8, '', {
+        fontSize: '14px',
+        color: '#ffffff',
+        fontStyle: 'bold',
+      })
+      .setOrigin(0.5);
     this.container.add(this.nameText);
 
     // Create category tabs
@@ -255,7 +257,7 @@ export class SelectedHeroPanel {
       this.activeTab = 'movement';
     }
     this.selectedHeroId = heroId;
-    const character = this.battleState?.characters.find(c => c.id === heroId);
+    const character = this.battleState?.characters.find((c) => c.id === heroId);
     this.nameText?.setText(character?.getName() ?? '');
     this.updateTabHighlights();
     this.rebuildActionButtons();
@@ -319,7 +321,7 @@ export class SelectedHeroPanel {
    */
   getState(): SelectedHeroPanelState {
     // Return all actions from currentActions for complete test coverage
-    const character = this.battleState?.characters.find(c => c.id === this.selectedHeroId);
+    const character = this.battleState?.characters.find((c) => c.id === this.selectedHeroId);
     return {
       visible: this.container.visible,
       heroId: this.selectedHeroId,

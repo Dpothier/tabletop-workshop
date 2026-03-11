@@ -22,10 +22,13 @@ interface WeaponPipelineWorld extends QuickPickleWorld {
 
 // ===== Background Setup =====
 
-Given('a weapon pipeline grid of {int}x{int}', function (world: WeaponPipelineWorld, width: number, height: number) {
-  world.wpGrid = new BattleGrid(width, height);
-  world.wpEntities = new Map();
-});
+Given(
+  'a weapon pipeline grid of {int}x{int}',
+  function (world: WeaponPipelineWorld, width: number, height: number) {
+    world.wpGrid = new BattleGrid(width, height);
+    world.wpEntities = new Map();
+  }
+);
 
 Given('a weapon pipeline game context with the grid', function (world: WeaponPipelineWorld) {
   if (!world.wpGrid) {
@@ -170,7 +173,12 @@ When(
     const action = new Action(definition, hydratedEffects, contextFactory);
 
     // Create ActionResolution and execute
-    const resolution = new ActionResolution(action, 'wp-attacker', world.wpGameContext, world.wpMockAdapter);
+    const resolution = new ActionResolution(
+      action,
+      'wp-attacker',
+      world.wpGameContext,
+      world.wpMockAdapter
+    );
     world.wpResult = await resolution.execute();
   }
 );
@@ -187,24 +195,36 @@ Then('the weapon pipeline result should fail', function (world: WeaponPipelineWo
   expect(world.wpResult!.success).toBe(false);
 });
 
-Then('the weapon pipeline outcome should be {string}', function (world: WeaponPipelineWorld, expectedOutcome: string) {
-  expect(world.wpResult).toBeDefined();
-  expect(world.wpResult!.data).toBeDefined();
-  expect(world.wpResult!.data.outcome).toBe(expectedOutcome);
-});
+Then(
+  'the weapon pipeline outcome should be {string}',
+  function (world: WeaponPipelineWorld, expectedOutcome: string) {
+    expect(world.wpResult).toBeDefined();
+    expect(world.wpResult!.data).toBeDefined();
+    expect(world.wpResult!.data.outcome).toBe(expectedOutcome);
+  }
+);
 
-Then('the weapon pipeline target health should be less than {int}', function (world: WeaponPipelineWorld, expectedMax: number) {
-  expect(world.wpTarget).toBeDefined();
-  expect(world.wpTarget!.currentHealth).toBeLessThan(expectedMax);
-});
+Then(
+  'the weapon pipeline target health should be less than {int}',
+  function (world: WeaponPipelineWorld, expectedMax: number) {
+    expect(world.wpTarget).toBeDefined();
+    expect(world.wpTarget!.currentHealth).toBeLessThan(expectedMax);
+  }
+);
 
-Then('the weapon pipeline target should have {int} health', function (world: WeaponPipelineWorld, expectedHealth: number) {
-  expect(world.wpTarget).toBeDefined();
-  expect(world.wpTarget!.currentHealth).toBe(expectedHealth);
-});
+Then(
+  'the weapon pipeline target should have {int} health',
+  function (world: WeaponPipelineWorld, expectedHealth: number) {
+    expect(world.wpTarget).toBeDefined();
+    expect(world.wpTarget!.currentHealth).toBe(expectedHealth);
+  }
+);
 
-Then('the weapon pipeline result should have animation events', function (world: WeaponPipelineWorld) {
-  expect(world.wpResult).toBeDefined();
-  expect(world.wpResult!.events).toBeDefined();
-  expect(world.wpResult!.events.length).toBeGreaterThan(0);
-});
+Then(
+  'the weapon pipeline result should have animation events',
+  function (world: WeaponPipelineWorld) {
+    expect(world.wpResult).toBeDefined();
+    expect(world.wpResult!.events).toBeDefined();
+    expect(world.wpResult!.events.length).toBeGreaterThan(0);
+  }
+);

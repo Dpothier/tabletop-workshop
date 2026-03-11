@@ -93,6 +93,10 @@ actions:
           count: 2
     options:
       strategize:
+        cost:
+          blue: 1
+        alternativeCost:
+          ponder: 1
         modifies: drawBeads
         modifier:
           strategize: true
@@ -213,3 +217,41 @@ actions:
               targetEntity: $target
               distance: 1
               condition: $baseAttack.hit
+
+  - id: assess
+    name: Assess
+    category: other
+    description: Reveal a monster's next planned action
+    cost:
+      time: 1
+      blue: 1
+    parameters:
+      - key: target
+        type: entity
+        prompt: Select target to assess
+        filter: enemy
+        range: 6
+    effects:
+      - id: assessTarget
+        type: assess
+        params:
+          targetId: $target
+
+  - id: coordinate
+    name: Coordinate
+    category: other
+    description: Add preparation stacks to an ally
+    cost:
+      time: 1
+      white: 1
+    parameters:
+      - key: target
+        type: entity
+        prompt: Select ally to coordinate with
+        filter: ally
+        range: 6
+    effects:
+      - id: coordinateAlly
+        type: coordinate
+        params:
+          targetId: $target

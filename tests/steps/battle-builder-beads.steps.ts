@@ -158,11 +158,14 @@ When(
 
 // Character name assertions
 
-Then('the character entity should have name {string}', function (world: BattleBuilderBeadsWorld, name: string) {
-  expect(world.characters).toBeDefined();
-  expect(world.characters!.length).toBeGreaterThan(0);
-  expect(world.characters![0].getName()).toBe(name);
-});
+Then(
+  'the character entity should have name {string}',
+  function (world: BattleBuilderBeadsWorld, name: string) {
+    expect(world.characters).toBeDefined();
+    expect(world.characters!.length).toBeGreaterThan(0);
+    expect(world.characters![0].getName()).toBe(name);
+  }
+);
 
 Then(
   'character {string} entity should exist with name {string}',
@@ -177,13 +180,7 @@ Then(
 
 Then(
   'the character attributes should be STR={int}, DEX={int}, MND={int}, SPR={int}',
-  function (
-    world: BattleBuilderBeadsWorld,
-    str: number,
-    dex: number,
-    mnd: number,
-    spr: number
-  ) {
+  function (world: BattleBuilderBeadsWorld, str: number, dex: number, mnd: number, spr: number) {
     expect(world.characters).toBeDefined();
     expect(world.characters!.length).toBeGreaterThan(0);
 
@@ -198,25 +195,31 @@ Then(
 
 // Hand assertions
 
-Then('the character hand should have {int} beads', function (world: BattleBuilderBeadsWorld, count: number) {
-  expect(world.characters).toBeDefined();
-  expect(world.characters!.length).toBeGreaterThan(0);
+Then(
+  'the character hand should have {int} beads',
+  function (world: BattleBuilderBeadsWorld, count: number) {
+    expect(world.characters).toBeDefined();
+    expect(world.characters!.length).toBeGreaterThan(0);
 
-  const beadHand = world.characters![0].getBeadHand();
-  expect(beadHand).toBeDefined();
-  expect(beadHand!.getHandTotal()).toBe(count);
-});
-
-Then('each character hand should have {int} beads', function (world: BattleBuilderBeadsWorld, count: number) {
-  expect(world.characters).toBeDefined();
-  expect(world.characters!.length).toBeGreaterThan(0);
-
-  for (const character of world.characters!) {
-    const beadHand = character.getBeadHand();
+    const beadHand = world.characters![0].getBeadHand();
     expect(beadHand).toBeDefined();
     expect(beadHand!.getHandTotal()).toBe(count);
   }
-});
+);
+
+Then(
+  'each character hand should have {int} beads',
+  function (world: BattleBuilderBeadsWorld, count: number) {
+    expect(world.characters).toBeDefined();
+    expect(world.characters!.length).toBeGreaterThan(0);
+
+    for (const character of world.characters!) {
+      const beadHand = character.getBeadHand();
+      expect(beadHand).toBeDefined();
+      expect(beadHand!.getHandTotal()).toBe(count);
+    }
+  }
+);
 
 // Bag + hand total assertions (robust against random draws)
 
@@ -245,10 +248,14 @@ Then(
     expect(bagCounts.white + handCounts.white).toBe(white);
 
     const grandTotal =
-      bagCounts.red + handCounts.red +
-      bagCounts.green + handCounts.green +
-      bagCounts.blue + handCounts.blue +
-      bagCounts.white + handCounts.white;
+      bagCounts.red +
+      handCounts.red +
+      bagCounts.green +
+      handCounts.green +
+      bagCounts.blue +
+      handCounts.blue +
+      bagCounts.white +
+      handCounts.white;
     expect(grandTotal).toBe(total);
   }
 );
@@ -279,10 +286,14 @@ Then(
       expect(bagCounts.white + handCounts.white).toBe(white);
 
       const grandTotal =
-        bagCounts.red + handCounts.red +
-        bagCounts.green + handCounts.green +
-        bagCounts.blue + handCounts.blue +
-        bagCounts.white + handCounts.white;
+        bagCounts.red +
+        handCounts.red +
+        bagCounts.green +
+        handCounts.green +
+        bagCounts.blue +
+        handCounts.blue +
+        bagCounts.white +
+        handCounts.white;
       expect(grandTotal).toBe(total);
     }
   }
@@ -333,10 +344,14 @@ Then(
     expect(bagCounts.white + handCounts.white).toBe(white);
 
     const grandTotal =
-      bagCounts.red + handCounts.red +
-      bagCounts.green + handCounts.green +
-      bagCounts.blue + handCounts.blue +
-      bagCounts.white + handCounts.white;
+      bagCounts.red +
+      handCounts.red +
+      bagCounts.green +
+      handCounts.green +
+      bagCounts.blue +
+      handCounts.blue +
+      bagCounts.white +
+      handCounts.white;
     expect(grandTotal).toBe(total);
   }
 );

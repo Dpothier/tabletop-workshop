@@ -287,7 +287,6 @@ export class BattleUI {
     );
   }
 
-
   private handleWheelHover(x: number, y: number): void {
     const centerX = 900;
     const centerY = 300;

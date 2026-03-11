@@ -73,10 +73,13 @@ function getButtonAffordability(panel: SelectedHeroPanel, buttonName: string): b
 }
 
 // Step: Create a mock scene for selected hero panel testing
-Given('a mock scene for selected hero panel testing', function (world: SelectedHeroPanelRangeWorld) {
-  world.mockScene = createMockScene();
-  world.entities = new Map();
-});
+Given(
+  'a mock scene for selected hero panel testing',
+  function (world: SelectedHeroPanelRangeWorld) {
+    world.mockScene = createMockScene();
+    world.entities = new Map();
+  }
+);
 
 // Step: Create test actions including attack actions
 Given('test actions including attack actions', function (world: SelectedHeroPanelRangeWorld) {
@@ -129,21 +132,18 @@ When(
 );
 
 // Step: Update action availability with the grid
-When(
-  'I update action availability with the grid',
-  function (world: SelectedHeroPanelRangeWorld) {
-    expect(world.panel).toBeDefined();
-    expect(world.grid).toBeDefined();
-    expect(world.heroId).toBeDefined();
+When('I update action availability with the grid', function (world: SelectedHeroPanelRangeWorld) {
+  expect(world.panel).toBeDefined();
+  expect(world.grid).toBeDefined();
+  expect(world.heroId).toBeDefined();
 
-    // Use high bead counts and time so affordability isn't a factor
-    // We're only testing range
-    const beads: BeadCounts = { red: 50, blue: 50, green: 50, white: 50 };
-    const availableTime = 50;
+  // Use high bead counts and time so affordability isn't a factor
+  // We're only testing range
+  const beads: BeadCounts = { red: 50, blue: 50, green: 50, white: 50 };
+  const availableTime = 50;
 
-    world.panel!.updateAffordability(beads, availableTime, world.heroId, world.grid);
-  }
-);
+  world.panel!.updateAffordability(beads, availableTime, world.heroId, world.grid);
+});
 
 // Step: Move an entity to a new position
 When(

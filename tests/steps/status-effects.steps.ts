@@ -109,7 +109,9 @@ Then(
   'the affected entities list should contain {string}',
   function (world: StatusEffectsWorld, entityId: string) {
     const allEntities = Array.from(world.entities!.values());
-    world.affectedEntitiesList = allEntities.filter(e => e.getStacks('burn') > 0).map(e => e.id);
+    world.affectedEntitiesList = allEntities
+      .filter((e) => e.getStacks('burn') > 0)
+      .map((e) => e.id);
     expect(world.affectedEntitiesList).toContain(entityId);
   }
 );
@@ -118,7 +120,9 @@ Then(
   'the affected entities list should not contain {string}',
   function (world: StatusEffectsWorld, entityId: string) {
     const allEntities = Array.from(world.entities!.values());
-    world.affectedEntitiesList = allEntities.filter(e => e.getStacks('burn') > 0).map(e => e.id);
+    world.affectedEntitiesList = allEntities
+      .filter((e) => e.getStacks('burn') > 0)
+      .map((e) => e.id);
     expect(world.affectedEntitiesList).not.toContain(entityId);
   }
 );

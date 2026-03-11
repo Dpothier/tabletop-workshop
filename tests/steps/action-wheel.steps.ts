@@ -147,19 +147,13 @@ Then(
   }
 );
 
-Given(
-  'the active segment is set to {int}',
-  function (world: ActionWheelWorld, position: number) {
-    world.actionWheel!.setActiveSegment(position);
-  }
-);
+Given('the active segment is set to {int}', function (world: ActionWheelWorld, position: number) {
+  world.actionWheel!.setActiveSegment(position);
+});
 
-Then(
-  'the active segment should be {int}',
-  function (world: ActionWheelWorld, expected: number) {
-    expect(world.actionWheel!.getActiveSegment()).toBe(expected);
-  }
-);
+Then('the active segment should be {int}', function (world: ActionWheelWorld, expected: number) {
+  expect(world.actionWheel!.getActiveSegment()).toBe(expected);
+});
 
 Then('the wheel should have completed a round', function (world: ActionWheelWorld) {
   expect(world.actionWheel!.didCompleteRound()).toBe(true);

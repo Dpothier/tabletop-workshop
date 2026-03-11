@@ -109,12 +109,7 @@ When(
   'I execute MoveEffect with destination {int},{int}',
   async function (world: EffectsWorld, x: number, y: number) {
     const effect = new MoveEffect();
-    const result = effect.execute(
-      world.gameContext!,
-      { destination: { x, y } },
-      {},
-      new Map()
-    );
+    const result = effect.execute(world.gameContext!, { destination: { x, y } }, {}, new Map());
     world.effectResult = result instanceof Promise ? await result : result;
   }
 );

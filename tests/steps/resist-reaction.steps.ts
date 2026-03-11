@@ -87,16 +87,13 @@ Given(
   }
 );
 
-Given(
-  'the defender has innate ward of {int}',
-  function (world: ResistReactionWorld, ward: number) {
-    const defender = world.defEntities?.get('hero-0') as Character;
-    if (defender) {
-      defender.setWard(ward);
-      world.defenderWardBefore = ward;
-    }
+Given('the defender has innate ward of {int}', function (world: ResistReactionWorld, ward: number) {
+  const defender = world.defEntities?.get('hero-0') as Character;
+  if (defender) {
+    defender.setWard(ward);
+    world.defenderWardBefore = ward;
   }
-);
+});
 
 // Attack steps
 

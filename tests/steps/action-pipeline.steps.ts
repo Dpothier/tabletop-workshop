@@ -310,7 +310,9 @@ Given(
   function (world: ActionPipelineWorld, x: number, y: number, health: number, redBeads: number) {
     expect(world.grid).toBeDefined();
     const characterId = 'pipeline-character';
-    world.pipelineCharacter = new Character(characterId, health, world.grid!, { getEntity: () => undefined } as any);
+    world.pipelineCharacter = new Character(characterId, health, world.grid!, {
+      getEntity: () => undefined,
+    } as any);
     world.pipelineCharacter.currentHealth = health;
     world.pipelineCharacter.initializeBeadHand();
     world.pipelineCharacter.setBeadHand({ red: redBeads, blue: 0, green: 0, white: 0 });
@@ -354,7 +356,9 @@ Given(
   function (world: ActionPipelineWorld, x: number, y: number, health: number, greenBeads: number) {
     expect(world.grid).toBeDefined();
     const characterId = 'pipeline-character';
-    world.pipelineCharacter = new Character(characterId, health, world.grid!, { getEntity: () => undefined } as any);
+    world.pipelineCharacter = new Character(characterId, health, world.grid!, {
+      getEntity: () => undefined,
+    } as any);
     world.pipelineCharacter.currentHealth = health;
     world.pipelineCharacter.initializeBeadHand();
     world.pipelineCharacter.setBeadHand({ red: 0, blue: 0, green: greenBeads, white: 0 });
@@ -395,10 +399,18 @@ Given(
 
 Given(
   'a pipeline player character at position {int},{int} with {int} health and {int} defensive beads',
-  function (world: ActionPipelineWorld, x: number, y: number, health: number, defensiveBeads: number) {
+  function (
+    world: ActionPipelineWorld,
+    x: number,
+    y: number,
+    health: number,
+    defensiveBeads: number
+  ) {
     expect(world.grid).toBeDefined();
     const characterId = 'pipeline-character';
-    world.pipelineCharacter = new Character(characterId, health, world.grid!, { getEntity: () => undefined } as any);
+    world.pipelineCharacter = new Character(characterId, health, world.grid!, {
+      getEntity: () => undefined,
+    } as any);
     world.pipelineCharacter.currentHealth = health;
     world.pipelineCharacter.initializeBeadHand();
     // Defensive beads are red and white (non-damaging colors in typical bead systems)
@@ -565,14 +577,20 @@ When(
     expect(world.pipelineCharacter).toBeDefined();
 
     // Call the actual handleDefensiveReaction function
-    const result = handleDefensiveReaction(world.gameContext!, world.pipelineCharacter!, power, agility);
+    const result = handleDefensiveReaction(
+      world.gameContext!,
+      world.pipelineCharacter!,
+      power,
+      agility
+    );
     if (result instanceof Promise) {
       await result;
     }
 
     // Track if adapter was prompted
     if (world.pipelineAdapter && world.pipelineAdapter.promptOptions) {
-      world.pipelineAdapterPrompted = (world.pipelineAdapter.promptOptions as any).mock?.called ?? false;
+      world.pipelineAdapterPrompted =
+        (world.pipelineAdapter.promptOptions as any).mock?.called ?? false;
     }
   }
 );
@@ -600,15 +618,21 @@ Then('no defensive reaction prompt should be shown', function (world: ActionPipe
 
 // Pipeline-specific Then steps
 
-Then('the pipeline character guard should be {int}', function (world: ActionPipelineWorld, expectedGuard: number) {
-  expect(world.pipelineCharacter).toBeDefined();
-  expect(world.pipelineCharacter!.guard).toBe(expectedGuard);
-});
+Then(
+  'the pipeline character guard should be {int}',
+  function (world: ActionPipelineWorld, expectedGuard: number) {
+    expect(world.pipelineCharacter).toBeDefined();
+    expect(world.pipelineCharacter!.guard).toBe(expectedGuard);
+  }
+);
 
-Then('the pipeline character evasion should be {int}', function (world: ActionPipelineWorld, expectedEvasion: number) {
-  expect(world.pipelineCharacter).toBeDefined();
-  expect(world.pipelineCharacter!.evasion).toBe(expectedEvasion);
-});
+Then(
+  'the pipeline character evasion should be {int}',
+  function (world: ActionPipelineWorld, expectedEvasion: number) {
+    expect(world.pipelineCharacter).toBeDefined();
+    expect(world.pipelineCharacter!.evasion).toBe(expectedEvasion);
+  }
+);
 
 Then(
   'the pipeline character should have {int} red beads remaining',
@@ -632,17 +656,14 @@ Then(
   }
 );
 
-Then(
-  'the pipeline adapter should not have been prompted',
-  function (world: ActionPipelineWorld) {
-    if (world.pipelineAdapter && world.pipelineAdapter.promptOptions) {
-      expect((world.pipelineAdapter.promptOptions as any).mock?.called ?? false).toBe(false);
-    } else {
-      // If no adapter was set, then it was never prompted
-      expect(true).toBe(true);
-    }
+Then('the pipeline adapter should not have been prompted', function (world: ActionPipelineWorld) {
+  if (world.pipelineAdapter && world.pipelineAdapter.promptOptions) {
+    expect((world.pipelineAdapter.promptOptions as any).mock?.called ?? false).toBe(false);
+  } else {
+    // If no adapter was set, then it was never prompted
+    expect(true).toBe(true);
   }
-);
+});
 
 // Combat result setup steps
 

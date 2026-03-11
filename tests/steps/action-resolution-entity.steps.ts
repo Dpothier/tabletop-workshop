@@ -40,23 +40,26 @@ interface ActionResolutionEntityWorld extends QuickPickleWorld {
 // NOTE: 'a game context with the grid' is defined in effects.steps.ts
 // NOTE: 'an effect registry' is defined in effects.steps.ts
 
-Given('a mock BattleAdapter with entity prompt support', function (world: ActionResolutionEntityWorld) {
-  world.mockAdapter = {
-    promptTile: vi.fn(),
-    promptOptions: vi.fn(),
-    promptEntity: vi.fn(),
-    animate: vi.fn(async () => {}),
-    log: vi.fn(),
-    showPlayerTurn: vi.fn(),
-    awaitPlayerAction: vi.fn(),
-    transition: vi.fn(),
-    delay: vi.fn(),
-    notifyBeadsChanged: vi.fn(),
-  } as unknown as BattleAdapter & { promptEntity?: ReturnType<typeof vi.fn> };
+Given(
+  'a mock BattleAdapter with entity prompt support',
+  function (world: ActionResolutionEntityWorld) {
+    world.mockAdapter = {
+      promptTile: vi.fn(),
+      promptOptions: vi.fn(),
+      promptEntity: vi.fn(),
+      animate: vi.fn(async () => {}),
+      log: vi.fn(),
+      showPlayerTurn: vi.fn(),
+      awaitPlayerAction: vi.fn(),
+      transition: vi.fn(),
+      delay: vi.fn(),
+      notifyBeadsChanged: vi.fn(),
+    } as unknown as BattleAdapter & { promptEntity?: ReturnType<typeof vi.fn> };
 
-  world.entityPromptCalls = [];
-  world.entityPromptReturnValues = [];
-});
+    world.entityPromptCalls = [];
+    world.entityPromptReturnValues = [];
+  }
+);
 
 // ===== Entity Parameter Action Setup =====
 
@@ -286,7 +289,7 @@ Given('the action has effects:', function (world: ActionResolutionEntityWorld, t
 
   // Update action definition with effects
   const actionDef = {
-    ...world.action!.definition,
+    ...(world.action as any).definition,
     effects: effectDefs,
   };
 
@@ -314,7 +317,13 @@ Given(
 
 Given(
   'hero {string} with {int} health at position {int},{int}',
-  function (world: ActionResolutionEntityWorld, heroId: string, health: number, x: number, y: number) {
+  function (
+    world: ActionResolutionEntityWorld,
+    heroId: string,
+    health: number,
+    x: number,
+    y: number
+  ) {
     if (!world.entities) {
       world.entities = new Map();
     }
@@ -344,7 +353,13 @@ Given(
 
 Given(
   'monster {string} with {int} health at position {int},{int}',
-  function (world: ActionResolutionEntityWorld, monsterId: string, health: number, x: number, y: number) {
+  function (
+    world: ActionResolutionEntityWorld,
+    monsterId: string,
+    health: number,
+    x: number,
+    y: number
+  ) {
     if (!world.entities) {
       world.entities = new Map();
     }
@@ -511,21 +526,24 @@ Then(
   }
 );
 
-Then('the prompt should have filter {string}', function (world: ActionResolutionEntityWorld, expectedFilter: string) {
-  expect(world.mockAdapter).toBeDefined();
-  expect(world.mockAdapter?.promptEntity).toBeDefined();
+Then(
+  'the prompt should have filter {string}',
+  function (world: ActionResolutionEntityWorld, expectedFilter: string) {
+    expect(world.mockAdapter).toBeDefined();
+    expect(world.mockAdapter?.promptEntity).toBeDefined();
 
-  // Get the last call to promptEntity
-  const calls = (world.mockAdapter!.promptEntity as any).mock.calls;
-  expect(calls.length).toBeGreaterThan(0);
+    // Get the last call to promptEntity
+    const calls = (world.mockAdapter!.promptEntity as any).mock.calls;
+    expect(calls.length).toBeGreaterThan(0);
 
-  const lastCall = calls[calls.length - 1];
-  const prompt = lastCall[0] as EntityPrompt;
+    const lastCall = calls[calls.length - 1];
+    const prompt = lastCall[0] as EntityPrompt;
 
-  expect(prompt).toBeDefined();
-  expect(prompt.filter).toBe(expectedFilter);
-  world.lastEntityPromptCall = prompt;
-});
+    expect(prompt).toBeDefined();
+    expect(prompt.filter).toBe(expectedFilter);
+    world.lastEntityPromptCall = prompt;
+  }
+);
 
 Then(
   'adapter.promptEntity is called with filter {string} and range {int}',
@@ -550,17 +568,20 @@ Then(
   }
 );
 
-Then('the prompt should have range {int}', function (world: ActionResolutionEntityWorld, expectedRange: number) {
-  // If lastEntityPromptCall isn't set, get it from the mock
-  if (!world.lastEntityPromptCall && world.mockAdapter?.promptEntity) {
-    const calls = (world.mockAdapter.promptEntity as any).mock?.calls;
-    if (calls && calls.length > 0) {
-      world.lastEntityPromptCall = calls[calls.length - 1][0] as EntityPrompt;
+Then(
+  'the prompt should have range {int}',
+  function (world: ActionResolutionEntityWorld, expectedRange: number) {
+    // If lastEntityPromptCall isn't set, get it from the mock
+    if (!world.lastEntityPromptCall && world.mockAdapter?.promptEntity) {
+      const calls = (world.mockAdapter.promptEntity as any).mock?.calls;
+      if (calls && calls.length > 0) {
+        world.lastEntityPromptCall = calls[calls.length - 1][0] as EntityPrompt;
+      }
     }
+    expect(world.lastEntityPromptCall, 'Entity prompt should have been captured').toBeDefined();
+    expect(world.lastEntityPromptCall!.range).toBe(expectedRange);
   }
-  expect(world.lastEntityPromptCall, 'Entity prompt should have been captured').toBeDefined();
-  expect(world.lastEntityPromptCall!.range).toBe(expectedRange);
-});
+);
 
 Then('adapter.promptEntity is called twice', function (world: ActionResolutionEntityWorld) {
   expect(world.mockAdapter).toBeDefined();
@@ -578,7 +599,6 @@ Then(
     expect(world.capturedParams!.target).toBe(expectedEntityId);
   }
 );
-
 
 Then(
   'entity {string} has {int} health remaining',

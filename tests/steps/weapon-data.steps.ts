@@ -83,17 +83,14 @@ Then('there should be {int} weapons available', function (world: WeaponWorld, co
   expect(world.loadedWeapons!.length).toBe(count);
 });
 
-Then(
-  'the weapons should include Sword, Axe, Mace, and Spear',
-  function (world: WeaponWorld) {
-    expect(world.loadedWeapons).toBeDefined();
-    const weaponNames = world.loadedWeapons!.map((w) => w.name);
-    expect(weaponNames).toContain('Sword');
-    expect(weaponNames).toContain('Axe');
-    expect(weaponNames).toContain('Mace');
-    expect(weaponNames).toContain('Spear');
-  }
-);
+Then('the weapons should include Sword, Axe, Mace, and Spear', function (world: WeaponWorld) {
+  expect(world.loadedWeapons).toBeDefined();
+  const weaponNames = world.loadedWeapons!.map((w) => w.name);
+  expect(weaponNames).toContain('Sword');
+  expect(weaponNames).toContain('Axe');
+  expect(weaponNames).toContain('Mace');
+  expect(weaponNames).toContain('Spear');
+});
 
 Then(
   'I should receive a weapon with:',

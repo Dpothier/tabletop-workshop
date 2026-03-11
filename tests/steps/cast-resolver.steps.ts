@@ -82,11 +82,7 @@ Given('{int} extra bead', function (world: CastResolverWorld, beads: number) {
 
 Given(
   'spell enhancement {string} that adds {int} damage',
-  function (
-    world: CastResolverWorld,
-    enhancementName: string,
-    damageBonus: number
-  ) {
+  function (world: CastResolverWorld, enhancementName: string, damageBonus: number) {
     if (!world.enhancements) {
       world.enhancements = [];
     }
@@ -149,31 +145,22 @@ Given(
 // Given: Target (Enemy or Ally)
 // ============================================================================
 
-Given(
-  'an enemy target with ward {int}',
-  function (world: CastResolverWorld, wardValue: number) {
-    world.targetType = 'enemy';
-    world.ward = { ward: wardValue };
-  }
-);
+Given('an enemy target with ward {int}', function (world: CastResolverWorld, wardValue: number) {
+  world.targetType = 'enemy';
+  world.ward = { ward: wardValue };
+});
 
-Given(
-  'an ally target that does not accept',
-  function (world: CastResolverWorld) {
-    world.targetType = 'ally';
-    world.allyAccepts = false;
-    world.ward = { ward: 0 };
-  }
-);
+Given('an ally target that does not accept', function (world: CastResolverWorld) {
+  world.targetType = 'ally';
+  world.allyAccepts = false;
+  world.ward = { ward: 0 };
+});
 
-Given(
-  'an ally target that accepts',
-  function (world: CastResolverWorld) {
-    world.targetType = 'ally';
-    world.allyAccepts = true;
-    world.ward = { ward: 0 };
-  }
-);
+Given('an ally target that accepts', function (world: CastResolverWorld) {
+  world.targetType = 'ally';
+  world.allyAccepts = true;
+  world.ward = { ward: 0 };
+});
 
 Given(
   'an ally target that accepts with ward {int}',
@@ -204,12 +191,7 @@ When('I resolve the cast', function (world: CastResolverWorld) {
   };
 
   // Resolve with ally status (if applicable)
-  world.castResult = resolveSpellCast(
-    castInput,
-    world.ward!,
-    world.targetType!,
-    world.allyAccepts
-  );
+  world.castResult = resolveSpellCast(castInput, world.ward!, world.targetType!, world.allyAccepts);
 });
 
 // ============================================================================
@@ -228,25 +210,34 @@ Then(
 // Then: Damage
 // ============================================================================
 
-Then('the cast damage should be {int}', function (world: CastResolverWorld, expectedDamage: number) {
-  expect(world.castResult).toBeDefined();
-  expect(world.castResult!.damage).toBe(expectedDamage);
-});
+Then(
+  'the cast damage should be {int}',
+  function (world: CastResolverWorld, expectedDamage: number) {
+    expect(world.castResult).toBeDefined();
+    expect(world.castResult!.damage).toBe(expectedDamage);
+  }
+);
 
 // ============================================================================
 // Then: Intensity
 // ============================================================================
 
-Then('the cast intensity should be {int}', function (world: CastResolverWorld, expectedIntensity: number) {
-  expect(world.castResult).toBeDefined();
-  expect(world.castResult!.intensity).toBe(expectedIntensity);
-});
+Then(
+  'the cast intensity should be {int}',
+  function (world: CastResolverWorld, expectedIntensity: number) {
+    expect(world.castResult).toBeDefined();
+    expect(world.castResult!.intensity).toBe(expectedIntensity);
+  }
+);
 
 // ============================================================================
 // Then: Effective Cost
 // ============================================================================
 
-Then('the cast effective cost should be {int}', function (world: CastResolverWorld, expectedCost: number) {
-  expect(world.castResult).toBeDefined();
-  expect(world.castResult!.effectiveCost).toBe(expectedCost);
-});
+Then(
+  'the cast effective cost should be {int}',
+  function (world: CastResolverWorld, expectedCost: number) {
+    expect(world.castResult).toBeDefined();
+    expect(world.castResult!.effectiveCost).toBe(expectedCost);
+  }
+);

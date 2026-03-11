@@ -543,7 +543,10 @@ export class BattleScene extends Phaser.Scene implements BattleAdapter {
     actorId: string,
     targetIds: string[],
     range: number
-  ): { highlights: Phaser.GameObjects.Graphics[]; targetHalos: Map<string, Phaser.GameObjects.Graphics> } {
+  ): {
+    highlights: Phaser.GameObjects.Graphics[];
+    targetHalos: Map<string, Phaser.GameObjects.Graphics>;
+  } {
     const highlights: Phaser.GameObjects.Graphics[] = [];
     const targetHalos = new Map<string, Phaser.GameObjects.Graphics>();
     const actorPos = this.battleGrid.getPosition(actorId);

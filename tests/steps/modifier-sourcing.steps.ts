@@ -15,7 +15,12 @@ interface ModifierSourcingWorld extends QuickPickleWorld {
 
 Given(
   'an action with option {string} that modifies {string} with damage +{int}',
-  function (world: ModifierSourcingWorld, optionId: string, modifiesId: string, damageBoost: number) {
+  function (
+    world: ModifierSourcingWorld,
+    optionId: string,
+    modifiesId: string,
+    damageBoost: number
+  ) {
     if (!world.actionOptions) {
       world.actionOptions = {};
     }
@@ -129,60 +134,58 @@ When('I resolve sourced options', function (world: ModifierSourcingWorld) {
 
 // ===== Then Steps =====
 
-Then('I should get exactly {int} instance of {string}', function (
-  world: ModifierSourcingWorld,
-  expectedCount: number,
-  optionId: string
-) {
-  expect(world.sourcedOptions).toBeDefined();
+Then(
+  'I should get exactly {int} instance of {string}',
+  function (world: ModifierSourcingWorld, expectedCount: number, optionId: string) {
+    expect(world.sourcedOptions).toBeDefined();
 
-  const instances = world.sourcedOptions!.filter((so) => so.optionId === optionId);
-  expect(instances).toHaveLength(expectedCount);
-});
+    const instances = world.sourcedOptions!.filter((so) => so.optionId === optionId);
+    expect(instances).toHaveLength(expectedCount);
+  }
+);
 
-Then('I should get {int} instances of {string}', function (
-  world: ModifierSourcingWorld,
-  expectedCount: number,
-  optionId: string
-) {
-  expect(world.sourcedOptions).toBeDefined();
+Then(
+  'I should get {int} instances of {string}',
+  function (world: ModifierSourcingWorld, expectedCount: number, optionId: string) {
+    expect(world.sourcedOptions).toBeDefined();
 
-  const instances = world.sourcedOptions!.filter((so) => so.optionId === optionId);
-  expect(instances).toHaveLength(expectedCount);
-});
+    const instances = world.sourcedOptions!.filter((so) => so.optionId === optionId);
+    expect(instances).toHaveLength(expectedCount);
+  }
+);
 
-Then('one instance should be sourced from {string}', function (
-  world: ModifierSourcingWorld,
-  sourceName: string
-) {
-  expect(world.sourcedOptions).toBeDefined();
+Then(
+  'one instance should be sourced from {string}',
+  function (world: ModifierSourcingWorld, sourceName: string) {
+    expect(world.sourcedOptions).toBeDefined();
 
-  const instance = world.sourcedOptions!.find((so) => so.source.sourceName === sourceName);
-  expect(instance).toBeDefined();
-  expect(instance!.source.sourceName).toBe(sourceName);
-});
+    const instance = world.sourcedOptions!.find((so) => so.source.sourceName === sourceName);
+    expect(instance).toBeDefined();
+    expect(instance!.source.sourceName).toBe(sourceName);
+  }
+);
 
-Then('that instance should be sourced from {string}', function (
-  world: ModifierSourcingWorld,
-  sourceName: string
-) {
-  expect(world.sourcedOptions).toBeDefined();
-  expect(world.sourcedOptions).toHaveLength(1);
+Then(
+  'that instance should be sourced from {string}',
+  function (world: ModifierSourcingWorld, sourceName: string) {
+    expect(world.sourcedOptions).toBeDefined();
+    expect(world.sourcedOptions).toHaveLength(1);
 
-  const instance = world.sourcedOptions![0];
-  expect(instance.source.sourceName).toBe(sourceName);
-});
+    const instance = world.sourcedOptions![0];
+    expect(instance.source.sourceName).toBe(sourceName);
+  }
+);
 
-Then('the display label should be {string}', function (
-  world: ModifierSourcingWorld,
-  expectedLabel: string
-) {
-  expect(world.sourcedOptions).toBeDefined();
-  expect(world.sourcedOptions).toHaveLength(1);
+Then(
+  'the display label should be {string}',
+  function (world: ModifierSourcingWorld, expectedLabel: string) {
+    expect(world.sourcedOptions).toBeDefined();
+    expect(world.sourcedOptions).toHaveLength(1);
 
-  const instance = world.sourcedOptions![0];
-  expect(instance.displayLabel).toBe(expectedLabel);
-});
+    const instance = world.sourcedOptions![0];
+    expect(instance.displayLabel).toBe(expectedLabel);
+  }
+);
 
 Then('each instance should have the original option cost', function (world: ModifierSourcingWorld) {
   expect(world.sourcedOptions).toBeDefined();

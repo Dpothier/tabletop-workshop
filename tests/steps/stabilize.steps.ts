@@ -9,27 +9,21 @@ interface StabilizeWorld extends QuickPickleWorld {
 
 // Stabilized Wounds Management
 
-Given(
-  'the entity has {int} stabilized wounds',
-  function (world: StabilizeWorld, count: number) {
-    if (!world.entity) {
-      throw new Error('Entity not found in world');
-    }
-    world.entity.stabilizedWounds = count;
+Given('the entity has {int} stabilized wounds', function (world: StabilizeWorld, count: number) {
+  if (!world.entity) {
+    throw new Error('Entity not found in world');
   }
-);
+  world.entity.stabilizedWounds = count;
+});
 
 // Stabilization Actions
 
-When(
-  'the entity stabilizes {int} wounds',
-  function (world: StabilizeWorld, count: number) {
-    if (!world.entity) {
-      throw new Error('Entity not found in world');
-    }
-    world.entity.stabilize(count);
+When('the entity stabilizes {int} wounds', function (world: StabilizeWorld, count: number) {
+  if (!world.entity) {
+    throw new Error('Entity not found in world');
   }
-);
+  world.entity.stabilize(count);
+});
 
 // Hand Size Assertions
 

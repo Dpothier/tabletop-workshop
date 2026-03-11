@@ -2,7 +2,11 @@ import { Given, When, Then } from 'quickpickle';
 import { expect } from 'vitest';
 import type { QuickPickleWorld } from 'quickpickle';
 import type { RangedWeaponDefinition } from '@src/types/RangedWeaponDefinition';
-import type { ShootInput, RangedDefenseStats, RangedCombatResult } from '@src/combat/RangedResolver';
+import type {
+  ShootInput,
+  RangedDefenseStats,
+  RangedCombatResult,
+} from '@src/combat/RangedResolver';
 import { resolveRangedAttack } from '@src/combat/RangedResolver';
 
 interface RangedResolverWorld extends QuickPickleWorld {

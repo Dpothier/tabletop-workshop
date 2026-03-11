@@ -14,9 +14,7 @@ interface AssessEffectWorld extends QuickPickleWorld {
 // Setup: Actor assignment
 Given('the actor is {string}', function (world: AssessEffectWorld, actorId: string) {
   if (!world.gameContext) {
-    throw new Error(
-      'Game context not initialized. Run "Given a game context with the grid" first'
-    );
+    throw new Error('Game context not initialized. Run "Given a game context with the grid" first');
   }
   (world as any).gameContext.actorId = actorId;
 });
@@ -32,7 +30,9 @@ Given(
 
     // Ensure grid exists
     if (!(world as any).grid) {
-      throw new Error('Battle grid not initialized. Run "Given a battle grid of size {int}x{int}" first');
+      throw new Error(
+        'Battle grid not initialized. Run "Given a battle grid of size {int}x{int}" first'
+      );
     }
 
     // Register the monster on the grid
@@ -74,7 +74,9 @@ Given(
   function (world: AssessEffectWorld, monsterId: string, cunning: number) {
     const monster = (world as any).entities?.get(monsterId) as MonsterEntity;
     if (!monster) {
-      throw new Error(`Monster "${monsterId}" not found. Register it with the previous step first.`);
+      throw new Error(
+        `Monster "${monsterId}" not found. Register it with the previous step first.`
+      );
     }
 
     // Directly set the internal cunning value to avoid randomness from decideTurn
@@ -96,18 +98,16 @@ Given(
 );
 
 // Execute assess effect
-When('I execute AssessEffect on target {string}', async function (world: AssessEffectWorld, targetId: string) {
-  const { AssessEffect } = await import('@src/effects/AssessEffect');
-  const effect = new AssessEffect();
+When(
+  'I execute AssessEffect on target {string}',
+  async function (world: AssessEffectWorld, targetId: string) {
+    const { AssessEffect } = await import('@src/effects/AssessEffect');
+    const effect = new AssessEffect();
 
-  const result = effect.execute(
-    (world as any).gameContext!,
-    { targetId },
-    {},
-    new Map()
-  );
-  (world as any).assessEffectResult = result instanceof Promise ? await result : result;
-});
+    const result = effect.execute((world as any).gameContext!, { targetId }, {}, new Map());
+    (world as any).assessEffectResult = result instanceof Promise ? await result : result;
+  }
+);
 
 // Execute assess with ponder payment
 When(

@@ -50,29 +50,20 @@ Given(
 // Given: Target Type
 // ============================================================================
 
-Given(
-  'the magical target is an enemy',
-  function (world: MagicalResolverWorld) {
-    world.magicalTargetType = 'enemy';
-    world.magicalAllyAccepts = undefined;
-  }
-);
+Given('the magical target is an enemy', function (world: MagicalResolverWorld) {
+  world.magicalTargetType = 'enemy';
+  world.magicalAllyAccepts = undefined;
+});
 
-Given(
-  'the magical target is an ally who accepts',
-  function (world: MagicalResolverWorld) {
-    world.magicalTargetType = 'ally';
-    world.magicalAllyAccepts = true;
-  }
-);
+Given('the magical target is an ally who accepts', function (world: MagicalResolverWorld) {
+  world.magicalTargetType = 'ally';
+  world.magicalAllyAccepts = true;
+});
 
-Given(
-  'the magical target is an ally who resists',
-  function (world: MagicalResolverWorld) {
-    world.magicalTargetType = 'ally';
-    world.magicalAllyAccepts = false;
-  }
-);
+Given('the magical target is an ally who resists', function (world: MagicalResolverWorld) {
+  world.magicalTargetType = 'ally';
+  world.magicalAllyAccepts = false;
+});
 
 // ============================================================================
 // When: Resolve Magical Effect
@@ -104,25 +95,19 @@ When('I resolve the magical effect', function (world: MagicalResolverWorld) {
 // Then: Effect Manifests
 // ============================================================================
 
-Then(
-  'the magical effect should manifest',
-  function (world: MagicalResolverWorld) {
-    expect(world.magicalResolveResult).toBeDefined();
-    expect(world.magicalResolveResult!.manifests).toBe(true);
-  }
-);
+Then('the magical effect should manifest', function (world: MagicalResolverWorld) {
+  expect(world.magicalResolveResult).toBeDefined();
+  expect(world.magicalResolveResult!.manifests).toBe(true);
+});
 
 // ============================================================================
 // Then: Effect Does Not Manifest
 // ============================================================================
 
-Then(
-  'the magical effect should not manifest',
-  function (world: MagicalResolverWorld) {
-    expect(world.magicalResolveResult).toBeDefined();
-    expect(world.magicalResolveResult!.manifests).toBe(false);
-  }
-);
+Then('the magical effect should not manifest', function (world: MagicalResolverWorld) {
+  expect(world.magicalResolveResult).toBeDefined();
+  expect(world.magicalResolveResult!.manifests).toBe(false);
+});
 
 // ============================================================================
 // Then: Intensity Verification

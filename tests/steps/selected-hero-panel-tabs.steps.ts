@@ -147,16 +147,13 @@ When('I select the movement tab', function (world: SelectedHeroPanelTabsWorld) {
 });
 
 // Step: Show panel again for the same hero
-When(
-  'the panel is shown again for the same hero',
-  function (world: SelectedHeroPanelTabsWorld) {
-    expect(world.panel).toBeDefined();
-    expect(world.currentHeroId).toBeDefined();
+When('the panel is shown again for the same hero', function (world: SelectedHeroPanelTabsWorld) {
+  expect(world.panel).toBeDefined();
+  expect(world.currentHeroId).toBeDefined();
 
-    world.panel!.showPanel(world.currentHeroId!);
-    world.activeTab = getActiveTab(world.panel!);
-  }
-);
+  world.panel!.showPanel(world.currentHeroId!);
+  world.activeTab = getActiveTab(world.panel!);
+});
 
 // Step: Show panel for a different hero
 When('the panel is shown for a different hero', function (world: SelectedHeroPanelTabsWorld) {

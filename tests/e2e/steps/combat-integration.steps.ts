@@ -14,8 +14,6 @@ import {
   getMonsterPosition,
   teleportCharacterTo,
   setHeroBeadHand,
-  captureActionState,
-  waitForWheelAdvanced,
   setPartySize,
   UI_PANEL_COORDS,
 } from '@tests/e2e/fixtures';
@@ -152,7 +150,9 @@ Then('the monster should be the current actor', async ({ page }) => {
   await expect(async () => {
     const state = await getGameState(page);
     const hasMonsterTurn = state.battleLog?.some((msg) => msg.includes('Monster Turn'));
-    expect(hasMonsterTurn, 'Monster should have been the current actor (see battle log)').toBe(true);
+    expect(hasMonsterTurn, 'Monster should have been the current actor (see battle log)').toBe(
+      true
+    );
   }).toPass({ timeout: 15000 });
 });
 Then('the next actor should be determined', async ({ page }) => {
@@ -180,7 +180,6 @@ Given('the monster is the current actor', async ({ page }) => {
   // Monster may or may not be current actor depending on wheel state
   expect(state.currentActor).toBeDefined();
 });
-
 
 Then('the monster should draw a bead and act', async ({ page }) => {
   await expectMonsterHasBeadSystem(page);
@@ -480,17 +479,25 @@ Then('I should be able to select actions for the current actor', async ({ page }
   if (state.currentActor?.startsWith('hero-')) {
     // Click on the hero card for the current actor
     const heroIndex = parseInt(state.currentActor.split('-')[1]);
-    const cardX =
-      80 + heroIndex * 128 + 60;
+    const cardX = 80 + heroIndex * 128 + 60;
     const cardY = 650;
     await clickGameCoords(page, cardX, cardY);
     await page.waitForTimeout(300);
 
     // Verify the panel is visible and responsive
     const updatedState = await getGameState(page);
-    expect(updatedState.selectedHeroPanel?.visible, 'Panel should be visible after clicking hero card').toBe(true);
-    expect(updatedState.selectedHeroPanel?.actionButtons, 'Action buttons should be present').toBeDefined();
-    expect(updatedState.selectedHeroPanel?.actionButtons?.length, 'Should have action buttons').toBeGreaterThan(0);
+    expect(
+      updatedState.selectedHeroPanel?.visible,
+      'Panel should be visible after clicking hero card'
+    ).toBe(true);
+    expect(
+      updatedState.selectedHeroPanel?.actionButtons,
+      'Action buttons should be present'
+    ).toBeDefined();
+    expect(
+      updatedState.selectedHeroPanel?.actionButtons?.length,
+      'Should have action buttons'
+    ).toBeGreaterThan(0);
 
     // Try to click an action button to verify the panel is responsive
     // Click the first action button (movement tab, first button)
@@ -501,7 +508,9 @@ Then('I should be able to select actions for the current actor', async ({ page }
 
     // Verify that the click was processed by checking the state didn't error
     const finalState = await getGameState(page);
-    expect(finalState.scene, 'Should still be in battle scene after clicking action').toBe('BattleScene');
+    expect(finalState.scene, 'Should still be in battle scene after clicking action').toBe(
+      'BattleScene'
+    );
   } else {
     // If it's the monster's turn, just verify we're still in battle
     const finalState = await getGameState(page);
@@ -560,10 +569,9 @@ Then('I should see the entity target selector', async ({ page }) => {
 
   const state = await getGameState(page);
   expect(state.entityTargetingActive, 'Entity targeting should be active').toBe(true);
-  expect(
-    state.highlightedEntityTargets?.length,
-    'Should have highlighted targets'
-  ).toBeGreaterThan(0);
+  expect(state.highlightedEntityTargets?.length, 'Should have highlighted targets').toBeGreaterThan(
+    0
+  );
 });
 
 Then('the monster should be highlighted as a valid target', async ({ page }) => {

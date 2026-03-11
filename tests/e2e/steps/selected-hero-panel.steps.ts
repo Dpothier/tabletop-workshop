@@ -1,11 +1,7 @@
 import { createBdd } from 'playwright-bdd';
 import { expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import {
-  getGameState,
-  clickGameCoords,
-  UI_PANEL_COORDS,
-} from '@tests/e2e/fixtures';
+import { getGameState, clickGameCoords, UI_PANEL_COORDS } from '@tests/e2e/fixtures';
 
 const { Given, When, Then } = createBdd();
 
@@ -112,10 +108,7 @@ Then('the panel should hide when a non-hero is the current actor', async ({ page
   });
 
   expect(panelBehavior.error, `Panel check failed: ${panelBehavior.error}`).toBeUndefined();
-  expect(
-    panelBehavior.panelHasVisibilityLogic,
-    'Panel should have visibility logic'
-  ).toBe(true);
+  expect(panelBehavior.panelHasVisibilityLogic, 'Panel should have visibility logic').toBe(true);
 
   // If it's currently a hero's turn and panel is visible, that's correct behavior
   // The key assertion is that the panel EXISTS and HAS the visibility logic
@@ -141,7 +134,9 @@ Given('the second hero becomes the current actor', async ({ page }) => {
     await page.waitForTimeout(500);
   }
 
-  throw new Error(`Timed out waiting for hero-1 turn. Last actor: ${(await getGameState(page)).currentActor}`);
+  throw new Error(
+    `Timed out waiting for hero-1 turn. Last actor: ${(await getGameState(page)).currentActor}`
+  );
 });
 
 // Note: "I click the second hero card in the bar" step is defined in hero-selection-bar.steps.ts

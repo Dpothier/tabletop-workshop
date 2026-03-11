@@ -42,7 +42,6 @@ Given(
   }
 );
 
-
 // When steps
 
 When(
@@ -61,13 +60,10 @@ When(
   }
 );
 
-When(
-  'I clear all stacks on the buffs entity',
-  function (world: BuffsWorld) {
-    expect(world.buffsEntity).toBeDefined();
-    world.buffsEntity!.clearAll();
-  }
-);
+When('I clear all stacks on the buffs entity', function (world: BuffsWorld) {
+  expect(world.buffsEntity).toBeDefined();
+  world.buffsEntity!.clearAll();
+});
 
 When(
   'I query stacks of {string} on the buffs entity',
@@ -85,7 +81,10 @@ When(
     const entity = world.buffsEntity!;
     const definition = PREPARATION_DEFINITIONS['windup' as PreparationType];
     const current = entity.getStacks('windup');
-    const newTotal = definition.maxStacks !== null ? Math.min(current + count, definition.maxStacks) : current + count;
+    const newTotal =
+      definition.maxStacks !== null
+        ? Math.min(current + count, definition.maxStacks)
+        : current + count;
     entity.clearStacks('windup');
     if (newTotal > 0) {
       entity.addStacks('windup', newTotal);
@@ -93,18 +92,15 @@ When(
   }
 );
 
-When(
-  'end-of-round burn is resolved on the buffs entity',
-  function (world: BuffsWorld) {
-    expect(world.buffsEntity).toBeDefined();
-    const entity = world.buffsEntity!;
-    const stacks = entity.getStacks('burn');
-    if (stacks > 0) {
-      entity.receiveDamage(stacks);
-      entity.clearStacks('burn');
-    }
+When('end-of-round burn is resolved on the buffs entity', function (world: BuffsWorld) {
+  expect(world.buffsEntity).toBeDefined();
+  const entity = world.buffsEntity!;
+  const stacks = entity.getStacks('burn');
+  if (stacks > 0) {
+    entity.receiveDamage(stacks);
+    entity.clearStacks('burn');
   }
-);
+});
 
 // Then steps
 

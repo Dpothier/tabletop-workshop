@@ -125,11 +125,7 @@ export class CharacterManagementPanel {
     this.renderBottomButtons();
   }
 
-  private renderCharacterRow(
-    character: CharacterData,
-    rowY: number,
-    isInParty: boolean
-  ): void {
+  private renderCharacterRow(character: CharacterData, rowY: number, isInParty: boolean): void {
     const rowWidth = 560;
     const rowHeight = 54;
 
@@ -251,10 +247,15 @@ export class CharacterManagementPanel {
     }
     this.container.add(prevButton);
 
-    const pageText = this.scene.add.text(0, controlsY, `Page ${this.currentPage + 1}/${totalPages}`, {
-      fontSize: '14px',
-      color: '#aaaaaa',
-    });
+    const pageText = this.scene.add.text(
+      0,
+      controlsY,
+      `Page ${this.currentPage + 1}/${totalPages}`,
+      {
+        fontSize: '14px',
+        color: '#aaaaaa',
+      }
+    );
     pageText.setOrigin(0.5);
     this.container.add(pageText);
 
@@ -399,7 +400,10 @@ export class CharacterManagementPanel {
   }
 
   private getTotalPages(): number {
-    return Math.max(1, Math.ceil(this.allCharacters.length / CharacterManagementPanel.ITEMS_PER_PAGE));
+    return Math.max(
+      1,
+      Math.ceil(this.allCharacters.length / CharacterManagementPanel.ITEMS_PER_PAGE)
+    );
   }
 
   destroy(): void {

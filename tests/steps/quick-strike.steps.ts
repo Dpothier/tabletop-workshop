@@ -3,6 +3,7 @@ import { expect } from 'vitest';
 import type { QuickPickleWorld } from 'quickpickle';
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
+import * as path from 'path';
 import type { OptionDefinition } from '@src/types/ActionDefinition';
 import type { EquipmentSource, SourcedOption } from '@src/types/ModifierSource';
 import { resolveSourcedOptions } from '@src/systems/ModifierSourcing';
@@ -19,7 +20,7 @@ interface QuickStrikeWorld extends QuickPickleWorld {
 // ===== Helper Functions =====
 
 function loadAttackActionDef(): any {
-  const yamlPath = '/workspace/data/actions/core.yaml';
+  const yamlPath = path.join(process.cwd(), 'public/data/actions/core.yaml');
   const fileContent = fs.readFileSync(yamlPath, 'utf-8');
   const parsed = yaml.load(fileContent) as { actions: Array<any> };
   const action = parsed.actions.find((a: any) => a.id === 'attack');

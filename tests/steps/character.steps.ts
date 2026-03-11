@@ -191,7 +191,13 @@ When(
 
 When(
   'character {string} resolves action {string} with target position {int},{int}',
-  async function (world: CharacterWorld, characterId: string, actionId: string, x: number, y: number) {
+  async function (
+    world: CharacterWorld,
+    characterId: string,
+    actionId: string,
+    x: number,
+    y: number
+  ) {
     setupActionSystem(world);
     setupEffectRegistry(world);
 
@@ -274,39 +280,42 @@ When(
   }
 );
 
-When('the character resolves action {string}', async function (world: CharacterWorld, actionId: string) {
-  setupActionSystem(world);
-  setupEffectRegistry(world);
+When(
+  'the character resolves action {string}',
+  async function (world: CharacterWorld, actionId: string) {
+    setupActionSystem(world);
+    setupEffectRegistry(world);
 
-  const action = world.actionRegistry!.get(actionId);
-  if (!action) {
+    const action = world.actionRegistry!.get(actionId);
+    if (!action) {
+      world.actionResult = {
+        success: false,
+        reason: `Unknown action: ${actionId}`,
+        wheelCost: 0,
+        events: [],
+      };
+      return;
+    }
+
+    const context = createGameContext(world);
+    const resolution = new ActionResolutionLegacy(
+      world.character!.id,
+      action,
+      context,
+      world.effectRegistry!
+    );
+
+    // No parameters for rest action
+    const result = await resolution.resolve();
+
     world.actionResult = {
-      success: false,
-      reason: `Unknown action: ${actionId}`,
-      wheelCost: 0,
-      events: [],
+      success: result.success,
+      reason: result.reason,
+      wheelCost: result.cost.time,
+      events: result.events,
     };
-    return;
   }
-
-  const context = createGameContext(world);
-  const resolution = new ActionResolutionLegacy(
-    world.character!.id,
-    action,
-    context,
-    world.effectRegistry!
-  );
-
-  // No parameters for rest action
-  const result = await resolution.resolve();
-
-  world.actionResult = {
-    success: result.success,
-    reason: result.reason,
-    wheelCost: result.cost.time,
-    events: result.events,
-  };
-});
+);
 
 When(
   'the character attempts to resolve action {string}',

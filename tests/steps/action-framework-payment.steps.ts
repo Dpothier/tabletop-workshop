@@ -111,66 +111,63 @@ function createMockAdapter(): BattleAdapter {
   } as unknown as BattleAdapter;
 }
 
-
 // ===== BACKGROUND =====
 
-Given('a framework action {string} costing {int} red bead(s)', function (
-  world: FrameworkPaymentWorld,
-  actionName: string,
-  redCost: number
-) {
-  world.frameworkActionName = actionName;
-  world.frameworkActionId = `framework-${actionName}`;
-  world.frameworkActionCost = {
-    time: 1,
-    red: redCost,
-    blue: 0,
-    green: 0,
-    white: 0,
-  };
+Given(
+  'a framework action {string} costing {int} red bead(s)',
+  function (world: FrameworkPaymentWorld, actionName: string, redCost: number) {
+    world.frameworkActionName = actionName;
+    world.frameworkActionId = `framework-${actionName}`;
+    world.frameworkActionCost = {
+      time: 1,
+      red: redCost,
+      blue: 0,
+      green: 0,
+      white: 0,
+    };
 
-  const effects: HydratedEffect[] = [];
-  const def: ActionDefinition = {
-    id: world.frameworkActionId,
-    name: actionName,
-    category: 'other',
-    cost: world.frameworkActionCost,
-    parameters: [],
-    effects: [],
-  };
+    const effects: HydratedEffect[] = [];
+    const def: ActionDefinition = {
+      id: world.frameworkActionId,
+      name: actionName,
+      category: 'other',
+      cost: world.frameworkActionCost,
+      parameters: [],
+      effects: [],
+    };
 
-  const contextFactory = (_actorId: string): GameContext => world.frameworkGameContext!;
-  world.frameworkAction = new Action(def, effects, contextFactory);
-});
+    const contextFactory = (_actorId: string): GameContext => world.frameworkGameContext!;
+    world.frameworkAction = new Action(def, effects, contextFactory);
+  }
+);
 
-Given('a framework action {string} costing {int} blue bead(s)', function (
-  world: FrameworkPaymentWorld,
-  actionName: string,
-  blueCost: number
-) {
-  world.frameworkActionName = actionName;
-  world.frameworkActionId = `framework-${actionName}`;
-  world.frameworkActionCost = {
-    time: 1,
-    red: 0,
-    blue: blueCost,
-    green: 0,
-    white: 0,
-  };
+Given(
+  'a framework action {string} costing {int} blue bead(s)',
+  function (world: FrameworkPaymentWorld, actionName: string, blueCost: number) {
+    world.frameworkActionName = actionName;
+    world.frameworkActionId = `framework-${actionName}`;
+    world.frameworkActionCost = {
+      time: 1,
+      red: 0,
+      blue: blueCost,
+      green: 0,
+      white: 0,
+    };
 
-  const effects: HydratedEffect[] = [];
-  const def: ActionDefinition = {
-    id: world.frameworkActionId,
-    name: actionName,
-    category: 'other',
-    cost: world.frameworkActionCost,
-    parameters: [],
-    effects: [],
-  };
+    const effects: HydratedEffect[] = [];
+    const def: ActionDefinition = {
+      id: world.frameworkActionId,
+      name: actionName,
+      category: 'other',
+      cost: world.frameworkActionCost,
+      parameters: [],
+      effects: [],
+    };
 
-  const contextFactory = (_actorId: string): GameContext => world.frameworkGameContext!;
-  world.frameworkAction = new Action(def, effects, contextFactory);
-});
+    const contextFactory = (_actorId: string): GameContext => world.frameworkGameContext!;
+    world.frameworkAction = new Action(def, effects, contextFactory);
+  }
+);
 
 Given(
   'a framework action {string} costing {int} red and {int} green bead(s)',
@@ -207,7 +204,10 @@ Given(
     world.frameworkPlayer = new PlayerBeadSystem(counts);
     world.frameworkPlayer.setHand(counts);
     world.frameworkAdapter = createMockAdapter();
-    world.frameworkGameContext = createFrameworkGameContext(world.frameworkPlayer, world.frameworkAdapter);
+    world.frameworkGameContext = createFrameworkGameContext(
+      world.frameworkPlayer,
+      world.frameworkAdapter
+    );
     world.frameworkPlayerStacks = { prepStack: 0, windup: 0 };
   }
 );
@@ -462,35 +462,23 @@ When('the framework action is attempted', async function (world: FrameworkPaymen
   world.frameworkExecutionResult = await resolution.execute();
 });
 
-When('the framework action is attempted with bead payment', async function (world: FrameworkPaymentWorld) {
-  if (!world.frameworkAction || !world.frameworkPlayer || !world.frameworkActionPaymentOption) {
-    throw new Error('Framework action, player, or payment option not initialized');
-  }
+When(
+  'the framework action is attempted with bead payment',
+  async function (world: FrameworkPaymentWorld) {
+    if (!world.frameworkAction || !world.frameworkPlayer || !world.frameworkActionPaymentOption) {
+      throw new Error('Framework action, player, or payment option not initialized');
+    }
 
-  // For alternative payment, try bead option first (first alternative)
-  const beadOption = world.frameworkActionPaymentOption.alternatives[0] as BeadCounts;
-  if (!beadOption || !beadOption.red) {
-    throw new Error('Bead alternative payment not found');
-  }
+    // For alternative payment, try bead option first (first alternative)
+    const beadOption = world.frameworkActionPaymentOption.alternatives[0] as BeadCounts;
+    if (!beadOption || !beadOption.red) {
+      throw new Error('Bead alternative payment not found');
+    }
 
-  const handCounts = world.frameworkPlayer.getHandCounts();
-  const canAfford = handCounts.red >= beadOption.red;
+    const handCounts = world.frameworkPlayer.getHandCounts();
+    const canAfford = handCounts.red >= beadOption.red;
 
-  if (!canAfford) {
-    world.frameworkExecutionResult = {
-      cancelled: false,
-      success: false,
-      reason: 'insufficient beads',
-      cost: world.frameworkActionCost!,
-      events: [],
-      data: {},
-    };
-    return;
-  }
-
-  // Spend the beads
-  for (let i = 0; i < beadOption.red; i++) {
-    if (!world.frameworkPlayer.spend('red')) {
+    if (!canAfford) {
       world.frameworkExecutionResult = {
         cancelled: false,
         success: false,
@@ -501,58 +489,76 @@ When('the framework action is attempted with bead payment', async function (worl
       };
       return;
     }
-  }
 
-  world.frameworkExecutionResult = {
-    cancelled: false,
-    success: true,
-    cost: world.frameworkActionCost!,
-    events: [],
-    data: {},
-  };
-});
+    // Spend the beads
+    for (let i = 0; i < beadOption.red; i++) {
+      if (!world.frameworkPlayer.spend('red')) {
+        world.frameworkExecutionResult = {
+          cancelled: false,
+          success: false,
+          reason: 'insufficient beads',
+          cost: world.frameworkActionCost!,
+          events: [],
+          data: {},
+        };
+        return;
+      }
+    }
 
-When('the framework action is attempted with prep stack payment', async function (world: FrameworkPaymentWorld) {
-  if (!world.frameworkAction || !world.frameworkPlayer || !world.frameworkActionPaymentOption) {
-    throw new Error('Framework action, player, or payment option not initialized');
-  }
-
-  // For alternative payment, try stack option (second alternative)
-  const stackOption = world.frameworkActionPaymentOption.alternatives[1] as { prepStack: string };
-  if (!stackOption || !stackOption.prepStack) {
-    throw new Error('Stack alternative payment not found');
-  }
-
-  const stacks = world.frameworkPlayerStacks || {};
-  const stackKey = stackOption.prepStack as keyof typeof stacks;
-  const stackCount = stacks[stackKey] || 0;
-
-  if (stackCount < 1) {
     world.frameworkExecutionResult = {
       cancelled: false,
-      success: false,
-      reason: 'insufficient stacks',
+      success: true,
       cost: world.frameworkActionCost!,
       events: [],
       data: {},
     };
-    return;
   }
+);
 
-  // Consume the stack
-  if (!world.frameworkPlayerStacks) {
-    world.frameworkPlayerStacks = { prepStack: 0, windup: 0 };
+When(
+  'the framework action is attempted with prep stack payment',
+  async function (world: FrameworkPaymentWorld) {
+    if (!world.frameworkAction || !world.frameworkPlayer || !world.frameworkActionPaymentOption) {
+      throw new Error('Framework action, player, or payment option not initialized');
+    }
+
+    // For alternative payment, try stack option (second alternative)
+    const stackOption = world.frameworkActionPaymentOption.alternatives[1] as { prepStack: string };
+    if (!stackOption || !stackOption.prepStack) {
+      throw new Error('Stack alternative payment not found');
+    }
+
+    const stacks = world.frameworkPlayerStacks || {};
+    const stackKey = stackOption.prepStack as keyof typeof stacks;
+    const stackCount = stacks[stackKey] || 0;
+
+    if (stackCount < 1) {
+      world.frameworkExecutionResult = {
+        cancelled: false,
+        success: false,
+        reason: 'insufficient stacks',
+        cost: world.frameworkActionCost!,
+        events: [],
+        data: {},
+      };
+      return;
+    }
+
+    // Consume the stack
+    if (!world.frameworkPlayerStacks) {
+      world.frameworkPlayerStacks = { prepStack: 0, windup: 0 };
+    }
+    world.frameworkPlayerStacks[stackKey]!--;
+
+    world.frameworkExecutionResult = {
+      cancelled: false,
+      success: true,
+      cost: world.frameworkActionCost!,
+      events: [],
+      data: {},
+    };
   }
-  world.frameworkPlayerStacks[stackKey]!--;
-
-  world.frameworkExecutionResult = {
-    cancelled: false,
-    success: true,
-    cost: world.frameworkActionCost!,
-    events: [],
-    data: {},
-  };
-});
+);
 
 When('the framework action applies effects', async function (world: FrameworkPaymentWorld) {
   if (!world.frameworkAction || !world.frameworkGameContext) {

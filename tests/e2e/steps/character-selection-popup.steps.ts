@@ -156,10 +156,42 @@ Given('there are {int} custom characters in storage', async ({ page }, count: nu
   const characters = [];
   // Always include the 4 defaults
   const defaults = [
-    { id: 'default-warrior', name: 'Warrior', attributes: { str: 5, dex: 2, mnd: 1, spr: 1 }, weapon: 'sword', isDefault: true, createdAt: 0, updatedAt: 0 },
-    { id: 'default-mage', name: 'Mage', attributes: { str: 1, dex: 1, mnd: 5, spr: 2 }, weapon: 'staff', isDefault: true, createdAt: 0, updatedAt: 0 },
-    { id: 'default-rogue', name: 'Rogue', attributes: { str: 2, dex: 5, mnd: 2, spr: 1 }, weapon: 'dagger', isDefault: true, createdAt: 0, updatedAt: 0 },
-    { id: 'default-cleric', name: 'Cleric', attributes: { str: 2, dex: 2, mnd: 3, spr: 3 }, weapon: 'mace', isDefault: true, createdAt: 0, updatedAt: 0 },
+    {
+      id: 'default-warrior',
+      name: 'Warrior',
+      attributes: { str: 5, dex: 2, mnd: 1, spr: 1 },
+      weapon: 'sword',
+      isDefault: true,
+      createdAt: 0,
+      updatedAt: 0,
+    },
+    {
+      id: 'default-mage',
+      name: 'Mage',
+      attributes: { str: 1, dex: 1, mnd: 5, spr: 2 },
+      weapon: 'staff',
+      isDefault: true,
+      createdAt: 0,
+      updatedAt: 0,
+    },
+    {
+      id: 'default-rogue',
+      name: 'Rogue',
+      attributes: { str: 2, dex: 5, mnd: 2, spr: 1 },
+      weapon: 'dagger',
+      isDefault: true,
+      createdAt: 0,
+      updatedAt: 0,
+    },
+    {
+      id: 'default-cleric',
+      name: 'Cleric',
+      attributes: { str: 2, dex: 2, mnd: 3, spr: 3 },
+      weapon: 'mace',
+      isDefault: true,
+      createdAt: 0,
+      updatedAt: 0,
+    },
   ];
   characters.push(...defaults);
   // Add custom characters
@@ -258,7 +290,11 @@ When('I click the Prev page button in the popup', async ({ page }) => {
 
 When('I click the first character on the current page', async ({ page }) => {
   // First character row is always at the same Y position (row 1 = 250)
-  await clickGameCoords(page, POPUP_COORDS.CHARACTER_LIST.CENTER_X, POPUP_COORDS.CHARACTER_LIST.WARRIOR_Y);
+  await clickGameCoords(
+    page,
+    POPUP_COORDS.CHARACTER_LIST.CENTER_X,
+    POPUP_COORDS.CHARACTER_LIST.WARRIOR_Y
+  );
   await page.waitForTimeout(200);
 });
 
@@ -308,29 +344,35 @@ Then('the popup should display the Remove button', async ({ page }) => {
   expect(popupState?.hasRemoveButton).toBe(true);
 });
 
-Then('the character {string} should be unavailable \\(grayed out\\) in the popup', async ({ page }, characterName: string) => {
-  const popupState = await getCharacterPopupState(page);
-  expect(popupState).not.toBeNull();
+Then(
+  'the character {string} should be unavailable \\(grayed out\\) in the popup',
+  async ({ page }, characterName: string) => {
+    const popupState = await getCharacterPopupState(page);
+    expect(popupState).not.toBeNull();
 
-  const character = popupState?.characters.find(
-    (c) => c.name.toLowerCase() === characterName.toLowerCase()
-  );
-  expect(character).toBeDefined();
-  expect(character?.available).toBe(false);
-});
+    const character = popupState?.characters.find(
+      (c) => c.name.toLowerCase() === characterName.toLowerCase()
+    );
+    expect(character).toBeDefined();
+    expect(character?.available).toBe(false);
+  }
+);
 
-Then('slot {int} should still display {string}', async ({ page }, slotNumber: number, expectedName: string) => {
-  const slotsState = await getCharacterSlotsState(page);
-  expect(slotsState).not.toBeNull();
+Then(
+  'slot {int} should still display {string}',
+  async ({ page }, slotNumber: number, expectedName: string) => {
+    const slotsState = await getCharacterSlotsState(page);
+    expect(slotsState).not.toBeNull();
 
-  const slotIndex = slotNumber - 1;
-  expect(slotIndex).toBeGreaterThanOrEqual(0);
-  expect(slotIndex).toBeLessThan(4);
+    const slotIndex = slotNumber - 1;
+    expect(slotIndex).toBeGreaterThanOrEqual(0);
+    expect(slotIndex).toBeLessThan(4);
 
-  const slot = slotsState!.slots[slotIndex];
-  expect(slot).not.toBeNull();
-  expect(slot?.name).toBe(expectedName);
-});
+    const slot = slotsState!.slots[slotIndex];
+    expect(slot).not.toBeNull();
+    expect(slot?.name).toBe(expectedName);
+  }
+);
 
 Then('the popup should show pagination controls', async ({ page }) => {
   const popupState = await getCharacterPopupState(page);
@@ -357,11 +399,14 @@ Then('the popup should display {string}', async ({ page }, pageText: string) => 
   expect(popupState!.totalPages).toBe(expectedTotal);
 });
 
-Then('the popup should display {int} characters on the current page', async ({ page }, expectedCount: number) => {
-  const popupState = await getCharacterPopupState(page);
-  expect(popupState).not.toBeNull();
-  expect(popupState!.visibleCount).toBe(expectedCount);
-});
+Then(
+  'the popup should display {int} characters on the current page',
+  async ({ page }, expectedCount: number) => {
+    const popupState = await getCharacterPopupState(page);
+    expect(popupState).not.toBeNull();
+    expect(popupState!.visibleCount).toBe(expectedCount);
+  }
+);
 
 Then('slot {int} should not be empty', async ({ page }, slotNumber: number) => {
   const slotsState = await getCharacterSlotsState(page);

@@ -36,20 +36,25 @@ Given(
 
 // Given steps for preparation
 
-Given(
-  '{int} unified windup stack(s)',
-  function (world: UnifiedAttackWorld, stacks: number) {
-    world.unifiedWindupStacks = stacks;
-  }
-);
+Given('{int} unified windup stack(s)', function (world: UnifiedAttackWorld, stacks: number) {
+  world.unifiedWindupStacks = stacks;
+});
 
 // Given steps for weapon modifiers
 
 Given(
   'a unified weapon modifier with power bonus {int} and agility bonus {int} and modifiers {string}',
-  function (world: UnifiedAttackWorld, powerBonus: number, agilityBonus: number, modifiersStr: string) {
+  function (
+    world: UnifiedAttackWorld,
+    powerBonus: number,
+    agilityBonus: number,
+    modifiersStr: string
+  ) {
     const attackModifiers: AttackModifier[] = modifiersStr
-      ? modifiersStr.split(',').map(m => m.trim()).filter(m => m.length > 0) as AttackModifier[]
+      ? (modifiersStr
+          .split(',')
+          .map((m) => m.trim())
+          .filter((m) => m.length > 0) as AttackModifier[])
       : [];
     world.unifiedWeaponModifier = {
       id: 'test-modifier',
@@ -63,22 +68,19 @@ Given(
 
 // When steps for resolving unified attacks
 
-When(
-  'I resolve a unified attack with no modifiers',
-  function (world: UnifiedAttackWorld) {
-    expect(world.unifiedWeaponPower).toBeDefined();
-    expect(world.unifiedWeaponAgility).toBeDefined();
-    expect(world.unifiedDefense).toBeDefined();
+When('I resolve a unified attack with no modifiers', function (world: UnifiedAttackWorld) {
+  expect(world.unifiedWeaponPower).toBeDefined();
+  expect(world.unifiedWeaponAgility).toBeDefined();
+  expect(world.unifiedDefense).toBeDefined();
 
-    const input: UnifiedAttackInput = {
-      weaponPower: world.unifiedWeaponPower!,
-      weaponAgility: world.unifiedWeaponAgility!,
-      windupStacks: world.unifiedWindupStacks ?? 0,
-      modifiers: [],
-    };
-    world.unifiedResult = resolveUnifiedAttack(input, world.unifiedDefense!);
-  }
-);
+  const input: UnifiedAttackInput = {
+    weaponPower: world.unifiedWeaponPower!,
+    weaponAgility: world.unifiedWeaponAgility!,
+    windupStacks: world.unifiedWindupStacks ?? 0,
+    modifiers: [],
+  };
+  world.unifiedResult = resolveUnifiedAttack(input, world.unifiedDefense!);
+});
 
 When(
   'I resolve a unified attack with modifier {string}',
@@ -97,24 +99,21 @@ When(
   }
 );
 
-When(
-  'I resolve a unified attack with weapon modifier',
-  function (world: UnifiedAttackWorld) {
-    expect(world.unifiedWeaponPower).toBeDefined();
-    expect(world.unifiedWeaponAgility).toBeDefined();
-    expect(world.unifiedDefense).toBeDefined();
-    expect(world.unifiedWeaponModifier).toBeDefined();
+When('I resolve a unified attack with weapon modifier', function (world: UnifiedAttackWorld) {
+  expect(world.unifiedWeaponPower).toBeDefined();
+  expect(world.unifiedWeaponAgility).toBeDefined();
+  expect(world.unifiedDefense).toBeDefined();
+  expect(world.unifiedWeaponModifier).toBeDefined();
 
-    const input: UnifiedAttackInput = {
-      weaponPower: world.unifiedWeaponPower!,
-      weaponAgility: world.unifiedWeaponAgility!,
-      windupStacks: world.unifiedWindupStacks ?? 0,
-      modifiers: [],
-      weaponModifier: world.unifiedWeaponModifier,
-    };
-    world.unifiedResult = resolveUnifiedAttack(input, world.unifiedDefense!);
-  }
-);
+  const input: UnifiedAttackInput = {
+    weaponPower: world.unifiedWeaponPower!,
+    weaponAgility: world.unifiedWeaponAgility!,
+    windupStacks: world.unifiedWindupStacks ?? 0,
+    modifiers: [],
+    weaponModifier: world.unifiedWeaponModifier,
+  };
+  world.unifiedResult = resolveUnifiedAttack(input, world.unifiedDefense!);
+});
 
 // Then steps for unified attack outcomes
 

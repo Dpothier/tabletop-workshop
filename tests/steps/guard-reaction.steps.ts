@@ -17,13 +17,16 @@ interface GuardReactionWorld extends QuickPickleWorld {
 }
 
 // Guard-specific stat setup
-Given('the defender has passive guard of {int}', function (world: GuardReactionWorld, guard: number) {
-  const defender = world.defEntities?.get('hero-0') as Character;
-  if (defender) {
-    defender.setGuard(guard);
-    world.defenderGuardBefore = guard;
+Given(
+  'the defender has passive guard of {int}',
+  function (world: GuardReactionWorld, guard: number) {
+    const defender = world.defEntities?.get('hero-0') as Character;
+    if (defender) {
+      defender.setGuard(guard);
+      world.defenderGuardBefore = guard;
+    }
   }
-});
+);
 
 // Guard-specific bead setup: 0 red beads with Windup
 Given(

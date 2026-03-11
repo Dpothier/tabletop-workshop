@@ -170,12 +170,20 @@ When('I clear the name field', async ({ page }) => {
 });
 
 When('I click the Continue button', async ({ page }) => {
-  await clickGameCoords(page, CHARACTER_CREATION_COORDS.CONTINUE_BUTTON_X, CHARACTER_CREATION_COORDS.CONTINUE_BUTTON_Y);
+  await clickGameCoords(
+    page,
+    CHARACTER_CREATION_COORDS.CONTINUE_BUTTON_X,
+    CHARACTER_CREATION_COORDS.CONTINUE_BUTTON_Y
+  );
   await page.waitForTimeout(300);
 });
 
 When('I click the Cancel button', async ({ page }) => {
-  await clickGameCoords(page, CHARACTER_CREATION_COORDS.CANCEL_BUTTON_X, CHARACTER_CREATION_COORDS.CANCEL_BUTTON_Y);
+  await clickGameCoords(
+    page,
+    CHARACTER_CREATION_COORDS.CANCEL_BUTTON_X,
+    CHARACTER_CREATION_COORDS.CANCEL_BUTTON_Y
+  );
   await page.waitForTimeout(300);
 });
 
@@ -202,20 +210,26 @@ Then('the name field should contain {string}', async ({ page }, expectedText: st
   expect(value).toBe(expectedText);
 });
 
-Then('the name field should contain exactly {int} characters', async ({ page }, maxChars: number) => {
-  const value = await getNameInputValue(page);
-  expect(value.length).toBe(maxChars);
-});
+Then(
+  'the name field should contain exactly {int} characters',
+  async ({ page }, maxChars: number) => {
+    const value = await getNameInputValue(page);
+    expect(value.length).toBe(maxChars);
+  }
+);
 
-Then('the token preview should show {string} as the first letter', async ({ page }, expectedLetter: string) => {
-  // Look for the token preview element - should display the first letter
-  const previewText = await page.evaluate(() => {
-    const preview = document.querySelector('[data-testid="token-preview"]');
-    return preview?.textContent || '';
-  });
+Then(
+  'the token preview should show {string} as the first letter',
+  async ({ page }, expectedLetter: string) => {
+    // Look for the token preview element - should display the first letter
+    const previewText = await page.evaluate(() => {
+      const preview = document.querySelector('[data-testid="token-preview"]');
+      return preview?.textContent || '';
+    });
 
-  expect(previewText.trim()).toBe(expectedLetter.toUpperCase());
-});
+    expect(previewText.trim()).toBe(expectedLetter.toUpperCase());
+  }
+);
 
 Then('the preview icon should be visible', async ({ page }) => {
   const preview = page.locator('[data-testid="token-preview"]');
@@ -224,19 +238,27 @@ Then('the preview icon should be visible', async ({ page }) => {
   expect(content?.trim().length).toBeGreaterThan(0);
 });
 
-Then('the remaining characters display should show {string}', async ({ page }, displayText: string) => {
-  const remaining = parseInt(displayText);
-  const actualRemaining = await getRemainingCharactersDisplay(page);
-  expect(actualRemaining).toBe(remaining);
-});
+Then(
+  'the remaining characters display should show {string}',
+  async ({ page }, displayText: string) => {
+    const remaining = parseInt(displayText);
+    const actualRemaining = await getRemainingCharactersDisplay(page);
+    expect(actualRemaining).toBe(remaining);
+  }
+);
 
-Then('an error message should appear saying {string}', async ({ page }, expectedMessage: string) => {
-  // Look for error message in DOM (could be text element, alert, or dedicated error container)
-  const errorElement = page.locator('[data-testid="error-message"], .error, .error-message').first();
-  const errorText = await errorElement.textContent();
+Then(
+  'an error message should appear saying {string}',
+  async ({ page }, expectedMessage: string) => {
+    // Look for error message in DOM (could be text element, alert, or dedicated error container)
+    const errorElement = page
+      .locator('[data-testid="error-message"], .error, .error-message')
+      .first();
+    const errorText = await errorElement.textContent();
 
-  expect(errorText?.toLowerCase()).toContain(expectedMessage.toLowerCase());
-});
+    expect(errorText?.toLowerCase()).toContain(expectedMessage.toLowerCase());
+  }
+);
 
 Then('I should remain on the character creation scene', async ({ page }) => {
   const state = await getGameState(page);
@@ -428,49 +450,67 @@ Then('each attribute should have initial value of 1', async ({ page }) => {
   expect(state?.attributes.SPR).toBe(1);
 });
 
-Then('the points remaining counter should display {int}', async ({ page }, expectedPoints: number) => {
-  const state = await getAttributeAllocationState(page);
-  expect(state?.pointsRemaining).toBe(expectedPoints);
-});
-
-When('I increment the {word} attribute by {int}', async ({ page }, attribute: string, times: number) => {
-  const attr = attribute.toUpperCase();
-  const coords = ATTRIBUTE_ALLOCATION_COORDS.ATTRIBUTES[attr as keyof typeof ATTRIBUTE_ALLOCATION_COORDS.ATTRIBUTES];
-
-  if (!coords) {
-    throw new Error(`Unknown attribute: ${attribute}`);
+Then(
+  'the points remaining counter should display {int}',
+  async ({ page }, expectedPoints: number) => {
+    const state = await getAttributeAllocationState(page);
+    expect(state?.pointsRemaining).toBe(expectedPoints);
   }
+);
 
-  for (let i = 0; i < times; i++) {
-    await clickGameCoords(page, coords.plusX, coords.y);
-    await page.waitForTimeout(100);
+When(
+  'I increment the {word} attribute by {int}',
+  async ({ page }, attribute: string, times: number) => {
+    const attr = attribute.toUpperCase();
+    const coords =
+      ATTRIBUTE_ALLOCATION_COORDS.ATTRIBUTES[
+        attr as keyof typeof ATTRIBUTE_ALLOCATION_COORDS.ATTRIBUTES
+      ];
+
+    if (!coords) {
+      throw new Error(`Unknown attribute: ${attribute}`);
+    }
+
+    for (let i = 0; i < times; i++) {
+      await clickGameCoords(page, coords.plusX, coords.y);
+      await page.waitForTimeout(100);
+    }
   }
-});
+);
 
-Then('the {word} attribute value should be {int}', async ({ page }, attribute: string, expectedValue: number) => {
-  const state = await getAttributeAllocationState(page);
-  const attr = attribute.toUpperCase();
-  expect(state?.attributes[attr as keyof typeof state.attributes]).toBe(expectedValue);
-});
+Then(
+  'the {word} attribute value should be {int}',
+  async ({ page }, attribute: string, expectedValue: number) => {
+    const state = await getAttributeAllocationState(page);
+    const attr = attribute.toUpperCase();
+    expect(state?.attributes[attr as keyof typeof state.attributes]).toBe(expectedValue);
+  }
+);
 
 Then('the points remaining should decrease to {int}', async ({ page }, expectedPoints: number) => {
   const state = await getAttributeAllocationState(page);
   expect(state?.pointsRemaining).toBe(expectedPoints);
 });
 
-When('I decrement the {word} attribute by {int}', async ({ page }, attribute: string, times: number) => {
-  const attr = attribute.toUpperCase();
-  const coords = ATTRIBUTE_ALLOCATION_COORDS.ATTRIBUTES[attr as keyof typeof ATTRIBUTE_ALLOCATION_COORDS.ATTRIBUTES];
+When(
+  'I decrement the {word} attribute by {int}',
+  async ({ page }, attribute: string, times: number) => {
+    const attr = attribute.toUpperCase();
+    const coords =
+      ATTRIBUTE_ALLOCATION_COORDS.ATTRIBUTES[
+        attr as keyof typeof ATTRIBUTE_ALLOCATION_COORDS.ATTRIBUTES
+      ];
 
-  if (!coords) {
-    throw new Error(`Unknown attribute: ${attribute}`);
-  }
+    if (!coords) {
+      throw new Error(`Unknown attribute: ${attribute}`);
+    }
 
-  for (let i = 0; i < times; i++) {
-    await clickGameCoords(page, coords.minusX, coords.y);
-    await page.waitForTimeout(100);
+    for (let i = 0; i < times; i++) {
+      await clickGameCoords(page, coords.minusX, coords.y);
+      await page.waitForTimeout(100);
+    }
   }
-});
+);
 
 Then('the points remaining should be {int}', async ({ page }, expectedPoints: number) => {
   const state = await getAttributeAllocationState(page);
@@ -481,7 +521,7 @@ Then('the increment button for {word} should be disabled', async ({ page }, attr
   const isDisabled = await page.evaluate((attr) => {
     const buttons = document.querySelectorAll(
       `[data-attribute="${attr.toLowerCase()}"][data-action="increment"], ` +
-      `[data-attribute="${attr.toLowerCase()}"][data-action="plus"]`
+        `[data-attribute="${attr.toLowerCase()}"][data-action="plus"]`
     );
 
     if (buttons.length === 0) return null;
@@ -493,13 +533,14 @@ Then('the increment button for {word} should be disabled', async ({ page }, attr
   expect(isDisabled, `Increment button for ${attribute} should be disabled`).toBe(true);
 });
 
-When('I allocate all {int} remaining points to {word}', async ({ page }, points: number, attribute: string) => {
-  const attr = attribute.toUpperCase();
+When(
+  'I allocate all {int} remaining points to {word}',
+  async ({ page }, points: number, attribute: string) => {
+    const attr = attribute.toUpperCase();
 
-  // Increment the attribute points times
-  for (let i = 0; i < points; i++) {
-    await page.evaluate(
-      (attrName) => {
+    // Increment the attribute points times
+    for (let i = 0; i < points; i++) {
+      await page.evaluate((attrName) => {
         // Direct game state manipulation for speed
         const game = window.__PHASER_GAME__;
         if (game) {
@@ -513,12 +554,11 @@ When('I allocate all {int} remaining points to {word}', async ({ page }, points:
             }
           }
         }
-      },
-      attr
-    );
-    await page.waitForTimeout(50);
+      }, attr);
+      await page.waitForTimeout(50);
+    }
   }
-});
+);
 
 Then('the decrement button for each attribute should be disabled', async ({ page }) => {
   const attributes = ['STR', 'DEX', 'MND', 'SPR'];
@@ -527,7 +567,7 @@ Then('the decrement button for each attribute should be disabled', async ({ page
     const isDisabled = await page.evaluate((attrName) => {
       const buttons = document.querySelectorAll(
         `[data-attribute="${attrName.toLowerCase()}"][data-action="decrement"], ` +
-        `[data-attribute="${attrName.toLowerCase()}"][data-action="minus"]`
+          `[data-attribute="${attrName.toLowerCase()}"][data-action="minus"]`
       );
 
       if (buttons.length === 0) return null;
@@ -564,85 +604,115 @@ Then('the bead bag preview should display colored circles', async ({ page }) => 
   expect(state?.attributes.SPR).toBeGreaterThanOrEqual(1);
 });
 
-Then('there should be {int} red circles for STR attribute value', async ({ page }, expectedCount: number) => {
-  // Bead preview is rendered on Phaser canvas - verify via scene state
-  const state = await getAttributeAllocationState(page);
-  expect(state?.attributes.STR).toBe(expectedCount);
-});
+Then(
+  'there should be {int} red circles for STR attribute value',
+  async ({ page }, expectedCount: number) => {
+    // Bead preview is rendered on Phaser canvas - verify via scene state
+    const state = await getAttributeAllocationState(page);
+    expect(state?.attributes.STR).toBe(expectedCount);
+  }
+);
 
-Then('there should be {int} green circles for DEX attribute value', async ({ page }, expectedCount: number) => {
-  // Bead preview is rendered on Phaser canvas - verify via scene state
-  const state = await getAttributeAllocationState(page);
-  expect(state?.attributes.DEX).toBe(expectedCount);
-});
+Then(
+  'there should be {int} green circles for DEX attribute value',
+  async ({ page }, expectedCount: number) => {
+    // Bead preview is rendered on Phaser canvas - verify via scene state
+    const state = await getAttributeAllocationState(page);
+    expect(state?.attributes.DEX).toBe(expectedCount);
+  }
+);
 
-Then('there should be {int} blue circles for MND attribute value', async ({ page }, expectedCount: number) => {
-  // Bead preview is rendered on Phaser canvas - verify via scene state
-  const state = await getAttributeAllocationState(page);
-  expect(state?.attributes.MND).toBe(expectedCount);
-});
+Then(
+  'there should be {int} blue circles for MND attribute value',
+  async ({ page }, expectedCount: number) => {
+    // Bead preview is rendered on Phaser canvas - verify via scene state
+    const state = await getAttributeAllocationState(page);
+    expect(state?.attributes.MND).toBe(expectedCount);
+  }
+);
 
-Then('there should be {int} white circles for SPR attribute value', async ({ page }, expectedCount: number) => {
-  // Bead preview is rendered on Phaser canvas - verify via scene state
-  const state = await getAttributeAllocationState(page);
-  expect(state?.attributes.SPR).toBe(expectedCount);
-});
+Then(
+  'there should be {int} white circles for SPR attribute value',
+  async ({ page }, expectedCount: number) => {
+    // Bead preview is rendered on Phaser canvas - verify via scene state
+    const state = await getAttributeAllocationState(page);
+    expect(state?.attributes.SPR).toBe(expectedCount);
+  }
+);
 
-When('I increment the {word} attribute to {int}', async ({ page }, attribute: string, targetValue: number) => {
-  const state = await getAttributeAllocationState(page);
-  const attr = attribute.toUpperCase();
-  const currentValue = state?.attributes[attr as keyof typeof state.attributes] || 1;
-  const incrementCount = targetValue - currentValue;
+When(
+  'I increment the {word} attribute to {int}',
+  async ({ page }, attribute: string, targetValue: number) => {
+    const state = await getAttributeAllocationState(page);
+    const attr = attribute.toUpperCase();
+    const currentValue = state?.attributes[attr as keyof typeof state.attributes] || 1;
+    const incrementCount = targetValue - currentValue;
 
-  if (incrementCount > 0) {
-    await page.evaluate(
-      ({ attrName, count }) => {
-        const game = window.__PHASER_GAME__;
-        if (game) {
-          const scene = game.scene.scenes.find((s) => s.sys.isActive());
-          if (scene) {
-            const creationScene = scene as {
-              incrementAttribute?: (attr: string) => void;
-            };
-            if (creationScene.incrementAttribute) {
-              for (let i = 0; i < count; i++) {
-                creationScene.incrementAttribute(attrName.toLowerCase());
+    if (incrementCount > 0) {
+      await page.evaluate(
+        ({ attrName, count }) => {
+          const game = window.__PHASER_GAME__;
+          if (game) {
+            const scene = game.scene.scenes.find((s) => s.sys.isActive());
+            if (scene) {
+              const creationScene = scene as {
+                incrementAttribute?: (attr: string) => void;
+              };
+              if (creationScene.incrementAttribute) {
+                for (let i = 0; i < count; i++) {
+                  creationScene.incrementAttribute(attrName.toLowerCase());
+                }
               }
             }
           }
-        }
-      },
-      { attrName: attr, count: incrementCount }
-    );
-    await page.waitForTimeout(100);
+        },
+        { attrName: attr, count: incrementCount }
+      );
+      await page.waitForTimeout(100);
+    }
   }
-});
+);
 
-When('I decrement the {word} attribute from {int} \\(no change expected\\)', async ({ page }, _attribute: string, _startValue: number) => {
-  // This step is for testing that we can't decrement below 1
-  // No action needed - verification happens in the Then steps
-  await page.waitForTimeout(50);
-});
+When(
+  'I decrement the {word} attribute from {int} \\(no change expected\\)',
+  async ({ page }, _attribute: string, _startValue: number) => {
+    // This step is for testing that we can't decrement below 1
+    // No action needed - verification happens in the Then steps
+    await page.waitForTimeout(50);
+  }
+);
 
-Then('the bead bag preview should display {int} red circles for STR', async ({ page }, expectedCount: number) => {
-  const state = await getAttributeAllocationState(page);
-  expect(state?.attributes.STR).toBe(expectedCount);
-});
+Then(
+  'the bead bag preview should display {int} red circles for STR',
+  async ({ page }, expectedCount: number) => {
+    const state = await getAttributeAllocationState(page);
+    expect(state?.attributes.STR).toBe(expectedCount);
+  }
+);
 
-Then('the bead bag preview should display {int} green circles for DEX', async ({ page }, expectedCount: number) => {
-  const state = await getAttributeAllocationState(page);
-  expect(state?.attributes.DEX).toBe(expectedCount);
-});
+Then(
+  'the bead bag preview should display {int} green circles for DEX',
+  async ({ page }, expectedCount: number) => {
+    const state = await getAttributeAllocationState(page);
+    expect(state?.attributes.DEX).toBe(expectedCount);
+  }
+);
 
-Then('the bead bag preview should display {int} blue circles for MND', async ({ page }, expectedCount: number) => {
-  const state = await getAttributeAllocationState(page);
-  expect(state?.attributes.MND).toBe(expectedCount);
-});
+Then(
+  'the bead bag preview should display {int} blue circles for MND',
+  async ({ page }, expectedCount: number) => {
+    const state = await getAttributeAllocationState(page);
+    expect(state?.attributes.MND).toBe(expectedCount);
+  }
+);
 
-Then('the bead bag preview should display {int} white circles for SPR', async ({ page }, expectedCount: number) => {
-  const state = await getAttributeAllocationState(page);
-  expect(state?.attributes.SPR).toBe(expectedCount);
-});
+Then(
+  'the bead bag preview should display {int} white circles for SPR',
+  async ({ page }, expectedCount: number) => {
+    const state = await getAttributeAllocationState(page);
+    expect(state?.attributes.SPR).toBe(expectedCount);
+  }
+);
 
 // ============================================================================
 // Step 8.5: Character Creation - Weapon Selection & Save Steps
@@ -661,7 +731,13 @@ async function getWeaponSelectionState(page: Page) {
 
     const creationScene = activeScene as {
       weaponSelectionState?: {
-        weapons: Array<{ id: string; name: string; power: number; agility: number; range: number | string }>;
+        weapons: Array<{
+          id: string;
+          name: string;
+          power: number;
+          agility: number;
+          range: number | string;
+        }>;
         selectedWeaponId: string | null;
         canSave: boolean;
       };
@@ -781,7 +857,15 @@ Then('the character {string} should exist in storage', async ({ page }, characte
 
 Given(
   'there is a character named {string} in storage with weapon {string} and attributes STR={int} DEX={int} MND={int} SPR={int}',
-  async ({ page }, characterName: string, weapon: string, str: number, dex: number, mnd: number, spr: number) => {
+  async (
+    { page },
+    characterName: string,
+    weapon: string,
+    str: number,
+    dex: number,
+    mnd: number,
+    spr: number
+  ) => {
     // Navigate to page first to access localStorage
     await page.goto('/');
     await waitForGameReady(page);
@@ -823,7 +907,9 @@ Given(
         const characters = JSON.parse(stored);
         const character = characters.find((c: { name: string }) => c.name === name);
         if (!character) return;
-        const activeScene = game.scene.scenes.find((s: { sys: { isActive: () => boolean } }) => s.sys.isActive());
+        const activeScene = game.scene.scenes.find((s: { sys: { isActive: () => boolean } }) =>
+          s.sys.isActive()
+        );
         if (activeScene) {
           activeScene.scene.start('CharacterCreationScene', { editCharacter: character });
         }
@@ -836,180 +922,190 @@ Given(
   }
 );
 
-Then('the weapon selection should show {string} as selected', async ({ page }, weaponName: string) => {
-  const state = await getWeaponSelectionState(page);
-  expect(state?.selectedWeaponId).not.toBeNull();
+Then(
+  'the weapon selection should show {string} as selected',
+  async ({ page }, weaponName: string) => {
+    const state = await getWeaponSelectionState(page);
+    expect(state?.selectedWeaponId).not.toBeNull();
 
-  // Find the weapon with matching name
-  const selectedWeapon = state?.weapons.find((w) => w.name === weaponName);
-  expect(selectedWeapon).toBeDefined();
-  expect(state?.selectedWeaponId).toBe(selectedWeapon?.id);
-});
+    // Find the weapon with matching name
+    const selectedWeapon = state?.weapons.find((w) => w.name === weaponName);
+    expect(selectedWeapon).toBeDefined();
+    expect(state?.selectedWeaponId).toBe(selectedWeapon?.id);
+  }
+);
 
 // ============================================================================
 // Bug Fix Steps: Visual Overlap and Layout Issues
 // ============================================================================
 
-Then('the {string} label should not be visible in the Phaser scene', async ({ page }, labelText: string) => {
-  // Check that the Character Name label (yellow text at y=140) is not visible
-  const isLabelVisible = await page.evaluate((text) => {
-    // The real check: look in the Phaser scene's children
-    const game = window.__PHASER_GAME__;
-    if (!game) return false;
+Then(
+  'the {string} label should not be visible in the Phaser scene',
+  async ({ page }, labelText: string) => {
+    // Check that the Character Name label (yellow text at y=140) is not visible
+    const isLabelVisible = await page.evaluate((text) => {
+      // The real check: look in the Phaser scene's children
+      const game = window.__PHASER_GAME__;
+      if (!game) return false;
 
-    const activeScene = game.scene.scenes.find((s) => s.sys.isActive());
-    if (!activeScene) return false;
+      const activeScene = game.scene.scenes.find((s) => s.sys.isActive());
+      if (!activeScene) return false;
 
-    const creationScene = activeScene as {
-      children: { list: any[] };
-    };
+      const creationScene = activeScene as {
+        children: { list: any[] };
+      };
 
-    // Search for the "Character Name" text object in the scene
-    if (creationScene.children && creationScene.children.list) {
-      for (const child of creationScene.children.list) {
-        // Check if this is a Text object with "Character Name"
-        if (
-          child &&
-          child.type === 'Text' &&
-          child.text === text &&
-          child.visible === true
-        ) {
-          return true; // Label is visible
+      // Search for the "Character Name" text object in the scene
+      if (creationScene.children && creationScene.children.list) {
+        for (const child of creationScene.children.list) {
+          // Check if this is a Text object with "Character Name"
+          if (child && child.type === 'Text' && child.text === text && child.visible === true) {
+            return true; // Label is visible
+          }
         }
       }
-    }
 
-    return false; // Label not found or is hidden
-  }, labelText);
+      return false; // Label not found or is hidden
+    }, labelText);
 
-  expect(isLabelVisible, `"${labelText}" label should not be visible`).toBe(false);
-});
+    expect(isLabelVisible, `"${labelText}" label should not be visible`).toBe(false);
+  }
+);
 
-Then('the Continue button should be positioned below all attribute rows with sufficient margin', async ({ page }) => {
-  // Get positions of Continue button and attribute rows
-  const positions = await page.evaluate(() => {
-    const game = window.__PHASER_GAME__;
-    if (!game) return null;
+Then(
+  'the Continue button should be positioned below all attribute rows with sufficient margin',
+  async ({ page }) => {
+    // Get positions of Continue button and attribute rows
+    const positions = await page.evaluate(() => {
+      const game = window.__PHASER_GAME__;
+      if (!game) return null;
 
-    const scene = game.scene.getScene('CharacterCreationScene');
-    if (!scene) return null;
+      const scene = game.scene.getScene('CharacterCreationScene');
+      if (!scene) return null;
 
-    // Access the Continue button directly (private in TS, accessible in JS)
-    const continueButtonY = (scene as any).continueButtonRect?.y ?? 0;
+      // Access the Continue button directly (private in TS, accessible in JS)
+      const continueButtonY = (scene as any).continueButtonRect?.y ?? 0;
 
-    // Find max attribute row Y from attribute buttons
-    let maxAttributeRowY = 0;
-    const attributeButtons = (scene as any).attributeButtons;
-    if (attributeButtons) {
-      attributeButtons.forEach((buttons: any) => {
-        if (buttons.plus && buttons.plus.y > maxAttributeRowY) {
-          maxAttributeRowY = buttons.plus.y;
-        }
-      });
-    }
-
-    return { continueButtonY, maxAttributeRowY };
-  });
-
-  expect(positions).not.toBeNull();
-  const margin = 30; // Sufficient margin to avoid overlap
-
-  // Continue button should start well below the last attribute row
-  expect(
-    positions!.continueButtonY,
-    `Continue button (y=${positions!.continueButtonY}) should be below attribute row (y=${positions!.maxAttributeRowY}) with margin of ${margin}`
-  ).toBeGreaterThan(positions!.maxAttributeRowY + margin);
-});
-
-Then('the Save button should be positioned below all weapon rows with sufficient margin', async ({ page }) => {
-  // Get positions of Save button and weapon rows
-  const positions = await page.evaluate(() => {
-    const game = window.__PHASER_GAME__;
-    if (!game) return null;
-
-    const scene = game.scene.getScene('CharacterCreationScene');
-    if (!scene) return null;
-
-    // Find the Save button: green rectangle (fillColor = 0x448844)
-    let saveButtonY = 0;
-    for (const child of (scene as any).children.list) {
-      if (child.type === 'Rectangle' && child.fillColor === 0x448844) {
-        saveButtonY = child.y;
-        break;
+      // Find max attribute row Y from attribute buttons
+      let maxAttributeRowY = 0;
+      const attributeButtons = (scene as any).attributeButtons;
+      if (attributeButtons) {
+        attributeButtons.forEach((buttons: any) => {
+          if (buttons.plus && buttons.plus.y > maxAttributeRowY) {
+            maxAttributeRowY = buttons.plus.y;
+          }
+        });
       }
-    }
 
-    // Find max weapon row Y from weapon selection rectangles
-    let maxWeaponRowY = 0;
-    const weaponRects = (scene as any).weaponSelectionRectangles;
-    if (weaponRects) {
-      weaponRects.forEach((rect: any) => {
-        if (rect.y > maxWeaponRowY) {
-          maxWeaponRowY = rect.y;
+      return { continueButtonY, maxAttributeRowY };
+    });
+
+    expect(positions).not.toBeNull();
+    const margin = 30; // Sufficient margin to avoid overlap
+
+    // Continue button should start well below the last attribute row
+    expect(
+      positions!.continueButtonY,
+      `Continue button (y=${positions!.continueButtonY}) should be below attribute row (y=${positions!.maxAttributeRowY}) with margin of ${margin}`
+    ).toBeGreaterThan(positions!.maxAttributeRowY + margin);
+  }
+);
+
+Then(
+  'the Save button should be positioned below all weapon rows with sufficient margin',
+  async ({ page }) => {
+    // Get positions of Save button and weapon rows
+    const positions = await page.evaluate(() => {
+      const game = window.__PHASER_GAME__;
+      if (!game) return null;
+
+      const scene = game.scene.getScene('CharacterCreationScene');
+      if (!scene) return null;
+
+      // Find the Save button: green rectangle (fillColor = 0x448844)
+      let saveButtonY = 0;
+      for (const child of (scene as any).children.list) {
+        if (child.type === 'Rectangle' && child.fillColor === 0x448844) {
+          saveButtonY = child.y;
+          break;
         }
-      });
-    }
-
-    return { saveButtonY, maxWeaponRowY };
-  });
-
-  expect(positions).not.toBeNull();
-  const margin = 30; // Sufficient margin to avoid overlap
-
-  // Save button should be positioned below the last weapon row
-  expect(
-    positions!.saveButtonY,
-    `Save button (y=${positions!.saveButtonY}) should be below weapon row (y=${positions!.maxWeaponRowY}) with margin of ${margin}`
-  ).toBeGreaterThan(positions!.maxWeaponRowY + margin);
-});
-
-Then('the Bead Bag Preview title should be positioned below all attribute rows', async ({ page }) => {
-  // Get positions of Bead Bag Preview text and attribute rows
-  const positions = await page.evaluate(() => {
-    const game = window.__PHASER_GAME__;
-    if (!game) return null;
-
-    const scene = game.scene.getScene('CharacterCreationScene');
-    if (!scene) return null;
-
-    // Find the "Bead Bag Preview" text object in the scene
-    let beadPreviewTextY = 0;
-    for (const child of (scene as any).children.list) {
-      if (child.type === 'Text' && child.text === 'Bead Bag Preview') {
-        beadPreviewTextY = child.y;
-        break;
       }
-    }
 
-    // Find max attribute row Y from attribute buttons
-    let maxAttributeRowY = 0;
-    const attributeButtons = (scene as any).attributeButtons;
-    if (attributeButtons && attributeButtons instanceof Map) {
-      attributeButtons.forEach((buttons: any) => {
-        if (buttons.plus && buttons.plus.y > maxAttributeRowY) {
-          maxAttributeRowY = buttons.plus.y;
+      // Find max weapon row Y from weapon selection rectangles
+      let maxWeaponRowY = 0;
+      const weaponRects = (scene as any).weaponSelectionRectangles;
+      if (weaponRects) {
+        weaponRects.forEach((rect: any) => {
+          if (rect.y > maxWeaponRowY) {
+            maxWeaponRowY = rect.y;
+          }
+        });
+      }
+
+      return { saveButtonY, maxWeaponRowY };
+    });
+
+    expect(positions).not.toBeNull();
+    const margin = 30; // Sufficient margin to avoid overlap
+
+    // Save button should be positioned below the last weapon row
+    expect(
+      positions!.saveButtonY,
+      `Save button (y=${positions!.saveButtonY}) should be below weapon row (y=${positions!.maxWeaponRowY}) with margin of ${margin}`
+    ).toBeGreaterThan(positions!.maxWeaponRowY + margin);
+  }
+);
+
+Then(
+  'the Bead Bag Preview title should be positioned below all attribute rows',
+  async ({ page }) => {
+    // Get positions of Bead Bag Preview text and attribute rows
+    const positions = await page.evaluate(() => {
+      const game = window.__PHASER_GAME__;
+      if (!game) return null;
+
+      const scene = game.scene.getScene('CharacterCreationScene');
+      if (!scene) return null;
+
+      // Find the "Bead Bag Preview" text object in the scene
+      let beadPreviewTextY = 0;
+      for (const child of (scene as any).children.list) {
+        if (child.type === 'Text' && child.text === 'Bead Bag Preview') {
+          beadPreviewTextY = child.y;
+          break;
         }
-      });
-    } else if (Array.isArray(attributeButtons)) {
-      attributeButtons.forEach((buttons: any) => {
-        if (buttons.plus && buttons.plus.y > maxAttributeRowY) {
-          maxAttributeRowY = buttons.plus.y;
-        }
-      });
-    }
+      }
 
-    return { beadPreviewTextY, maxAttributeRowY };
-  });
+      // Find max attribute row Y from attribute buttons
+      let maxAttributeRowY = 0;
+      const attributeButtons = (scene as any).attributeButtons;
+      if (attributeButtons && attributeButtons instanceof Map) {
+        attributeButtons.forEach((buttons: any) => {
+          if (buttons.plus && buttons.plus.y > maxAttributeRowY) {
+            maxAttributeRowY = buttons.plus.y;
+          }
+        });
+      } else if (Array.isArray(attributeButtons)) {
+        attributeButtons.forEach((buttons: any) => {
+          if (buttons.plus && buttons.plus.y > maxAttributeRowY) {
+            maxAttributeRowY = buttons.plus.y;
+          }
+        });
+      }
 
-  expect(positions).not.toBeNull();
-  const margin = 30; // Sufficient margin to avoid overlap
+      return { beadPreviewTextY, maxAttributeRowY };
+    });
 
-  // Bead Bag Preview text should be positioned below the last attribute row
-  expect(
-    positions!.beadPreviewTextY,
-    `Bead Bag Preview title (y=${positions!.beadPreviewTextY}) should be below attribute row (y=${positions!.maxAttributeRowY}) with margin of ${margin}`
-  ).toBeGreaterThan(positions!.maxAttributeRowY + margin);
-});
+    expect(positions).not.toBeNull();
+    const margin = 30; // Sufficient margin to avoid overlap
+
+    // Bead Bag Preview text should be positioned below the last attribute row
+    expect(
+      positions!.beadPreviewTextY,
+      `Bead Bag Preview title (y=${positions!.beadPreviewTextY}) should be below attribute row (y=${positions!.maxAttributeRowY}) with margin of ${margin}`
+    ).toBeGreaterThan(positions!.maxAttributeRowY + margin);
+  }
+);
 
 Then('the bead preview should be centered within the game canvas', async ({ page }) => {
   // Get the bead container and calculate its center position

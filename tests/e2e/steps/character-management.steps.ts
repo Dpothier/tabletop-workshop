@@ -154,7 +154,11 @@ async function navigateToPage(page: Page, targetPage: number, currentPage: numbe
 
 When('I click the {string} button', async ({ page }, buttonName: string) => {
   if (buttonName === 'Manage Characters') {
-    await clickGameCoords(page, MANAGEMENT_COORDS.MANAGE_BUTTON_X, MANAGEMENT_COORDS.MANAGE_BUTTON_Y);
+    await clickGameCoords(
+      page,
+      MANAGEMENT_COORDS.MANAGE_BUTTON_X,
+      MANAGEMENT_COORDS.MANAGE_BUTTON_Y
+    );
     await page.waitForTimeout(300);
   } else {
     throw new Error(`Unknown button: ${buttonName}`);
@@ -352,9 +356,7 @@ Then('the Delete button should be disabled for characters in the party', async (
     };
 
     const slots = menuScene.characterSlotsState?.slots || [];
-    return slots
-      .filter((slot) => slot !== null)
-      .map((slot) => (slot as { id: string }).id);
+    return slots.filter((slot) => slot !== null).map((slot) => (slot as { id: string }).id);
   });
 
   expect(partyCharacterIds.length).toBeGreaterThan(0);

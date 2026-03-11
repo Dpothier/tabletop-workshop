@@ -222,10 +222,15 @@ export class CharacterSelectionPopup {
     this.container.add(prevButton);
 
     // Page indicator text
-    const pageText = this.scene.add.text(0, controlsY, `Page ${this.currentPage + 1}/${totalPages}`, {
-      fontSize: '14px',
-      color: '#aaaaaa',
-    });
+    const pageText = this.scene.add.text(
+      0,
+      controlsY,
+      `Page ${this.currentPage + 1}/${totalPages}`,
+      {
+        fontSize: '14px',
+        color: '#aaaaaa',
+      }
+    );
     pageText.setOrigin(0.5);
     this.container.add(pageText);
 

@@ -87,42 +87,59 @@ Given(
 
 // Bead setup steps
 
-Given('the player has {int} red bead in hand', function (world: DefensiveReactionsWorld, count: number) {
-  const character = world.defEntities?.get('hero-0') as Character;
-  if (character) {
-    world.playerBeadSystem = new PlayerBeadSystem({ red: count, blue: 0, green: 0, white: 0 });
-    world.playerBeadSystem.drawToHand(count);
+Given(
+  'the player has {int} red bead in hand',
+  function (world: DefensiveReactionsWorld, count: number) {
+    const character = world.defEntities?.get('hero-0') as Character;
+    if (character) {
+      world.playerBeadSystem = new PlayerBeadSystem({ red: count, blue: 0, green: 0, white: 0 });
+      world.playerBeadSystem.drawToHand(count);
+    }
   }
-});
+);
 
-Given('the player has {int} red beads in hand', function (world: DefensiveReactionsWorld, count: number) {
-  const character = world.defEntities?.get('hero-0') as Character;
-  if (character) {
-    world.playerBeadSystem = new PlayerBeadSystem({ red: count, blue: 0, green: 0, white: 0 });
-    world.playerBeadSystem.drawToHand(count);
+Given(
+  'the player has {int} red beads in hand',
+  function (world: DefensiveReactionsWorld, count: number) {
+    const character = world.defEntities?.get('hero-0') as Character;
+    if (character) {
+      world.playerBeadSystem = new PlayerBeadSystem({ red: count, blue: 0, green: 0, white: 0 });
+      world.playerBeadSystem.drawToHand(count);
+    }
   }
-});
+);
 
-Given('the player has {int} green bead in hand', function (world: DefensiveReactionsWorld, count: number) {
-  const character = world.defEntities?.get('hero-0') as Character;
-  if (character) {
-    world.playerBeadSystem = new PlayerBeadSystem({ red: 0, blue: 0, green: count, white: 0 });
-    world.playerBeadSystem.drawToHand(count);
+Given(
+  'the player has {int} green bead in hand',
+  function (world: DefensiveReactionsWorld, count: number) {
+    const character = world.defEntities?.get('hero-0') as Character;
+    if (character) {
+      world.playerBeadSystem = new PlayerBeadSystem({ red: 0, blue: 0, green: count, white: 0 });
+      world.playerBeadSystem.drawToHand(count);
+    }
   }
-});
+);
 
-Given('the player has {int} green beads in hand', function (world: DefensiveReactionsWorld, count: number) {
-  const character = world.defEntities?.get('hero-0') as Character;
-  if (character) {
-    world.playerBeadSystem = new PlayerBeadSystem({ red: 0, blue: 0, green: count, white: 0 });
-    world.playerBeadSystem.drawToHand(count);
+Given(
+  'the player has {int} green beads in hand',
+  function (world: DefensiveReactionsWorld, count: number) {
+    const character = world.defEntities?.get('hero-0') as Character;
+    if (character) {
+      world.playerBeadSystem = new PlayerBeadSystem({ red: 0, blue: 0, green: count, white: 0 });
+      world.playerBeadSystem.drawToHand(count);
+    }
   }
-});
+);
 
 Given(
   'the player has {int} red bead and {int} green bead in hand',
   function (world: DefensiveReactionsWorld, redCount: number, greenCount: number) {
-    world.playerBeadSystem = new PlayerBeadSystem({ red: redCount, blue: 0, green: greenCount, white: 0 });
+    world.playerBeadSystem = new PlayerBeadSystem({
+      red: redCount,
+      blue: 0,
+      green: greenCount,
+      white: 0,
+    });
     world.playerBeadSystem.drawToHand(redCount + greenCount);
   }
 );
@@ -135,7 +152,12 @@ Given(
       world.playerBeadSystem = new PlayerBeadSystem({ red: 0, blue: 2, green: 0, white: 2 });
       world.playerBeadSystem.drawToHand(4);
     } else {
-      world.playerBeadSystem = new PlayerBeadSystem({ red: redCount, blue: 0, green: greenCount, white: 0 });
+      world.playerBeadSystem = new PlayerBeadSystem({
+        red: redCount,
+        blue: 0,
+        green: greenCount,
+        white: 0,
+      });
       world.playerBeadSystem.drawToHand(redCount + greenCount);
     }
   }
@@ -244,53 +266,65 @@ When(
   }
 );
 
-When('the player spends {int} red bead for defense', function (world: DefensiveReactionsWorld, count: number) {
-  const player = world.defEntities?.get('hero-0') as Character;
-  if (player && world.playerBeadSystem) {
-    for (let i = 0; i < count; i++) {
-      world.playerBeadSystem.spend('red');
+When(
+  'the player spends {int} red bead for defense',
+  function (world: DefensiveReactionsWorld, count: number) {
+    const player = world.defEntities?.get('hero-0') as Character;
+    if (player && world.playerBeadSystem) {
+      for (let i = 0; i < count; i++) {
+        world.playerBeadSystem.spend('red');
+      }
+      player.setGuard(player.guard + count);
+      world.playerGuardAfter = player.guard;
+      world.selectedReaction = [`guard-${count}`];
     }
-    player.setGuard(player.guard + count);
-    world.playerGuardAfter = player.guard;
-    world.selectedReaction = [`guard-${count}`];
   }
-});
+);
 
-When('the player spends {int} green bead for defense', function (world: DefensiveReactionsWorld, count: number) {
-  const player = world.defEntities?.get('hero-0') as Character;
-  if (player && world.playerBeadSystem) {
-    for (let i = 0; i < count; i++) {
-      world.playerBeadSystem.spend('green');
+When(
+  'the player spends {int} green bead for defense',
+  function (world: DefensiveReactionsWorld, count: number) {
+    const player = world.defEntities?.get('hero-0') as Character;
+    if (player && world.playerBeadSystem) {
+      for (let i = 0; i < count; i++) {
+        world.playerBeadSystem.spend('green');
+      }
+      player.setEvasion(player.evasion + count);
+      world.playerEvasionAfter = player.evasion;
+      world.selectedReaction = [`evade-${count}`];
     }
-    player.setEvasion(player.evasion + count);
-    world.playerEvasionAfter = player.evasion;
-    world.selectedReaction = [`evade-${count}`];
   }
-});
+);
 
-When('the player spends {int} red beads for defense', function (world: DefensiveReactionsWorld, count: number) {
-  const player = world.defEntities?.get('hero-0') as Character;
-  if (player && world.playerBeadSystem) {
-    for (let i = 0; i < count; i++) {
-      world.playerBeadSystem.spend('red');
+When(
+  'the player spends {int} red beads for defense',
+  function (world: DefensiveReactionsWorld, count: number) {
+    const player = world.defEntities?.get('hero-0') as Character;
+    if (player && world.playerBeadSystem) {
+      for (let i = 0; i < count; i++) {
+        world.playerBeadSystem.spend('red');
+      }
+      player.setGuard(player.guard + count);
+      world.playerGuardAfter = player.guard;
+      world.selectedReaction = [`guard-${count}`];
     }
-    player.setGuard(player.guard + count);
-    world.playerGuardAfter = player.guard;
-    world.selectedReaction = [`guard-${count}`];
   }
-});
+);
 
-When('the player spends {int} green beads for defense', function (world: DefensiveReactionsWorld, count: number) {
-  const player = world.defEntities?.get('hero-0') as Character;
-  if (player && world.playerBeadSystem) {
-    for (let i = 0; i < count; i++) {
-      world.playerBeadSystem.spend('green');
+When(
+  'the player spends {int} green beads for defense',
+  function (world: DefensiveReactionsWorld, count: number) {
+    const player = world.defEntities?.get('hero-0') as Character;
+    if (player && world.playerBeadSystem) {
+      for (let i = 0; i < count; i++) {
+        world.playerBeadSystem.spend('green');
+      }
+      player.setEvasion(player.evasion + count);
+      world.playerEvasionAfter = player.evasion;
+      world.selectedReaction = [`evade-${count}`];
     }
-    player.setEvasion(player.evasion + count);
-    world.playerEvasionAfter = player.evasion;
-    world.selectedReaction = [`evade-${count}`];
   }
-});
+);
 
 When(
   'the player spends {int} red bead and {int} green bead for defense',
@@ -312,9 +346,12 @@ When(
   }
 );
 
-When('the player chooses to pass without spending beads', function (world: DefensiveReactionsWorld) {
-  world.selectedReaction = ['pass'];
-});
+When(
+  'the player chooses to pass without spending beads',
+  function (world: DefensiveReactionsWorld) {
+    world.selectedReaction = ['pass'];
+  }
+);
 
 When('the monster attacks again', function (world: DefensiveReactionsWorld) {
   const player = world.defEntities?.get('hero-0') as Character;
@@ -333,26 +370,32 @@ When('the goblin attacks the orc', function (world: DefensiveReactionsWorld) {
 
 // Assertions
 
-Then('the player should be prompted for defensive reactions', function (world: DefensiveReactionsWorld) {
-  expect(world.capturedPrompts).toBeDefined();
-  expect(world.capturedPrompts!.length).toBeGreaterThan(0);
-});
+Then(
+  'the player should be prompted for defensive reactions',
+  function (world: DefensiveReactionsWorld) {
+    expect(world.capturedPrompts).toBeDefined();
+    expect(world.capturedPrompts!.length).toBeGreaterThan(0);
+  }
+);
 
-Then('the prompt should offer red and green bead options', function (world: DefensiveReactionsWorld) {
-  expect(world.capturedPrompts).toBeDefined();
-  expect(world.capturedPrompts!.length).toBeGreaterThan(0);
+Then(
+  'the prompt should offer red and green bead options',
+  function (world: DefensiveReactionsWorld) {
+    expect(world.capturedPrompts).toBeDefined();
+    expect(world.capturedPrompts!.length).toBeGreaterThan(0);
 
-  const prompt = world.capturedPrompts![0];
-  expect(prompt.key).toBe('defensiveReaction');
+    const prompt = world.capturedPrompts![0];
+    expect(prompt.key).toBe('defensiveReaction');
 
-  const hasGuardOption = prompt.options.some((opt) => opt.id.startsWith('guard'));
-  const hasEvadeOption = prompt.options.some((opt) => opt.id.startsWith('evade'));
-  const hasPassOption = prompt.options.some((opt) => opt.id === 'pass');
+    const hasGuardOption = prompt.options.some((opt) => opt.id.startsWith('guard'));
+    const hasEvadeOption = prompt.options.some((opt) => opt.id.startsWith('evade'));
+    const hasPassOption = prompt.options.some((opt) => opt.id === 'pass');
 
-  expect(hasGuardOption).toBe(true);
-  expect(hasEvadeOption).toBe(true);
-  expect(hasPassOption).toBe(true);
-});
+    expect(hasGuardOption).toBe(true);
+    expect(hasEvadeOption).toBe(true);
+    expect(hasPassOption).toBe(true);
+  }
+);
 
 Then(
   'the player guard should be increased by {int} before attack resolves',
@@ -362,17 +405,23 @@ Then(
   }
 );
 
-Then('the player should have {int} red beads in hand', function (world: DefensiveReactionsWorld, expectedCount: number) {
-  expect(world.playerBeadSystem).toBeDefined();
-  const counts = world.playerBeadSystem!.getHandCounts();
-  expect(counts.red).toBe(expectedCount);
-});
+Then(
+  'the player should have {int} red beads in hand',
+  function (world: DefensiveReactionsWorld, expectedCount: number) {
+    expect(world.playerBeadSystem).toBeDefined();
+    const counts = world.playerBeadSystem!.getHandCounts();
+    expect(counts.red).toBe(expectedCount);
+  }
+);
 
-Then('the player should have {int} red bead in hand', function (world: DefensiveReactionsWorld, expectedCount: number) {
-  expect(world.playerBeadSystem).toBeDefined();
-  const counts = world.playerBeadSystem!.getHandCounts();
-  expect(counts.red).toBe(expectedCount);
-});
+Then(
+  'the player should have {int} red bead in hand',
+  function (world: DefensiveReactionsWorld, expectedCount: number) {
+    expect(world.playerBeadSystem).toBeDefined();
+    const counts = world.playerBeadSystem!.getHandCounts();
+    expect(counts.red).toBe(expectedCount);
+  }
+);
 
 Then(
   'the player evasion should be increased by {int} before attack resolves',
@@ -382,17 +431,23 @@ Then(
   }
 );
 
-Then('the player should have {int} green beads in hand', function (world: DefensiveReactionsWorld, expectedCount: number) {
-  expect(world.playerBeadSystem).toBeDefined();
-  const counts = world.playerBeadSystem!.getHandCounts();
-  expect(counts.green).toBe(expectedCount);
-});
+Then(
+  'the player should have {int} green beads in hand',
+  function (world: DefensiveReactionsWorld, expectedCount: number) {
+    expect(world.playerBeadSystem).toBeDefined();
+    const counts = world.playerBeadSystem!.getHandCounts();
+    expect(counts.green).toBe(expectedCount);
+  }
+);
 
-Then('the player should have {int} green bead in hand', function (world: DefensiveReactionsWorld, expectedCount: number) {
-  expect(world.playerBeadSystem).toBeDefined();
-  const counts = world.playerBeadSystem!.getHandCounts();
-  expect(counts.green).toBe(expectedCount);
-});
+Then(
+  'the player should have {int} green bead in hand',
+  function (world: DefensiveReactionsWorld, expectedCount: number) {
+    expect(world.playerBeadSystem).toBeDefined();
+    const counts = world.playerBeadSystem!.getHandCounts();
+    expect(counts.green).toBe(expectedCount);
+  }
+);
 
 Then(
   'the player should have {int} red beads and {int} green beads in hand',
@@ -404,10 +459,13 @@ Then(
   }
 );
 
-Then('the player should not be prompted for defensive reactions', function (world: DefensiveReactionsWorld) {
-  const promptCount = world.promptIssuedCount || 0;
-  expect(promptCount).toBe(0);
-});
+Then(
+  'the player should not be prompted for defensive reactions',
+  function (world: DefensiveReactionsWorld) {
+    const promptCount = world.promptIssuedCount || 0;
+    expect(promptCount).toBe(0);
+  }
+);
 
 Then('the attack should resolve immediately', function () {
   // Just verify we got here - attack resolves without defensive prompt

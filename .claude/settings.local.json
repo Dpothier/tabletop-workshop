@@ -170,13 +170,18 @@
       "Bash(git checkout --theirs progress.txt tests/steps/entity-buffs.steps.ts tests/steps/status-effect-manager.steps.ts 2>&1)",
       "Bash(git -C /home/dominique/git/tabletop-workshop/workshop-1 status --short)",
       "Bash(git -C /home/dominique/git/tabletop-workshop/workshop-1 diff --stat)",
-      "Bash(git checkout --ours progress.txt && git checkout --ours tests/steps/entity-buffs.steps.ts && git checkout --ours tests/steps/status-effect-manager.steps.ts)"
+      "Bash(git checkout --ours progress.txt && git checkout --ours tests/steps/entity-buffs.steps.ts && git checkout --ours tests/steps/status-effect-manager.steps.ts)",
+      "Bash(git reset HEAD)",
+      "mcp__atlassian__searchJiraIssuesUsingJql",
+      "mcp__atlassian__getTransitionsForJiraIssue",
+      "mcp__atlassian__transitionJiraIssue"
     ],
     "deny": [],
     "ask": []
   },
   "enabledMcpjsonServers": [
     "context7",
-    "playwright"
+    "playwright",
+    "atlassian"
   ]
 }

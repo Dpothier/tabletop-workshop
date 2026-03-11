@@ -603,52 +603,49 @@ Then(
 
 // ===== End-of-round resolution tests =====
 
-Given(
-  'a TurnFlowController with round-end resolution',
-  function (world: TurnFlowControllerWorld) {
-    // Create a real grid
-    world.roundEndGrid = new BattleGrid(9, 9);
-    world.roundEndEntities = new Map();
+Given('a TurnFlowController with round-end resolution', function (world: TurnFlowControllerWorld) {
+  // Create a real grid
+  world.roundEndGrid = new BattleGrid(9, 9);
+  world.roundEndEntities = new Map();
 
-    // Create real entities
-    const hero0 = new Entity('hero-0', 20, world.roundEndGrid);
-    const hero1 = new Entity('hero-1', 20, world.roundEndGrid);
-    world.roundEndEntities.set('hero-0', hero0);
-    world.roundEndEntities.set('hero-1', hero1);
+  // Create real entities
+  const hero0 = new Entity('hero-0', 20, world.roundEndGrid);
+  const hero1 = new Entity('hero-1', 20, world.roundEndGrid);
+  world.roundEndEntities.set('hero-0', hero0);
+  world.roundEndEntities.set('hero-1', hero1);
 
-    // Create real wheel
-    const wheel = new ActionWheel();
-    wheel.addEntity('hero-0', 0);
-    wheel.addEntity('hero-1', 2);
-    wheel.addEntity('monster', 4);
+  // Create real wheel
+  const wheel = new ActionWheel();
+  wheel.addEntity('hero-0', 0);
+  wheel.addEntity('hero-1', 2);
+  wheel.addEntity('monster', 4);
 
-    // Create turn controller
-    const monsterMock = createAliveMock(true);
-    const characterMocks = [createAliveMock(true), createAliveMock(true)];
-    world.turnController = new TurnController(wheel, monsterMock, characterMocks);
+  // Create turn controller
+  const monsterMock = createAliveMock(true);
+  const characterMocks = [createAliveMock(true), createAliveMock(true)];
+  world.turnController = new TurnController(wheel, monsterMock, characterMocks);
 
-    // Create state with real wheel and entities
-    world.battleState = {
-      ...createBattleStateMock(world.turnController),
-      wheel,
-      characters: [hero0, hero1] as any,
-      monsterEntity: {
-        id: 'monster',
-        getStacks: () => 0,
-        clearStacks: () => {},
-        receiveDamage: () => {},
-        isAlive: () => true,
-      } as any,
-      stateObserver: {
-        emitActorChanged: vi.fn(),
-        emitRoundEnded: vi.fn(),
-      } as any,
-    };
+  // Create state with real wheel and entities
+  world.battleState = {
+    ...createBattleStateMock(world.turnController),
+    wheel,
+    characters: [hero0, hero1] as any,
+    monsterEntity: {
+      id: 'monster',
+      getStacks: () => 0,
+      clearStacks: () => {},
+      receiveDamage: () => {},
+      isAlive: () => true,
+    } as any,
+    stateObserver: {
+      emitActorChanged: vi.fn(),
+      emitRoundEnded: vi.fn(),
+    } as any,
+  };
 
-    world.battleAdapter = createBattleAdapterMock();
-    world.turnFlowController = new TurnFlowController(world.battleState, world.battleAdapter);
-  }
-);
+  world.battleAdapter = createBattleAdapterMock();
+  world.turnFlowController = new TurnFlowController(world.battleState, world.battleAdapter);
+});
 
 Given(
   'entity {string} has {int} burn stacks',
@@ -705,10 +702,7 @@ Then(
   }
 );
 
-Then(
-  'the stateObserver should have emitted roundEnded',
-  function (world: TurnFlowControllerWorld) {
-    const emitSpy = (world.battleState!.stateObserver as any).emitRoundEnded as any;
-    expect(emitSpy).toHaveBeenCalled();
-  }
-);
+Then('the stateObserver should have emitted roundEnded', function (world: TurnFlowControllerWorld) {
+  const emitSpy = (world.battleState!.stateObserver as any).emitRoundEnded as any;
+  expect(emitSpy).toHaveBeenCalled();
+});

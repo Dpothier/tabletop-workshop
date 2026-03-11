@@ -41,9 +41,8 @@ export class PrepareEffect implements Effect {
     const newTotal = currentStacks + stacksToAdd;
 
     // Cap to maxStacks if defined
-    const cappedTotal = definition.maxStacks !== null
-      ? Math.min(newTotal, definition.maxStacks)
-      : newTotal;
+    const cappedTotal =
+      definition.maxStacks !== null ? Math.min(newTotal, definition.maxStacks) : newTotal;
 
     // Clear existing stacks
     entity.clearStacks(prepType);

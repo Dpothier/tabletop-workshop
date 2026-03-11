@@ -127,12 +127,7 @@ export class ActionResolutionLegacy {
       }
 
       const result: EffectResult = await Promise.resolve(
-        effectClass.execute(
-          this.context,
-          resolvedParams,
-          modifiers,
-          this.chainResults
-        )
+        effectClass.execute(this.context, resolvedParams, modifiers, this.chainResults)
       );
 
       // Store chain result for subsequent effects
