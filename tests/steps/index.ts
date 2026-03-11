@@ -84,3 +84,6 @@ import './combat-log-storage.steps';
 // MFG-63: Combat System Instrumentation
 import './combat-instrumentation.steps';
 import './combat-instrumentation-integration.steps';
+// MFG-65: ReplayScene - CombatLogPlayer and SnapshotHydrator
+import './combat-log-player.steps';
+import './snapshot-hydrator.steps';

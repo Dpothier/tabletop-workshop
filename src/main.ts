@@ -3,6 +3,7 @@ import { MenuScene } from '@src/scenes/MenuScene';
 import { BattleScene } from '@src/scenes/BattleScene';
 import { VictoryScene } from '@src/scenes/VictoryScene';
 import { CharacterCreationScene } from '@src/scenes/CharacterCreationScene';
+import { ReplayScene } from '@src/scenes/ReplayScene';
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -13,7 +14,7 @@ const config: Phaser.Types.Core.GameConfig = {
   dom: {
     createContainer: true,
   },
-  scene: [MenuScene, CharacterCreationScene, BattleScene, VictoryScene],
+  scene: [MenuScene, CharacterCreationScene, BattleScene, VictoryScene, ReplayScene],
   physics: {
     default: 'arcade',
     arcade: {
