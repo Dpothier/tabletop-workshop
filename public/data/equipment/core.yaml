@@ -129,3 +129,19 @@ equipment:
     passiveStats: {}
     rangeBands: []
     startsLoaded: false
+  - id: censer
+    name: Censer
+    category: support
+    slot: off-hand
+    power: 0
+    agility: 0
+    range: 0
+    penetration: 0
+    tags: [support]
+    inventorySlots: 1
+    twoHanded: false
+    grantedModifiers: [renew]
+    grantedActions: [bless]
+    passiveStats: {}
+    rangeBands: []
+    startsLoaded: false

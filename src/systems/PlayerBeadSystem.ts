@@ -15,6 +15,7 @@ export class PlayerBeadSystem {
   private readonly pool: BeadPool;
   private readonly hand: BeadPile;
   private readonly discard: BeadPile;
+  private goldCount: number = 0;
 
   /**
    * Create a new player bead system.
@@ -46,30 +47,37 @@ export class PlayerBeadSystem {
 
   /**
    * Spend a bead from hand to discard.
+   * If the requested color is not available, a gold bead is spent instead.
    * @param color - Color of bead to spend
-   * @returns True if spend succeeded, false if bead not in hand
+   * @returns True if spend succeeded, false if bead not in hand and no gold available
    */
   spend(color: BeadColor): boolean {
-    if (!this.hand.remove(color)) {
-      return false;
+    if (this.hand.remove(color)) {
+      this.discard.add(color);
+      return true;
     }
-    this.discard.add(color);
-    return true;
+    // Fall back to gold bead
+    if (this.goldCount > 0) {
+      this.goldCount--;
+      return true;
+    }
+    return false;
   }
 
   /**
    * Check if player can afford a bead cost.
    * @param costs - Required bead counts
-   * @returns True if hand has all required beads
+   * @returns True if hand has all required beads or can cover deficit with gold beads
    */
   canAfford(costs: BeadCounts): boolean {
     const handCounts = this.hand.getCounts();
+    let deficit = 0;
     for (const color of BEAD_COLORS) {
       if (handCounts[color] < costs[color]) {
-        return false;
+        deficit += costs[color] - handCounts[color];
       }
     }
-    return true;
+    return deficit <= this.goldCount;
   }
 
   /**
@@ -138,6 +146,32 @@ export class PlayerBeadSystem {
       return false;
     }
     this.pool.add(color);
+    return true;
+  }
+
+  /**
+   * Add a gold bead to the hand.
+   */
+  addGoldBead(): void {
+    this.goldCount++;
+  }
+
+  /**
+   * Get the number of gold beads in hand.
+   */
+  getGoldCount(): number {
+    return this.goldCount;
+  }
+
+  /**
+   * Spend a gold bead from hand.
+   * @returns True if spend succeeded, false if no gold beads available
+   */
+  spendGold(): boolean {
+    if (this.goldCount <= 0) {
+      return false;
+    }
+    this.goldCount--;
     return true;
   }
 }

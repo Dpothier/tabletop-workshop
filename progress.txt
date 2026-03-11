@@ -504,3 +504,10 @@ Total tests added: 91 unit scenarios across 7 stories
 - GameContext.getWheel: optional wheel access for effects
 - AoE 3x3/5x5, intensity, ward checks, ally acceptance
 - 10 scenarios (9 unit + 1 integration), all passing
+
+## MFG-42: Censer (Support) — DONE
+- BlessEffect: grants gold bead to ally, range 1-6
+- RenewEffect: draws 1 extra bead for ally during Rest, range 1-6
+- PlayerBeadSystem: gold wildcard in canAfford() and spend()
+- YAML: bless + renew actions, censer equipment
+- 14 scenarios (12 unit + 2 integration), all passing

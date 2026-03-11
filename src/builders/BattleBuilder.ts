@@ -23,6 +23,8 @@ import { WarpEffect } from '@src/effects/WarpEffect';
 import { StabilizeEffect } from '@src/effects/StabilizeEffect';
 import { PhoenixBurstEffect } from '@src/effects/PhoenixBurstEffect';
 import { TemporalShiftEffect } from '@src/effects/TemporalShiftEffect';
+import { BlessEffect } from '@src/effects/BlessEffect';
+import { RenewEffect } from '@src/effects/RenewEffect';
 import { BattleStateObserver } from '@src/systems/BattleStateObserver';
 
 /**
@@ -123,6 +125,8 @@ export class BattleBuilder {
     effectRegistry.register('stabilize', new StabilizeEffect());
     effectRegistry.register('phoenixBurst', new PhoenixBurstEffect());
     effectRegistry.register('temporalShift', new TemporalShiftEffect());
+    effectRegistry.register('bless', new BlessEffect());
+    effectRegistry.register('renew', new RenewEffect());
 
     // 3. Build entity map (needed for character construction)
     const entityMap: Map<string, Entity> = new Map();

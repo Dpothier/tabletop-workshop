@@ -84,3 +84,5 @@ import './warp.steps';
 import './phoenix-heart.steps';
 // MFG-43: Temporal Shift - Hourglass of Time spell
 import './temporal-shift.steps';
+// MFG-42: Censer - Support item with Bless and Renew
+import './censer.steps';

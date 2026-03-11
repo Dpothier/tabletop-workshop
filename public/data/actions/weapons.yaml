@@ -176,3 +176,34 @@ actions:
             blue: 1
         effect:
           intensity: true
+  - id: bless
+    name: Bless
+    category: other
+    description: Grant a gold bead to an ally within range
+    cost:
+      time: 1
+      beads:
+        white: 1
+    parameters:
+      - name: target
+        type: entity
+        range: 6
+    effects:
+      - id: bless-1
+        type: bless
+        params: {}
+  - id: renew
+    name: Renew
+    category: reaction
+    description: When an ally resolves Rest, they draw 1 extra bead
+    cost:
+      beads:
+        white: 1
+    parameters:
+      - name: target
+        type: entity
+        range: 6
+    effects:
+      - id: renew-1
+        type: renew
+        params: {}
