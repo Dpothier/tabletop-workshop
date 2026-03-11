@@ -58,6 +58,15 @@ export class AssessEffect implements Effect {
     // Get next planned action
     const nextAction = monster.getNextPlannedAction();
 
+    context.recorder?.record({
+      type: 'state-change',
+      seq: 0,
+      entityId: context.actorId || '',
+      entityName: 'Entity',
+      changeType: 'status-effect',
+      details: { revealed: true, targetId },
+    } as any);
+
     return {
       success: true,
       data: {

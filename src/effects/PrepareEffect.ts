@@ -52,6 +52,15 @@ export class PrepareEffect implements Effect {
       entity.addStacks(prepType, cappedTotal);
     }
 
+    context.recorder?.record({
+      type: 'state-change',
+      seq: 0,
+      entityId: context.actorId || '',
+      entityName: 'Entity',
+      changeType: 'buff-add',
+      details: { stackName: prepType, stacksAdded: cappedTotal },
+    } as any);
+
     return {
       success: true,
       data: {

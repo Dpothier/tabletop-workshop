@@ -129,9 +129,20 @@ export async function handleDefensiveReaction(
     beadsSpent = true;
   }
 
-  // Notify UI that beads have changed
+  // Notify UI that beads have changed and record reaction
   if (beadsSpent) {
-    context.adapter.notifyBeadsChanged(target.id, beadHand.getHandCounts());
+    const finalCounts = beadHand.getHandCounts();
+    context.adapter.notifyBeadsChanged(target.id, finalCounts);
+
+    // Record defensive reaction
+    context.recorder?.record({
+      type: 'defensive-reaction',
+      seq: 0,
+      defenderId: target.id,
+      defenderName: target.getName?.() || target.id,
+      reactionType: reactionId,
+      beadsSpent: finalCounts,
+    } as any);
   }
 }
 

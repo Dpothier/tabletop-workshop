@@ -10,6 +10,7 @@ import { resolveAttack } from '@src/combat/CombatResolver';
 import type { BattleAdapter } from '@src/types/BattleAdapter';
 import { Character } from '@src/entities/Character';
 import type { OptionPrompt, OptionChoice } from '@src/types/ParameterPrompt';
+import type { CombatRecorder } from '@src/recording/CombatRecorder';
 
 /**
  * Configuration for a monster.
@@ -149,7 +150,7 @@ export class MonsterEntity extends Entity {
    * Draws a bead, transitions state, and determines attack or move.
    * Does NOT execute the action - call executeDecision() for that.
    */
-  decideTurn(targets: Entity[]): MonsterAction {
+  decideTurn(targets: Entity[], recorder?: CombatRecorder): MonsterAction {
     // Default action if no bead system
     if (!this.beadPool || !this.beadDiscard || !this.stateMachine) {
       return {
@@ -170,6 +171,15 @@ export class MonsterEntity extends Entity {
 
     // Discard the bead after using it for state transition
     this.beadDiscard.add(drawnBead);
+
+    // Record the state transition
+    recorder?.record({
+      type: 'monster-state-transition',
+      seq: 0,
+      fromState: this.previousStateName,
+      toState: state.name,
+      drawnBead,
+    } as any);
 
     // Find closest target
     const target = this.findClosestTarget(targets);

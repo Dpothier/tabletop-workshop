@@ -43,6 +43,15 @@ export class MoveEffect implements Effect {
       to: destination,
     };
 
+    context.recorder?.record({
+      type: 'move',
+      seq: 0,
+      entityId: context.actorId!,
+      entityName: 'Entity',
+      from: from ? `${from.x},${from.y}` : '0,0',
+      to: `${destination.x},${destination.y}`,
+    } as any);
+
     return {
       success: true,
       data: { destination },

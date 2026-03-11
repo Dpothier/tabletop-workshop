@@ -99,6 +99,32 @@ export class CastEffect implements Effect {
       target.receiveDamage(actualDamage);
     }
 
+    // Record spell-cast
+    context.recorder?.record({
+      type: 'attack-attempt',
+      seq: 0,
+      attackerId,
+      attackerName: (context.getEntity(attackerId) as any)?.name || attackerId,
+      targetId,
+      targetName: (target as any)?.name || targetId,
+      power: baseDamage,
+      agility: 0,
+      modifiers: [],
+    } as any);
+
+    // Record cast-outcome
+    context.recorder?.record({
+      type: 'combat-outcome',
+      seq: 0,
+      attackerId,
+      targetId,
+      outcome: castResult.outcome,
+      damage: castResult.damage,
+      blockedDamage: castResult.outcome === 'warded' ? castResult.damage : 0,
+      targetHealthAfter: target?.currentHealth || 0,
+      targetMaxHealth: target?.maxHealth || 0,
+    } as any);
+
     return {
       success: true,
       data: {

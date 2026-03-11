@@ -68,6 +68,23 @@ export class ActionResolution {
       }
     }
 
+    // Record action selected
+    const totalCost =
+      (this.action.cost.red ?? 0) +
+      (this.action.cost.blue ?? 0) +
+      (this.action.cost.green ?? 0) +
+      (this.action.cost.white ?? 0);
+    this.context.recorder?.record({
+      type: 'action-selected',
+      seq: 0,
+      actorId: this.actorId,
+      actorName: this.actorId,
+      actionId: this.action.id,
+      actionName: this.action.name,
+      modifiers: [],
+      beadCost: totalCost,
+    } as any);
+
     // Spend bead costs if any
     const beadHand = this.context.getBeadHand(this.actorId);
     if (beadHand) {
@@ -94,6 +111,17 @@ export class ActionResolution {
       for (const color of ['red', 'blue', 'green', 'white'] as const) {
         for (let i = 0; i < (cost[color] ?? 0); i++) {
           beadHand.spend(color);
+
+          // Record bead spend
+          this.context.recorder?.record({
+            type: 'bead-spend',
+            seq: 0,
+            entityId: this.actorId,
+            entityName: this.actorId,
+            color,
+            reason: 'action-cost',
+            handAfter: beadHand.getHandCounts(),
+          } as any);
         }
       }
     }

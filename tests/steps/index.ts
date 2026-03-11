@@ -81,3 +81,6 @@ import './battle-snapshot.steps';
 // MFG-64: Combat Log Serialization & Storage
 import './combat-log-serializer.steps';
 import './combat-log-storage.steps';
+// MFG-63: Combat System Instrumentation
+import './combat-instrumentation.steps';
+import './combat-instrumentation-integration.steps';
