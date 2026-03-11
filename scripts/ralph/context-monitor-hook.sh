@@ -35,8 +35,9 @@ if [ -z "$json_input" ]; then
     exit 0
 fi
 
-# Extract transcript path
+# Extract transcript path and tool name
 TRANSCRIPT_PATH=$(echo "$json_input" | jq -r '.transcript_path // empty' 2>/dev/null || echo "")
+TOOL_NAME=$(echo "$json_input" | jq -r '.tool_name // empty' 2>/dev/null || echo "")
 if [ -z "$TRANSCRIPT_PATH" ] || [ ! -f "$TRANSCRIPT_PATH" ]; then
     exit 0
 fi
@@ -99,9 +100,37 @@ fi
 # ============================================================================
 
 if [ "$PCT" -ge "$CRITICAL_PCT" ]; then
-    echo "{\"decision\":\"approve\",\"reason\":\"🚨 Context at ${PCT}%! Save progress to progress.txt NOW. Commit work and stop.\"}"
+    # At critical level, only allow tools needed to save progress and commit
+    case "$TOOL_NAME" in
+        Write|Edit)
+            # Only allow writing to progress.txt
+            TARGET_FILE=$(echo "$json_input" | jq -r '.tool_input.file_path // empty' 2>/dev/null || echo "")
+            if [[ "$TARGET_FILE" == *"progress.txt" ]]; then
+                echo "{\"decision\":\"approve\",\"reason\":\"🚨 Context at ${PCT}%! Save progress then commit and output <promise>COMPLETE</promise>.\"}"
+            else
+                echo "{\"decision\":\"block\",\"reason\":\"🚨 Context at ${PCT}%! BLOCKED — only progress.txt writes allowed. Save progress, commit (git add + git commit via Bash), then output <promise>COMPLETE</promise>.\"}"
+            fi
+            ;;
+        Bash)
+            # Allow git commands only (commit, add, push, status, diff, log)
+            BASH_CMD=$(echo "$json_input" | jq -r '.tool_input.command // empty' 2>/dev/null || echo "")
+            if [[ "$BASH_CMD" == git\ * ]]; then
+                echo "{\"decision\":\"approve\",\"reason\":\"🚨 Context at ${PCT}%! Commit then output <promise>COMPLETE</promise>.\"}"
+            else
+                echo "{\"decision\":\"block\",\"reason\":\"🚨 Context at ${PCT}%! BLOCKED — only git commands allowed. Commit your work, then output <promise>COMPLETE</promise>.\"}"
+            fi
+            ;;
+        Read|Glob|Grep)
+            # Allow read-only tools (low cost)
+            echo "{\"decision\":\"approve\",\"reason\":\"🚨 Context at ${PCT}%! Wrap up NOW. Save progress, commit, output <promise>COMPLETE</promise>.\"}"
+            ;;
+        *)
+            # Block everything else (Agent, WebSearch, etc.)
+            echo "{\"decision\":\"block\",\"reason\":\"🚨 Context at ${PCT}%! BLOCKED. Save progress to progress.txt, commit with git, then output <promise>COMPLETE</promise>. The outer loop will start a fresh session.\"}"
+            ;;
+    esac
 elif [ "$PCT" -ge "$WARN_PCT" ]; then
-    echo "{\"decision\":\"approve\",\"reason\":\"⚠️ Context at ${PCT}%. Start wrapping up: save progress to progress.txt, commit completed work.\"}"
+    echo "{\"decision\":\"approve\",\"reason\":\"⚠️ Context at ${PCT}%. Finish current story then stop. Save progress to progress.txt, commit completed work, and output <promise>COMPLETE</promise>.\"}"
 fi
 
 exit 0
