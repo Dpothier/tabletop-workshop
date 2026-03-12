@@ -401,6 +401,19 @@ actions:
         type: load
         params:
           weaponId: crossbow
+  - id: strongDraw
+    name: Strong Draw
+    category: modifier
+    description: Draw the bow with extra force for increased penetration
+    cost:
+      beads:
+        red: 1
+    condition:
+      weaponTag: bow
+    modifier:
+      penetration: 1
+    parameters: []
+    effects: []
   - id: steadyAim
     name: Steady Aim
     category: modifier

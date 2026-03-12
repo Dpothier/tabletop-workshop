@@ -106,3 +106,5 @@ import './shield-system.steps';
 import './arquebus.steps';
 // MFG-32: Crossbow - Ranged weapon
 import './crossbow.steps';
+// MFG-31: Longbow - Ranged weapon
+import './longbow.steps';
