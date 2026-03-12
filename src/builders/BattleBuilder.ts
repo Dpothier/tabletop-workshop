@@ -38,6 +38,8 @@ import { BlockEffect } from '@src/effects/BlockEffect';
 import { LoadEffect } from '@src/effects/LoadEffect';
 import { CrushEffect } from '@src/effects/CrushEffect';
 import { SlamEffect } from '@src/effects/SlamEffect';
+import { CleaveEffect } from '@src/effects/CleaveEffect';
+import { SweepEffect } from '@src/effects/SweepEffect';
 import { BattleStateObserver } from '@src/systems/BattleStateObserver';
 
 /**
@@ -155,6 +157,8 @@ export class BattleBuilder {
     effectRegistry.register('load', new LoadEffect());
     effectRegistry.register('crush', new CrushEffect());
     effectRegistry.register('slam', new SlamEffect());
+    effectRegistry.register('cleave', new CleaveEffect());
+    effectRegistry.register('sweep', new SweepEffect());
 
     // 3. Build entity map (needed for character construction)
     const entityMap: Map<string, Entity> = new Map();

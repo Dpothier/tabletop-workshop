@@ -455,3 +455,29 @@ actions:
       slam: true
     parameters: []
     effects: []
+  - id: cleave
+    name: Cleave
+    category: modifier
+    description: On hit, deal 1 damage to each enemy adjacent to the target
+    cost:
+      beads:
+        red: 1
+    condition:
+      weaponTag: heavy
+    modifier:
+      cleave: true
+    parameters: []
+    effects: []
+  - id: sweep
+    name: Sweep
+    category: modifier
+    description: Attack resolves against all entities in a 3-tile arc
+    cost:
+      beads:
+        green: 1
+    condition:
+      weaponTag: heavy
+    modifier:
+      sweep: true
+    parameters: []
+    effects: []

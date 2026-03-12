@@ -43,7 +43,7 @@ equipment:
     tags: [melee, heavy]
     inventorySlots: 2
     twoHanded: true
-    grantedModifiers: [strength]
+    grantedModifiers: [strength, cleave, sweep]
     grantedActions: [attack]
     passiveStats: {}
     rangeBands: []

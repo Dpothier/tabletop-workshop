@@ -110,3 +110,5 @@ import './crossbow.steps';
 import './longbow.steps';
 // MFG-30: Maul - Heavy Melee weapon
 import './maul.steps';
+// MFG-29: Greatsword - Heavy Melee weapon
+import './greatsword.steps';
