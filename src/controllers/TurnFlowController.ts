@@ -63,7 +63,7 @@ export class TurnFlowController {
       entityId,
       entityName,
       cost,
-      newPosition: 0,
+      newPosition: this.state.wheel.getPosition(entityId) ?? 0,
     } as any);
   }
 

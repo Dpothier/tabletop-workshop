@@ -78,7 +78,7 @@ export class CoordinateEffect implements Effect {
       type: 'state-change',
       seq: 0,
       entityId: targetId,
-      entityName: 'Entity',
+      entityName: target?.getName?.() || targetId || 'Entity',
       changeType: 'buff-add',
       details: { stackName: prepType, stacksAdded: cappedTotal },
     } as any);

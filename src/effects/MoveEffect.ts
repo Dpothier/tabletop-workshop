@@ -47,7 +47,7 @@ export class MoveEffect implements Effect {
       type: 'move',
       seq: 0,
       entityId: context.actorId!,
-      entityName: 'Entity',
+      entityName: context.getEntity(context.actorId!)?.getName?.() || context.actorId || 'Entity',
       from: from ? `${from.x},${from.y}` : '0,0',
       to: `${destination.x},${destination.y}`,
     } as any);

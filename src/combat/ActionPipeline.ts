@@ -91,6 +91,7 @@ export async function handleDefensiveReaction(
 
   const reactionId = selected[0];
   const reaction = applyDefensiveReaction(reactionId);
+  const handBefore = beadHand.getHandCounts();
   let beadsSpent = false;
 
   // Handle guard reaction
@@ -141,7 +142,12 @@ export async function handleDefensiveReaction(
       defenderId: target.id,
       defenderName: target.getName?.() || target.id,
       reactionType: reactionId,
-      beadsSpent: finalCounts,
+      beadsSpent: {
+        red: handBefore.red - finalCounts.red,
+        blue: handBefore.blue - finalCounts.blue,
+        green: handBefore.green - finalCounts.green,
+        white: handBefore.white - finalCounts.white,
+      },
     } as any);
   }
 }

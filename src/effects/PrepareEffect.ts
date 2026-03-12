@@ -56,7 +56,7 @@ export class PrepareEffect implements Effect {
       type: 'state-change',
       seq: 0,
       entityId: context.actorId || '',
-      entityName: 'Entity',
+      entityName: entity?.getName?.() || context.actorId || 'Entity',
       changeType: 'buff-add',
       details: { stackName: prepType, stacksAdded: cappedTotal },
     } as any);

@@ -62,7 +62,7 @@ export class AssessEffect implements Effect {
       type: 'state-change',
       seq: 0,
       entityId: context.actorId || '',
-      entityName: 'Entity',
+      entityName: actor?.getName?.() || context.actorId || 'Entity',
       changeType: 'status-effect',
       details: { revealed: true, targetId },
     } as any);

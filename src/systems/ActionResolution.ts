@@ -69,6 +69,14 @@ export class ActionResolution {
     }
 
     // Record action selected
+    const actorEntity = this.context.getEntity(this.actorId);
+    const actorName = actorEntity?.getName?.() || this.actorId;
+    const modifierNames: string[] = [];
+    for (const [, value] of collectedValues) {
+      if (Array.isArray(value)) {
+        modifierNames.push(...value.map((v: any) => String(v)));
+      }
+    }
     const totalCost =
       (this.action.cost.red ?? 0) +
       (this.action.cost.blue ?? 0) +
@@ -78,10 +86,10 @@ export class ActionResolution {
       type: 'action-selected',
       seq: 0,
       actorId: this.actorId,
-      actorName: this.actorId,
+      actorName,
       actionId: this.action.id,
       actionName: this.action.name,
-      modifiers: [],
+      modifiers: modifierNames,
       beadCost: totalCost,
     } as any);
 
@@ -117,7 +125,7 @@ export class ActionResolution {
             type: 'bead-spend',
             seq: 0,
             entityId: this.actorId,
-            entityName: this.actorId,
+            entityName: actorName,
             color,
             reason: 'action-cost',
             handAfter: beadHand.getHandCounts(),

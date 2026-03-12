@@ -51,7 +51,11 @@ export class DrawBeadsEffect implements Effect {
       type: 'bead-draw',
       seq: 0,
       entityId: entityId || context.actorId || '',
-      entityName: 'Entity',
+      entityName:
+        context.getEntity(entityId || context.actorId || '')?.getName?.() ||
+        entityId ||
+        context.actorId ||
+        'Entity',
       colors: drawn.map((b: any) => (typeof b === 'string' ? b : b.color || '')),
       source: 'rest',
       handAfter: beadHand?.getHandCounts() || { red: 0, blue: 0, green: 0, white: 0 },
