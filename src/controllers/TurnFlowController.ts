@@ -12,6 +12,8 @@ import { createBattleSnapshot } from '@src/recording/BattleSnapshot';
  * Uses BattleAdapter for UI interactions.
  */
 export class TurnFlowController {
+  private turnCount = 0;
+
   constructor(
     private readonly state: BattleState,
     private readonly adapter: BattleAdapter
@@ -292,7 +294,7 @@ export class TurnFlowController {
         this.adapter.transition('VictoryScene', {
           victory: isVictory,
           monster: this.state.monster.name,
-          turns: 0,
+          turns: this.turnCount,
           recording: recording ?? undefined,
         });
         return;
@@ -312,6 +314,7 @@ export class TurnFlowController {
       if (actorId === 'monster') {
         await this.executeMonsterTurn();
       } else {
+        this.turnCount++;
         await this.executePlayerTurn(actorId);
       }
 

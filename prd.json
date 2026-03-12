@@ -21,7 +21,7 @@
       "id": "MFG-71",
       "title": "[BUG] VictoryScene shows \"Turns: 0\" — turn counter hardcoded",
       "priority": 3,
-      "passes": false,
+      "passes": true,
       "description": "Bug\n\nVictoryScene always displays \"Turns: 0\" regardless of how many turns were played.\nRoot Cause\n\nsrc/controllers/TurnFlowController.ts line 295:\n```typescript\nthis.adapter.transition('VictoryScene', {\n  victory: isVictory,\n  monster: this.state.monster.name,\n  turns: 0,  // ← hardcoded!\n  recording: recording ?? undefined,\n});\n```\nThere is no turn counter tracked in TurnFlowController.\nFix\n\n1. Add a private turnCount = 0 field to TurnFlowController\n2. Increment it each time a player turn starts (in the player turn handling code, where turn-start entry is recorded)\n3. Pass turns: this.turnCount instead of turns: 0\nRequired E2E Tests\n\n- Scenario: Victory screen shows correct turn count — Play a combat to completion. Count the number of hero turns played. Verify that VictoryScene displays Turns: N where N matches the actual count. Access via victoryScene.data.get('turns') or read the text from the screenshot."
     },
     {

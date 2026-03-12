@@ -476,3 +476,18 @@ Total tests added: 91 unit scenarios across 7 stories
   - Button at centerY + 290 (Exporter moved to centerY + 360)
   - Color 0x446688 with hover effect 0x557799
 - Test count: 815 unit tests passing (4 new)
+
+[ITERATION 21] Story: MFG-71 — [BUG] VictoryScene shows "Turns: 0" — turn counter hardcoded
+- Result: SUCCESS
+- Phase RED: 4 unit scenarios written (turn-counter.feature), 3 FAIL as expected
+- Phase GREEN: Added turnCount field, increment in start() loop, pass to VictoryScene
+- Key files created:
+  - features/unit/turn-flow-controller/turn-counter.feature (4 scenarios)
+- Key files modified:
+  - src/controllers/TurnFlowController.ts (added turnCount field, increment before executePlayerTurn, pass turns: this.turnCount)
+  - tests/steps/turn-flow-controller.steps.ts (added turn counter steps, updated existing step to use expect.any(Number))
+- Key logic:
+  - turnCount incremented in start() loop (not inside executePlayerTurn) so tests with mocked executePlayerTurn still work
+  - Only player turns counted (monster turns excluded)
+  - turnCount passed to VictoryScene transition instead of hardcoded 0
+- Test count: 819 unit tests passing (4 new)

@@ -464,7 +464,7 @@ Then(
       expect.objectContaining({
         victory,
         monster: world.monsterName || 'Monster',
-        turns: 0,
+        turns: expect.any(Number),
       })
     );
   }
@@ -532,6 +532,36 @@ Given(
       callCount++;
       // First call for initial check, then calls after each turn
       if (callCount >= 3) {
+        return 'victory';
+      }
+      return 'ongoing';
+    });
+
+    // Mock getNextActor to return sequence
+    vi.spyOn(world.turnController!, 'getNextActor').mockImplementation(() => {
+      const actor = sequence.actors[sequence.currentIndex];
+      sequence.currentIndex++;
+      return actor;
+    });
+  }
+);
+
+Given(
+  'getNextActor returns {string} then {string} then {string} then victory',
+  function (world: TurnFlowControllerWorld, actor1: string, actor2: string, actor3: string) {
+    const sequence: ActorSequence = (world as any).actorSequence || {
+      actors: [],
+      currentIndex: 0,
+    };
+    sequence.actors = [actor1, actor2, actor3, null]; // null signals victory/end
+    (world as any).actorSequence = sequence;
+
+    // Mock checkBattleStatus to return victory when getNextActor returns null
+    let callCount = 0;
+    vi.spyOn(world.turnFlowController!, 'checkBattleStatus').mockImplementation(() => {
+      callCount++;
+      // First call for initial check, then calls after each turn
+      if (callCount >= 4) {
         return 'victory';
       }
       return 'ongoing';
@@ -706,3 +736,15 @@ Then('the stateObserver should have emitted roundEnded', function (world: TurnFl
   const emitSpy = (world.battleState!.stateObserver as any).emitRoundEnded as any;
   expect(emitSpy).toHaveBeenCalled();
 });
+
+Then(
+  'adapter.transition is called with {string} and turns {int}',
+  function (world: TurnFlowControllerWorld, sceneName: string, expectedTurns: number) {
+    expect(world.battleAdapter!.transition).toHaveBeenCalledWith(
+      sceneName,
+      expect.objectContaining({
+        turns: expectedTurns,
+      })
+    );
+  }
+);
