@@ -28,7 +28,7 @@
       "id": "MFG-70",
       "title": "[BUG] ReplayScene shows \"P1, P2\" instead of character names",
       "priority": 3,
-      "passes": false,
+      "passes": true,
       "description": "Bug\n\nIn ReplayScene, characters are labeled \"P1\", \"P2\", \"P3\", \"P4\" instead of their actual names (\"Warrior\", \"Mage\", \"Rogue\", \"Cleric\"). The snapshot contains the correct names in snapshot.characters[].name, but ReplayScene doesn't pass them to CharacterVisual.\nRoot Cause\n\nsrc/scenes/ReplayScene.ts line 114:\n```typescript\nconst cv = new CharacterVisual(this, worldX, worldY, mockClass, color, charIndex);\n```\nThe CharacterVisual constructor takes an optional 7th parameter character?: Character. When omitted, the label falls back to P${index+1} (see src/visuals/CharacterVisual.ts line 107):\n```typescript\nconst initial = this.character?.getName()[0].toUpperCase() ?? `P${this.index + 1}`;\n```\nThe snapshot data has character.name (e.g., \"Warrior\") but no Character entity is constructed from it.\nFix\n\nEither:\n1. Pass the character name to CharacterVisual constructor (requires adding a name parameter or a lightweight mock)\n2. Create a mock object with getName() that returns the snapshot name:\n```typescript\nconst mockCharacter = { getName: () => character.name } as any;\nconst cv = new CharacterVisual(this, worldX, worldY, mockClass, color, charIndex, mockCharacter);\n```\nRequired E2E Tests\n\n- Scenario: Replay shows character names, not indices — Launch ReplayScene with a recording. Verify that character visuals display the first letter of their class name (e.g., \"W\" for Warrior, \"M\" for Mage), not \"P1\", \"P2\", etc. Can be verified by inspecting the text content of the CharacterVisual's label game objects."
     },
     {

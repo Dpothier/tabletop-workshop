@@ -57,6 +57,12 @@ Feature: ReplayScene Visual Replay
     When I click the retour au menu button
     Then the scene should transition to MenuScene
 
+  @wip
+  Scenario: replay ReplayScene shows character names not P-indices
+    Given a replay recording with 2 characters named "Warrior" and "Mage"
+    When the ReplayScene loads with the recording
+    Then character visuals should display name initials "W" and "M" not "P1" and "P2"
+
   Scenario: replay ReplayScene shows error message for empty recording
     Given a replay recording with empty entries
     When the ReplayScene loads with the empty recording

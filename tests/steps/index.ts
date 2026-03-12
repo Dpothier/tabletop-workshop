@@ -91,3 +91,5 @@ import './snapshot-hydrator.steps';
 import './replay-empty-recording.steps';
 // MFG-72: VictoryScene Replay button
 import './victory-replay-button.steps';
+// MFG-70: ReplayScene character names
+import './replay-character-names.steps';

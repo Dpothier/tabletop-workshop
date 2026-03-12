@@ -124,7 +124,16 @@ export class ReplayScene extends Phaser.Scene {
         const worldY = this.gridSystem.gridToWorld(pos.y);
         const mockClass = { stats: { health: character.maxHealth } } as any;
         const color = HERO_COLORS[charIndex % HERO_COLORS.length];
-        const cv = new CharacterVisual(this, worldX, worldY, mockClass, color, charIndex);
+        const mockCharacter = { getName: (): string => character.name } as any;
+        const cv = new CharacterVisual(
+          this,
+          worldX,
+          worldY,
+          mockClass,
+          color,
+          charIndex,
+          mockCharacter
+        );
         cv.updateHealth(character.currentHealth, character.maxHealth);
         this.characterVisuals.set(character.id, cv);
         charIndex++;
