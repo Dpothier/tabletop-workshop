@@ -514,3 +514,29 @@ actions:
           weaponId: hatchet
           power: 1
           agility: 1
+  - id: lacerate
+    name: Lacerate
+    category: modifier
+    description: On hit, apply Bleed status effect to the target
+    cost:
+      beads:
+        green: 1
+    condition:
+      weaponTag: light
+    modifier:
+      lacerate: true
+    parameters: []
+    effects: []
+  - id: slash
+    name: Slash
+    category: modifier
+    description: Strike with precision for increased agility
+    cost:
+      beads:
+        red: 1
+    condition:
+      weaponTag: melee
+    modifier:
+      agility: 1
+    parameters: []
+    effects: []

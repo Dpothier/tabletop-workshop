@@ -371,3 +371,19 @@ equipment:
     passiveStats: {}
     rangeBands: []
     startsLoaded: false
+  - id: slicing-dagger
+    name: Slicing Dagger
+    category: light
+    slot: main-hand
+    power: 1
+    agility: 1
+    range: 1
+    penetration: 0
+    tags: [light, melee]
+    inventorySlots: 1
+    twoHanded: false
+    grantedModifiers: [lacerate, slash]
+    grantedActions: []
+    passiveStats: {}
+    rangeBands: []
+    startsLoaded: false

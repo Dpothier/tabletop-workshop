@@ -41,6 +41,7 @@ import { SlamEffect } from '@src/effects/SlamEffect';
 import { CleaveEffect } from '@src/effects/CleaveEffect';
 import { SweepEffect } from '@src/effects/SweepEffect';
 import { ThrowEffect } from '@src/effects/ThrowEffect';
+import { LacerateEffect } from '@src/effects/LacerateEffect';
 import { BattleStateObserver } from '@src/systems/BattleStateObserver';
 
 /**
@@ -161,6 +162,7 @@ export class BattleBuilder {
     effectRegistry.register('cleave', new CleaveEffect());
     effectRegistry.register('sweep', new SweepEffect());
     effectRegistry.register('throw', new ThrowEffect());
+    effectRegistry.register('lacerate', new LacerateEffect());
 
     // 3. Build entity map (needed for character construction)
     const entityMap: Map<string, Entity> = new Map();
