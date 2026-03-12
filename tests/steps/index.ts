@@ -87,3 +87,5 @@ import './combat-instrumentation-integration.steps';
 // MFG-65: ReplayScene - CombatLogPlayer and SnapshotHydrator
 import './combat-log-player.steps';
 import './snapshot-hydrator.steps';
+// MFG-73: ReplayScene empty recording handling
+import './replay-empty-recording.steps';

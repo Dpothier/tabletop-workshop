@@ -69,6 +69,19 @@ export class ReplayScene extends Phaser.Scene {
     this.player.buildSteps(this.entries);
     this.totalSteps = this.player.getTotalSteps();
 
+    // Check for empty recording
+    if (this.totalSteps === 0) {
+      this.createControls();
+      this.infoPanel.setText('No combat data to replay');
+      this.progressText.setText('No data');
+      this.nextButton.removeInteractive();
+      this.nextButton.setAlpha(0.3);
+      this.autoButton.removeInteractive();
+      this.autoButton.setAlpha(0.3);
+      (this as any).__replayState = (): Record<string, any> => this.getState();
+      return;
+    }
+
     // 2. Create SnapshotHydrator
     this.hydrator = new SnapshotHydrator();
 

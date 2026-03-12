@@ -160,6 +160,84 @@ function createTestRecording(
 }
 
 /**
+ * Create a recording with empty entries (no combat data).
+ * Used to test error handling for empty recordings.
+ */
+function createEmptyRecording(): ReplayData {
+  const charCount = 2;
+
+  // Build snapshot (same structure as createTestRecording)
+  const entities: any[] = [];
+  for (let i = 0; i < charCount; i++) {
+    entities.push({
+      id: `hero-${i}`,
+      name: `Hero ${i}`,
+      type: 'character',
+      position: { x: 1 + i, y: 1 },
+      maxHealth: 100,
+      currentHealth: 100,
+      beadPool: { red: 5, blue: 3, green: 2, white: 1 },
+      beadHand: { red: 1, blue: 1, green: 0, white: 0 },
+      beadDiscard: { red: 0, blue: 0, green: 0, white: 0 },
+    });
+  }
+  entities.push({
+    id: 'monster',
+    name: 'TestBoss',
+    type: 'monster',
+    position: { x: 5, y: 4 },
+    maxHealth: 200,
+    currentHealth: 200,
+    beadBag: { red: 4, blue: 4, green: 2, white: 2 },
+    currentState: 'idle',
+  });
+
+  const snapshot: BattleSnapshot = {
+    arena: {
+      name: 'Test Arena',
+      width: 9,
+      height: 9,
+    },
+    characters: entities
+      .filter((e) => e.type === 'character')
+      .map((e) => ({
+        id: e.id,
+        name: e.name,
+        position: e.position,
+        maxHealth: e.maxHealth,
+        currentHealth: e.currentHealth,
+        equipment: {},
+        availableActionIds: ['move', 'attack'],
+        beadHand: e.beadHand,
+        beadPool: e.beadPool,
+        beadDiscard: e.beadDiscard,
+      })) as any[],
+    monster: {
+      id: 'monster',
+      name: 'TestBoss',
+      position: { x: 5, y: 4 },
+      health: 200,
+      maxHealth: 200,
+      beadBag: { red: 4, blue: 4, green: 2, white: 2 },
+      stateMachine: undefined,
+    },
+    wheelEntries: Array.from({ length: charCount + 1 }, (_, i) => ({
+      id: i < charCount ? `hero-${i}` : 'monster',
+      position: i * (100 / (charCount + 1)),
+      arrivalOrder: i,
+    })),
+    actionDefinitions: [
+      { id: 'move', name: 'Move', category: 'movement', cost: 1 },
+      { id: 'attack', name: 'Attack', category: 'combat', cost: 2 },
+      { id: 'rest', name: 'Rest', category: 'utility', cost: 1 },
+    ],
+  };
+
+  // Return with empty entries array
+  return { snapshot, entries: [] };
+}
+
+/**
  * Get ReplayScene state from the Phaser game instance.
  * Uses the __replayState() method exposed by ReplayScene.
  */
@@ -580,4 +658,87 @@ Then(
 Then('the scene should transition to MenuScene', async ({ page }) => {
   const state = await getGameState(page);
   expect(state.scene).toBe('MenuScene');
+});
+
+// =============================================================================
+// Empty Recording Scenario Steps
+// =============================================================================
+
+Given('a replay recording with empty entries', async ({ page }) => {
+  await page.goto('/');
+  await waitForGameReady(page);
+
+  const recording = createEmptyRecording();
+  await launchReplayScene(page, recording);
+
+  const state = await getGameState(page);
+  expect(state.scene).toBe('ReplayScene');
+});
+
+When('the ReplayScene loads with the empty recording', async ({ page }) => {
+  // The loading is handled by the preceding Given step.
+  // This step verifies the scene is now active with empty data.
+  const state = await getGameState(page);
+  expect(state.scene).toBe('ReplayScene');
+
+  const replayState = await getReplayState(page);
+  expect(replayState).not.toBeNull();
+  expect(replayState?.totalSteps).toBe(0);
+});
+
+Then('an error message {string} should be displayed', async ({ page }, expectedMessage: string) => {
+  // Check if the infoPanel contains the error message
+  const message = await page.evaluate(() => {
+    const game = (window as any).__PHASER_GAME__;
+    if (!game) return null;
+
+    const activeScene = game.scene.scenes.find((s: any) => s.sys.isActive());
+    if (!activeScene || activeScene.sys.settings.key !== 'ReplayScene') return null;
+
+    return (activeScene as any).infoPanel?.text ?? null;
+  });
+
+  expect(message).toContain(expectedMessage);
+});
+
+Then('the Next button should not be interactive', async ({ page }) => {
+  const isInteractive = await page.evaluate(() => {
+    const game = (window as any).__PHASER_GAME__;
+    if (!game) return null;
+
+    const activeScene = game.scene.scenes.find((s: any) => s.sys.isActive());
+    if (!activeScene || activeScene.sys.settings.key !== 'ReplayScene') return null;
+
+    return (activeScene as any).nextButton?.input?.enabled ?? null;
+  });
+
+  expect(isInteractive).toBe(false);
+});
+
+Then('the Auto button should not be interactive', async ({ page }) => {
+  const isInteractive = await page.evaluate(() => {
+    const game = (window as any).__PHASER_GAME__;
+    if (!game) return null;
+
+    const activeScene = game.scene.scenes.find((s: any) => s.sys.isActive());
+    if (!activeScene || activeScene.sys.settings.key !== 'ReplayScene') return null;
+
+    return (activeScene as any).autoButton?.input?.enabled ?? null;
+  });
+
+  expect(isInteractive).toBe(false);
+});
+
+Then('the Menu button should still be visible', async ({ page }) => {
+  const isVisible = await page.evaluate(() => {
+    const game = (window as any).__PHASER_GAME__;
+    if (!game) return null;
+
+    const activeScene = game.scene.scenes.find((s: any) => s.sys.isActive());
+    if (!activeScene || activeScene.sys.settings.key !== 'ReplayScene') return null;
+
+    return (activeScene as any).menuButton?.visible ?? null;
+  });
+
+  expect(isVisible).toBe(true);
 });

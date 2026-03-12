@@ -56,3 +56,11 @@ Feature: ReplayScene Visual Replay
     Given a replay recording loaded in ReplayScene
     When I click the retour au menu button
     Then the scene should transition to MenuScene
+
+  Scenario: replay ReplayScene shows error message for empty recording
+    Given a replay recording with empty entries
+    When the ReplayScene loads with the empty recording
+    Then an error message "No combat data to replay" should be displayed
+    And the Next button should not be interactive
+    And the Auto button should not be interactive
+    And the Menu button should still be visible
