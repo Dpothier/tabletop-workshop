@@ -58,6 +58,20 @@ Feature: ReplayScene Visual Replay
     Then the scene should transition to MenuScene
 
   @wip
+  Scenario: replay Only ReplayScene is active after transitioning from VictoryScene
+    Given a completed battle with a victory recording
+    When the Replay button is clicked on VictoryScene
+    Then only ReplayScene should be active
+    And VictoryScene should not be active
+
+  @wip
+  Scenario: replay VictoryScene UI elements are not visible during replay
+    Given a completed battle with a victory recording
+    When the Replay button is clicked on VictoryScene
+    Then no "VICTORY!" text should be visible
+    And no "Play Again" button should be visible
+
+  @wip
   Scenario: replay ReplayScene shows character names not P-indices
     Given a replay recording with 2 characters named "Warrior" and "Mage"
     When the ReplayScene loads with the recording

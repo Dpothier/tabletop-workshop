@@ -109,7 +109,7 @@ function createMockPhaserScene(mockRectangles: MockRectangle[], mockTexts: MockT
         return this._store.get(key);
       }),
     },
-    scene: { start: vi.fn() },
+    scene: { start: vi.fn(), stop: vi.fn() },
   };
 }
 
@@ -151,6 +151,14 @@ function findReplayRect(world: VictoryWorld): MockRectangle | undefined {
   if (!replayText) return undefined;
   // The rectangle shares the same (x, y) as the text label
   return world.mockRectangles!.find((r) => r.x === replayText.x && r.y === replayText.y);
+}
+
+/** Helper: find the mock rectangle whose associated text label is "Play Again" */
+function findPlayAgainRect(world: VictoryWorld): MockRectangle | undefined {
+  const playAgainText = world.mockTexts!.find((t) => t.text === 'Play Again');
+  if (!playAgainText) return undefined;
+  // The rectangle shares the same (x, y) as the text label
+  return world.mockRectangles!.find((r) => r.x === playAgainText.x && r.y === playAgainText.y);
 }
 
 // ── Given ───────────────────────────────────────────────────────
@@ -213,6 +221,14 @@ When('the Replay button is clicked', function (world: VictoryWorld) {
   cb!();
 });
 
+When('the Play Again button is clicked', function (world: VictoryWorld) {
+  const rect = findPlayAgainRect(world);
+  expect(rect).toBeDefined();
+  const cb = rect!.listeners.get('pointerdown');
+  expect(cb).toBeDefined();
+  cb!();
+});
+
 // ── Then ────────────────────────────────────────────────────────
 
 Then('an interactive Replay button should exist', function (world: VictoryWorld) {
@@ -241,3 +257,15 @@ Then(
     expect(startFn).toHaveBeenCalledWith('ReplayScene', world.recordingData);
   }
 );
+
+Then('the scene should call stop before starting ReplayScene', function (world: VictoryWorld) {
+  const stopFn = world.mockPhaserScene!.scene.stop;
+  const startFn = world.mockPhaserScene!.scene.start;
+  expect(stopFn).toHaveBeenCalled();
+  expect(startFn).toHaveBeenCalledWith('ReplayScene', world.recordingData);
+});
+
+Then('the scene should transition to MenuScene', function (world: VictoryWorld) {
+  const startFn = world.mockPhaserScene!.scene.start;
+  expect(startFn).toHaveBeenCalledWith('MenuScene');
+});

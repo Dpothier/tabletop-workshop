@@ -116,7 +116,10 @@ export class VictoryScene extends Phaser.Scene {
 
       replayBtn.on('pointerover', () => replayBtn.setFillStyle(0x557799));
       replayBtn.on('pointerout', () => replayBtn.setFillStyle(0x446688));
-      replayBtn.on('pointerdown', () => this.scene.start('ReplayScene', this.recording));
+      replayBtn.on('pointerdown', () => {
+        this.scene.stop();
+        this.scene.start('ReplayScene', this.recording);
+      });
     }
 
     // Export button (only if recording exists)

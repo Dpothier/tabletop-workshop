@@ -508,3 +508,15 @@ Total tests added: 91 unit scenarios across 7 stories
   - CharacterVisual's existing logic handles the rest: getName()[0].toUpperCase()
 - Note: vi.mock in setupFiles leaks across all tests, so unit tests replicate label logic inline rather than mocking CharacterVisual. E2E test marked @wip due to ReplayScene infrastructure issues.
 - Test count: 823 unit tests passing (4 new)
+
+[ITERATION 21] Story: MFG-69 — [BUG] VictoryScene not stopped when ReplayScene starts
+- Result: SUCCESS
+- Phase RED: 2 unit scenarios (victory-scene-stop.feature), 1 FAIL as expected
+- Phase GREEN: Added this.scene.stop() before this.scene.start('ReplayScene') in VictoryScene
+- Key files created:
+  - features/unit/victory-scene-stop.feature (2 scenarios)
+- Key files modified:
+  - src/scenes/VictoryScene.ts (added scene.stop() in Replay button handler)
+  - tests/steps/victory-replay-button.steps.ts (added stop mock, new When/Then steps)
+  - features/e2e/replay-scene.feature (added 2 @wip E2E scenarios for scene overlap)
+- Test count: 825 unit tests passing (2 new)
