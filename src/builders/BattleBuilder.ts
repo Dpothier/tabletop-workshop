@@ -36,6 +36,8 @@ import { RebukeEffect } from '@src/effects/RebukeEffect';
 import { RiposteEffect } from '@src/effects/RiposteEffect';
 import { BlockEffect } from '@src/effects/BlockEffect';
 import { LoadEffect } from '@src/effects/LoadEffect';
+import { CrushEffect } from '@src/effects/CrushEffect';
+import { SlamEffect } from '@src/effects/SlamEffect';
 import { BattleStateObserver } from '@src/systems/BattleStateObserver';
 
 /**
@@ -151,6 +153,8 @@ export class BattleBuilder {
     effectRegistry.register('riposte', new RiposteEffect());
     effectRegistry.register('block', new BlockEffect());
     effectRegistry.register('load', new LoadEffect());
+    effectRegistry.register('crush', new CrushEffect());
+    effectRegistry.register('slam', new SlamEffect());
 
     // 3. Build entity map (needed for character construction)
     const entityMap: Map<string, Entity> = new Map();

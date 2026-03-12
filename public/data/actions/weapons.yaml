@@ -428,3 +428,30 @@ actions:
       agility: 1
     parameters: []
     effects: []
+  - id: crush
+    name: Crush
+    category: modifier
+    description: Ignore the target's Guard defense
+    cost:
+      beads:
+        red: 1
+    condition:
+      weaponTag: heavy
+    modifier:
+      crush: true
+    parameters: []
+    effects: []
+  - id: slam
+    name: Slam
+    category: modifier
+    description: Push the target 1 tile on hit with collision damage
+    cost:
+      beads:
+        red: 1
+        green: 1
+    condition:
+      weaponTag: heavy
+    modifier:
+      slam: true
+    parameters: []
+    effects: []

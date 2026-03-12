@@ -339,3 +339,19 @@ equipment:
         min: 13
         max: 18
         modifier: -2
+  - id: maul
+    name: Maul
+    category: heavy
+    slot: main-hand
+    power: 2
+    agility: 0
+    range: 1
+    penetration: 0
+    tags: [heavy, melee]
+    inventorySlots: 2
+    twoHanded: true
+    grantedModifiers: [strength, crush, slam]
+    grantedActions: []
+    passiveStats: {}
+    rangeBands: []
+    startsLoaded: false

@@ -108,3 +108,5 @@ import './arquebus.steps';
 import './crossbow.steps';
 // MFG-31: Longbow - Ranged weapon
 import './longbow.steps';
+// MFG-30: Maul - Heavy Melee weapon
+import './maul.steps';
