@@ -116,3 +116,5 @@ import './greatsword.steps';
 import './hatchet.steps';
 // MFG-27: Slicing Dagger - Light Melee weapon
 import './slicing-dagger.steps';
+// MFG-26: Throwing Dagger - Light Melee weapon
+import './throwing-dagger.steps';

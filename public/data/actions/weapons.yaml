@@ -540,3 +540,35 @@ actions:
       agility: 1
     parameters: []
     effects: []
+  - id: throw_dagger
+    name: Throw Dagger
+    category: attack
+    description: Hurl the dagger at a distant target
+    cost:
+      time: 2
+      beads:
+        green: 1
+    parameters:
+      - type: entity
+        filter: enemy
+        range: 6
+    effects:
+      - id: throw-dagger-effect
+        type: throw
+        params:
+          weaponId: throwing-dagger
+          power: 1
+          agility: 1
+  - id: parade
+    name: Parade
+    category: reaction
+    description: Defensive parry granting +1 Guard
+    cost:
+      beads:
+        red: 1
+    condition:
+      weaponTag: melee
+    modifier:
+      guard: 1
+    parameters: []
+    effects: []
