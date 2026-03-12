@@ -284,3 +284,31 @@ equipment:
         max: 12
         modifier: -2
     startsLoaded: true
+  - id: crossbow
+    name: Crossbow
+    category: ranged
+    slot: main-hand
+    power: 1
+    agility: 0
+    range: 18
+    penetration: 1
+    tags: [ranged, crossbow]
+    inventorySlots: 2
+    twoHanded: true
+    grantedModifiers: [steadyAim]
+    grantedActions: [load_crossbow]
+    passiveStats: {}
+    rangeBands:
+      - name: short
+        min: 1
+        max: 6
+        modifier: 1
+      - name: medium
+        min: 7
+        max: 12
+        modifier: 0
+      - name: long
+        min: 13
+        max: 18
+        modifier: -2
+    startsLoaded: false

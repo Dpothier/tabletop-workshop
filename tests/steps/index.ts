@@ -104,3 +104,5 @@ import './buckler.steps';
 import './shield-system.steps';
 // MFG-34: Arquebus - Ranged firearm weapon
 import './arquebus.steps';
+// MFG-32: Crossbow - Ranged weapon
+import './crossbow.steps';

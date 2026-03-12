@@ -389,6 +389,18 @@ actions:
         type: load
         params:
           weaponId: pistol
+  - id: load_crossbow
+    name: Load Crossbow
+    category: other
+    description: Load the crossbow for the next shot
+    cost:
+      time: 1
+    parameters: []
+    effects:
+      - id: load-crossbow-effect
+        type: load
+        params:
+          weaponId: crossbow
   - id: steadyAim
     name: Steady Aim
     category: modifier
