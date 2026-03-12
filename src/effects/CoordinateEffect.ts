@@ -74,6 +74,15 @@ export class CoordinateEffect implements Effect {
       target.addStacks(prepType, cappedTotal);
     }
 
+    context.recorder?.record({
+      type: 'state-change',
+      seq: 0,
+      entityId: targetId,
+      entityName: target?.getName?.() || targetId || 'Entity',
+      changeType: 'buff-add',
+      details: { stackName: prepType, stacksAdded: cappedTotal },
+    } as any);
+
     return {
       success: true,
       data: {

@@ -1,6 +1,8 @@
 import type { BattleState } from '@src/state/BattleState';
 import type { BattleAdapter } from '@src/types/BattleAdapter';
 import type { BattleStatus } from '@src/systems/TurnController';
+import { CombatLogStorage } from '@src/recording/CombatLogStorage';
+import { createBattleSnapshot } from '@src/recording/BattleSnapshot';
 
 /**
  * TurnFlowController orchestrates the battle turn flow.
@@ -14,6 +16,56 @@ export class TurnFlowController {
     private readonly state: BattleState,
     private readonly adapter: BattleAdapter
   ) {}
+
+  private buildRecording(): {
+    snapshot: ReturnType<typeof createBattleSnapshot>;
+    entries: any[];
+  } | null {
+    try {
+      const snapshot = createBattleSnapshot(this.state);
+      const entries = this.state.recorder?.getEntries() || [];
+      return { snapshot, entries };
+    } catch {
+      return null;
+    }
+  }
+
+  private autoSaveRecording(recording: {
+    snapshot: ReturnType<typeof createBattleSnapshot>;
+    entries: any[];
+  }): void {
+    try {
+      const storage = new CombatLogStorage(localStorage);
+      const recordingId = `${this.state.monster.name}-${Date.now()}`;
+      storage.saveToLocalStorage(recordingId, recording as any);
+    } catch {
+      // Silently fail if localStorage save fails
+    }
+  }
+
+  private recordTurnEnd(entityId: string, entityName: string, cost: number): void {
+    const segmentBefore = this.state.wheel.getActiveSegment();
+    this.state.turnController.advanceTurn(entityId, cost);
+    const segmentAfter = this.state.wheel.getActiveSegment();
+
+    if (segmentBefore !== segmentAfter) {
+      this.state.recorder?.record({
+        type: 'segment-change',
+        seq: 0,
+        previousSegment: segmentBefore.toString(),
+        newSegment: segmentAfter.toString(),
+      } as any);
+    }
+
+    this.state.recorder?.record({
+      type: 'wheel-advance',
+      seq: 0,
+      entityId,
+      entityName,
+      cost,
+      newPosition: this.state.wheel.getPosition(entityId) ?? 0,
+    } as any);
+  }
 
   /**
    * Check the current battle status.
@@ -36,6 +88,16 @@ export class TurnFlowController {
 
     const monster = this.state.monsterEntity;
 
+    // Record turn start
+    this.state.recorder?.record({
+      type: 'turn-start',
+      seq: 0,
+      actorId: 'monster',
+      actorName: (monster as any)?.name || 'monster',
+      actorType: 'monster',
+      wheelPosition: 0,
+    } as any);
+
     // Check if monster has bead system
     if (!monster.hasBeadBag() || !monster.hasStateMachine()) {
       this.adapter.log('Monster has no bead system!');
@@ -48,7 +110,7 @@ export class TurnFlowController {
     const targets = this.state.characters.filter((c) => c.isAlive());
 
     // Phase 1: Decide - get the monster's decision
-    const decision = monster.decideTurn(targets);
+    const decision = monster.decideTurn(targets, this.state.recorder);
 
     // Phase 2: Execute - apply state changes and get events
     const events = await monster.executeDecision(decision, this.adapter);
@@ -57,7 +119,9 @@ export class TurnFlowController {
     await this.adapter.animate(events);
 
     // Phase 4: Advance turn
-    this.state.turnController.advanceTurn('monster', decision.wheelCost);
+    const wheelCost = decision.wheelCost;
+    this.recordTurnEnd('monster', 'monster', wheelCost);
+
     await this.adapter.delay(300);
   }
 
@@ -71,6 +135,17 @@ export class TurnFlowController {
   async executePlayerTurn(actorId: string): Promise<void> {
     this.adapter.log('--- Player Turn ---');
     this.adapter.showPlayerTurn(actorId);
+
+    // Record turn start
+    const entity = this.state.characters.find((c) => c.id === actorId);
+    this.state.recorder?.record({
+      type: 'turn-start',
+      seq: 0,
+      actorId,
+      actorName: (entity as any)?.name || actorId,
+      actorType: 'player',
+      wheelPosition: 0,
+    } as any);
 
     while (true) {
       // Wait for player to select an action
@@ -99,7 +174,9 @@ export class TurnFlowController {
       }
 
       // Advance turn with action's time cost and exit loop
-      this.state.turnController.advanceTurn(actorId, result.cost.time);
+      const cost = result.cost.time;
+      this.recordTurnEnd(actorId, actorId, cost);
+
       await this.adapter.delay(300);
       return;
     }
@@ -117,7 +194,23 @@ export class TurnFlowController {
       const burnStacks = character.getStacks('burn');
       if (burnStacks > 0) {
         character.receiveDamage(burnStacks);
+        this.state.recorder?.record({
+          type: 'state-change',
+          seq: 0,
+          entityId: character.id,
+          entityName: (character as any).name || character.id,
+          changeType: 'hp-change',
+          details: { reason: 'burn', damage: burnStacks },
+        } as any);
         character.clearStacks('burn');
+        this.state.recorder?.record({
+          type: 'state-change',
+          seq: 0,
+          entityId: character.id,
+          entityName: (character as any).name || character.id,
+          changeType: 'buff-remove',
+          details: { stackName: 'burn', reason: 'end-of-round' },
+        } as any);
       }
     }
 
@@ -126,8 +219,48 @@ export class TurnFlowController {
     const monsterBurn = monster.getStacks('burn');
     if (monsterBurn > 0) {
       monster.receiveDamage(monsterBurn);
+      this.state.recorder?.record({
+        type: 'state-change',
+        seq: 0,
+        entityId: monster.id,
+        entityName: (monster as any).name || monster.id,
+        changeType: 'hp-change',
+        details: { reason: 'burn', damage: monsterBurn },
+      } as any);
       monster.clearStacks('burn');
+      this.state.recorder?.record({
+        type: 'state-change',
+        seq: 0,
+        entityId: monster.id,
+        entityName: (monster as any).name || monster.id,
+        changeType: 'buff-remove',
+        details: { stackName: 'burn', reason: 'end-of-round' },
+      } as any);
     }
+
+    // Record round end
+    const monsterSummary = {
+      id: this.state.monsterEntity.id,
+      name: (this.state.monsterEntity as any).name || this.state.monsterEntity.id,
+      hp: this.state.monsterEntity.currentHealth,
+      maxHp: this.state.monsterEntity.maxHealth,
+      handCounts: { red: 0, blue: 0, green: 0, white: 0 },
+    };
+    const summaries = [
+      ...this.state.characters.map((c) => ({
+        id: c.id,
+        name: (c as any)?.name || c.id,
+        hp: c.currentHealth,
+        maxHp: c.maxHealth,
+        handCounts: c.getBeadHand?.()?.getHandCounts() || { red: 0, blue: 0, green: 0, white: 0 },
+      })),
+      monsterSummary,
+    ];
+    this.state.recorder?.record({
+      type: 'round-end',
+      seq: 0,
+      entitySummaries: summaries,
+    } as any);
 
     // Emit round ended event
     this.state.stateObserver.emitRoundEnded();
@@ -142,20 +275,25 @@ export class TurnFlowController {
     while (true) {
       const status = this.checkBattleStatus();
 
-      if (status === 'victory') {
-        this.adapter.transition('VictoryScene', {
-          victory: true,
-          monster: this.state.monster.name,
-          turns: 0,
-        });
-        return;
-      }
+      if (status === 'victory' || status === 'defeat') {
+        const isVictory = status === 'victory';
 
-      if (status === 'defeat') {
+        this.state.recorder?.record({
+          type: 'battle-end',
+          seq: 0,
+          outcome: status,
+        } as any);
+
+        const recording = this.buildRecording();
+        if (recording) {
+          this.autoSaveRecording(recording);
+        }
+
         this.adapter.transition('VictoryScene', {
-          victory: false,
+          victory: isVictory,
           monster: this.state.monster.name,
           turns: 0,
+          recording: recording ?? undefined,
         });
         return;
       }

@@ -36,6 +36,14 @@ export class Entity {
   }
 
   /**
+   * Get the display name of this entity.
+   * Subclasses (Character, MonsterEntity) override with meaningful names.
+   */
+  getName(): string {
+    return this.id;
+  }
+
+  /**
    * Get the current position of this entity.
    * Delegates to the BattleGrid (single source of truth for positions).
    */

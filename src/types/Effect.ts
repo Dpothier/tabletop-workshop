@@ -3,6 +3,7 @@ import type { Entity } from '@src/entities/Entity';
 import type { AnimationEvent } from '@src/types/AnimationEvent';
 import type { PlayerBeadSystem } from '@src/systems/PlayerBeadSystem';
 import type { BattleAdapter } from '@src/types/BattleAdapter';
+import type { CombatRecorder } from '@src/recording/CombatRecorder';
 
 /**
  * EffectResult indicates the outcome of an effect execution.
@@ -47,4 +48,5 @@ export interface GameContext {
   getBeadHand(entityId: string): PlayerBeadSystem | undefined;
   actorId?: string;
   adapter?: BattleAdapter;
+  recorder?: CombatRecorder;
 }

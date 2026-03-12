@@ -1,0 +1,21 @@
+# Ralph Progress - Epic MFG-59
+
+## EPIC COMPLETE
+
+All 6 stories in MFG-59 are implemented, tested, and committed.
+
+## Completed Stories
+- MFG-60: CombatLogEntry Types & CombatRecorder Core (committed: 725a7b0)
+- MFG-61: Initial Battle State Snapshot (committed: 1efbb5b)
+- MFG-64: JSONL Serialization & Storage (committed: f30df75)
+- MFG-63: Combat Instrumentation (committed: 20f7c97)
+- MFG-65: ReplayScene Visual Replay (committed: c7985c9)
+- MFG-66: Export & Import UI Integration (committed: 1eced5a)
+
+## Test Results
+- 807/807 unit tests pass
+- 8/8 MFG-66 E2E tests pass
+- npm run check passes (typecheck + lint + format)
+
+## Next Steps
+- Epic ready for PR to main

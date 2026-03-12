@@ -4,6 +4,8 @@ import type { BattleState } from '@src/state/BattleState';
 import type { Entity } from '@src/entities/Entity';
 import type { GameContext } from '@src/types/Effect';
 import type { CharacterData } from '@src/types/CharacterData';
+import type { CombatRecorder } from '@src/recording/CombatRecorder';
+import { createBattleSnapshot } from '@src/recording/BattleSnapshot';
 import { BattleGrid } from '@src/state/BattleGrid';
 import { ActionWheel } from '@src/systems/ActionWheel';
 import { Character } from '@src/entities/Character';
@@ -29,6 +31,7 @@ export class BattleBuilder {
   private classes: CharacterClass[] = [];
   private actions: ActionDefinition[] = [];
   private characterData?: CharacterData[];
+  private recorder?: CombatRecorder;
 
   /**
    * Set the monster for this battle
@@ -81,6 +84,14 @@ export class BattleBuilder {
   }
 
   /**
+   * Set the combat recorder for instrumentation
+   */
+  withRecorder(recorder: CombatRecorder): this {
+    this.recorder = recorder;
+    return this;
+  }
+
+  /**
    * Build the complete battle state
    */
   build(): BattleState {
@@ -129,6 +140,7 @@ export class BattleBuilder {
         const char = characters.find((c) => c.id === entityId);
         return char?.getBeadHand();
       },
+      recorder: this.recorder,
     });
 
     // 10. Create action systems with hydration dependencies
@@ -138,7 +150,8 @@ export class BattleBuilder {
     // 11. Create BattleStateObserver
     const stateObserver = new BattleStateObserver();
 
-    return {
+    // 12. Build initial state object (for snapshot capture below)
+    const battleState: BattleState = {
       arena: this.arena,
       monster: this.monster,
       classes: this.classes,
@@ -152,7 +165,23 @@ export class BattleBuilder {
       turnController,
       effectRegistry,
       stateObserver,
+      recorder: this.recorder,
       createGameContext,
+    };
+
+    // 13. Capture initial snapshot if recorder is present
+    let initialSnapshot;
+    if (this.recorder) {
+      try {
+        initialSnapshot = createBattleSnapshot(battleState);
+      } catch {
+        // Ignore snapshot errors during build
+      }
+    }
+
+    return {
+      ...battleState,
+      initialSnapshot,
     };
   }
 

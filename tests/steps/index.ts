@@ -74,3 +74,16 @@ import './quick-strike.steps';
 import './strength-modifier.steps';
 // MFG-19: Guard reaction
 import './guard-reaction.steps';
+// MFG-60: CombatRecorder
+import './combat-recorder.steps';
+// MFG-61: Battle Snapshot
+import './battle-snapshot.steps';
+// MFG-64: Combat Log Serialization & Storage
+import './combat-log-serializer.steps';
+import './combat-log-storage.steps';
+// MFG-63: Combat System Instrumentation
+import './combat-instrumentation.steps';
+import './combat-instrumentation-integration.steps';
+// MFG-65: ReplayScene - CombatLogPlayer and SnapshotHydrator
+import './combat-log-player.steps';
+import './snapshot-hydrator.steps';

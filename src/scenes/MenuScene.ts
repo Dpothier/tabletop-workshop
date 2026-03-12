@@ -4,6 +4,8 @@ import { BattleBuilder } from '@src/builders/BattleBuilder';
 import { CharacterStorageService } from '@src/services/CharacterStorageService';
 import { CharacterSelectionPopup } from '@src/ui/CharacterSelectionPopup';
 import { CharacterManagementPanel } from '@src/ui/CharacterManagementPanel';
+import { CombatLogStorage } from '@src/recording/CombatLogStorage';
+import { CombatLogSerializer } from '@src/recording/CombatLogSerializer';
 import type { CharacterData } from '@src/types/CharacterData';
 
 export class MenuScene extends Phaser.Scene {
@@ -15,6 +17,16 @@ export class MenuScene extends Phaser.Scene {
   private startButton!: Phaser.GameObjects.Rectangle;
   private characterSelectionPopup!: CharacterSelectionPopup;
   private characterManagementPanel!: CharacterManagementPanel;
+  private recentCombats: Array<{
+    id: string;
+    monsterName: string;
+    outcome: 'victory' | 'defeat';
+    date: number;
+  }> = [];
+  private replayPanelVisible: boolean = false;
+  private errorMessage: string | null = null;
+  private fileInput?: HTMLInputElement;
+  private replayCombatButtons: Phaser.GameObjects.Rectangle[] = [];
 
   constructor() {
     super({ key: 'MenuScene' });
@@ -140,9 +152,25 @@ export class MenuScene extends Phaser.Scene {
     manageCharButton.on('pointerout', () => manageCharButton.setFillStyle(0x668899));
     manageCharButton.on('pointerdown', () => this.manageCharacters());
 
+    // Replay Combat Button
+    const replayBtn = this.add
+      .rectangle(centerX, 750, 180, 40, 0x885566)
+      .setInteractive({ useHandCursor: true });
+
+    this.add
+      .text(centerX, 750, 'Rejouer un combat', {
+        fontSize: '16px',
+        color: '#ffffff',
+      })
+      .setOrigin(0.5);
+
+    replayBtn.on('pointerover', () => replayBtn.setFillStyle(0x996677));
+    replayBtn.on('pointerout', () => replayBtn.setFillStyle(0x885566));
+    replayBtn.on('pointerdown', () => this.showReplayPanel());
+
     // Instructions
     this.add
-      .text(centerX, 740, 'Click arrows to select, then START BATTLE', {
+      .text(centerX, 790, 'Click arrows to select, then START BATTLE', {
         fontSize: '16px',
         color: '#666666',
       })
@@ -153,6 +181,22 @@ export class MenuScene extends Phaser.Scene {
 
     // Character Management Panel
     this.characterManagementPanel = new CharacterManagementPanel(this);
+
+    // Create hidden file input for replay panel
+    this.createFileInput();
+
+    // Expose state for E2E testing
+    (this as any).__menuReplayState = (): Record<string, any> => ({
+      hasReplayButton: true,
+      recentCombats: this.recentCombats.map((c) => ({
+        id: c.id,
+        monsterName: c.monsterName,
+        outcome: c.outcome,
+        date: c.date,
+      })),
+      replayPanelVisible: this.replayPanelVisible,
+      errorMessage: this.errorMessage,
+    });
   }
 
   private createSelector(
@@ -487,5 +531,164 @@ export class MenuScene extends Phaser.Scene {
     this.builder.withCharacterData(party);
     const state = this.builder.build();
     this.scene.start('BattleScene', { state });
+  }
+
+  private createFileInput(): void {
+    if (!this.fileInput) {
+      this.fileInput = document.createElement('input');
+      this.fileInput.type = 'file';
+      this.fileInput.accept = '.jsonl';
+      this.fileInput.style.display = 'none';
+      this.fileInput.onchange = () => this.handleFileUpload();
+      document.body.appendChild(this.fileInput);
+    }
+  }
+
+  private showReplayPanel(): void {
+    this.replayPanelVisible = true;
+    this.errorMessage = null;
+
+    const storage = new CombatLogStorage(localStorage);
+    this.recentCombats = storage.listRecordings().map((rec) => ({
+      id: rec.id,
+      monsterName: rec.monsterName,
+      outcome: rec.outcome,
+      date: typeof rec.date === 'number' ? rec.date : Date.now(),
+    }));
+
+    // Create panel UI
+    this.createReplayPanel();
+  }
+
+  private createReplayPanel(): void {
+    const centerX = this.cameras.main.width / 2;
+    const panelY = 250;
+
+    // Clear existing buttons
+    this.replayCombatButtons.forEach((btn) => btn.destroy());
+    this.replayCombatButtons = [];
+
+    // Panel background
+    this.add.rectangle(centerX, panelY, 400, 300, 0x222244, 0.9);
+
+    // Title
+    this.add
+      .text(centerX, panelY - 130, 'Recent Combats', {
+        fontSize: '20px',
+        color: '#ffffff',
+        fontStyle: 'bold',
+      })
+      .setOrigin(0.5);
+
+    // List recent combats
+    this.recentCombats.forEach((combat, index) => {
+      const yPos = panelY - 80 + index * 50;
+      const btn = this.add
+        .rectangle(centerX, yPos, 350, 40, 0x4a4a6a)
+        .setInteractive({ useHandCursor: true });
+
+      this.add
+        .text(centerX - 150, yPos, `${combat.monsterName} (${combat.outcome})`, {
+          fontSize: '14px',
+          color: '#ffffff',
+        })
+        .setOrigin(0, 0.5);
+
+      btn.on('pointerover', () => btn.setFillStyle(0x5a5a7a));
+      btn.on('pointerout', () => btn.setFillStyle(0x4a4a6a));
+      btn.on('pointerdown', () => {
+        this.selectCombatForReplay(combat.id);
+      });
+
+      this.replayCombatButtons.push(btn);
+    });
+
+    // File upload button
+    const uploadY = panelY + 80;
+    const uploadBtn = this.add
+      .rectangle(centerX - 100, uploadY, 80, 40, 0x4488cc)
+      .setInteractive({ useHandCursor: true });
+
+    this.add
+      .text(centerX - 100, uploadY, 'Upload', {
+        fontSize: '14px',
+        color: '#ffffff',
+      })
+      .setOrigin(0.5);
+
+    uploadBtn.on('pointerover', () => uploadBtn.setFillStyle(0x5599dd));
+    uploadBtn.on('pointerout', () => uploadBtn.setFillStyle(0x4488cc));
+    uploadBtn.on('pointerdown', () => {
+      this.fileInput?.click();
+    });
+
+    // Close button
+    const closeBtn = this.add
+      .rectangle(centerX + 100, uploadY, 80, 40, 0x884444)
+      .setInteractive({ useHandCursor: true });
+
+    this.add
+      .text(centerX + 100, uploadY, 'Close', {
+        fontSize: '14px',
+        color: '#ffffff',
+      })
+      .setOrigin(0.5);
+
+    closeBtn.on('pointerover', () => closeBtn.setFillStyle(0x995555));
+    closeBtn.on('pointerout', () => closeBtn.setFillStyle(0x884444));
+    closeBtn.on('pointerdown', () => {
+      this.hideReplayPanel();
+    });
+
+    // Error message if present
+    if (this.errorMessage) {
+      this.add
+        .text(centerX, panelY + 130, this.errorMessage, {
+          fontSize: '12px',
+          color: '#ff6666',
+          wordWrap: { width: 350 },
+          align: 'center',
+        })
+        .setOrigin(0.5);
+    }
+  }
+
+  private hideReplayPanel(): void {
+    this.replayPanelVisible = false;
+    this.replayCombatButtons.forEach((btn) => btn.destroy());
+    this.replayCombatButtons = [];
+  }
+
+  private handleFileUpload(): void {
+    const file = this.fileInput?.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const jsonl = reader.result as string;
+        const recording = CombatLogSerializer.fromJSONL(jsonl);
+        this.scene.start('ReplayScene', recording);
+      } catch (error) {
+        this.errorMessage = error instanceof Error ? error.message : 'Invalid JSONL file';
+        this.createReplayPanel();
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  private selectCombatForReplay(combatId: string): void {
+    const storage = new CombatLogStorage(localStorage);
+    const recording = storage.loadFromLocalStorage(combatId);
+    if (recording) {
+      this.scene.start('ReplayScene', recording);
+    }
+  }
+
+  shutdown(): void {
+    if (this.fileInput) {
+      this.fileInput.remove();
+      this.fileInput = undefined as any;
+    }
   }
 }

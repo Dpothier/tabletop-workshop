@@ -10,6 +10,8 @@ import type { TurnController } from '@src/systems/TurnController';
 import type { EffectRegistry } from '@src/systems/EffectRegistry';
 import type { BattleStateObserver } from '@src/systems/BattleStateObserver';
 import type { GameContext } from '@src/types/Effect';
+import type { CombatRecorder } from '@src/recording/CombatRecorder';
+import type { BattleSnapshot } from '@src/recording/BattleSnapshot';
 
 /**
  * Complete battle state constructed by BattleBuilder.
@@ -34,6 +36,10 @@ export interface BattleState {
   readonly turnController: TurnController;
   readonly effectRegistry: EffectRegistry;
   readonly stateObserver: BattleStateObserver;
+
+  // Instrumentation
+  readonly recorder?: CombatRecorder;
+  readonly initialSnapshot?: BattleSnapshot;
 
   // Factory function for creating game context
   readonly createGameContext: (actorId: string) => GameContext;
