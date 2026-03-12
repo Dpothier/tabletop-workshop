@@ -112,3 +112,5 @@ import './longbow.steps';
 import './maul.steps';
 // MFG-29: Greatsword - Heavy Melee weapon
 import './greatsword.steps';
+// MFG-28: Hatchet - Light Melee weapon
+import './hatchet.steps';

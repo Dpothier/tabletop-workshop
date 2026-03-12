@@ -355,3 +355,19 @@ equipment:
     passiveStats: {}
     rangeBands: []
     startsLoaded: false
+  - id: hatchet
+    name: Hatchet
+    category: light
+    slot: main-hand
+    power: 1
+    agility: 1
+    range: 1
+    penetration: 0
+    tags: [light, melee, throwable]
+    inventorySlots: 1
+    twoHanded: false
+    grantedModifiers: [chop]
+    grantedActions: [throw_hatchet]
+    passiveStats: {}
+    rangeBands: []
+    startsLoaded: false
