@@ -459,3 +459,20 @@ Total tests added: 91 unit scenarios across 7 stories
   - Early return skips grid/visual/animation setup (not needed for empty recording)
 - Note: E2E tests for ReplayScene are broken infrastructure-wide (launchReplayScene times out for all scenarios). Unit tests with Phaser mocks provide equivalent coverage.
 - Test count: 811 unit tests passing (4 new)
+
+[ITERATION 20] Story: MFG-72 — [BUG] No "Replay" button on VictoryScene
+- Result: SUCCESS
+- Phase RED: 4 unit scenarios written (victory-replay-button.feature)
+- Phase GREEN: Added Replay button to VictoryScene.create()
+- Key files created:
+  - features/unit/victory-replay-button.feature (4 scenarios)
+  - tests/steps/victory-replay-button.steps.ts (step definitions with Phaser mocks)
+- Key files modified:
+  - src/scenes/VictoryScene.ts (added Replay button, moved Exporter button down)
+  - tests/steps/index.ts (added victory-replay-button.steps import)
+- Key logic:
+  - Replay button only shows when this.recording exists AND entries.length > 0
+  - Clicking Replay calls this.scene.start('ReplayScene', this.recording)
+  - Button at centerY + 290 (Exporter moved to centerY + 360)
+  - Color 0x446688 with hover effect 0x557799
+- Test count: 815 unit tests passing (4 new)

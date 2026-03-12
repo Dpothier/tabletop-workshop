@@ -89,3 +89,5 @@ import './combat-log-player.steps';
 import './snapshot-hydrator.steps';
 // MFG-73: ReplayScene empty recording handling
 import './replay-empty-recording.steps';
+// MFG-72: VictoryScene Replay button
+import './victory-replay-button.steps';

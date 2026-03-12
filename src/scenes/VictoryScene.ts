@@ -101,14 +101,32 @@ export class VictoryScene extends Phaser.Scene {
       recording: this.recording,
     });
 
-    // Export button (only if recording exists)
-    if (this.recording) {
-      const exportBtn = this.add
-        .rectangle(centerX, centerY + 290, 200, 50, 0xaa6644)
+    // Replay button (only if recording exists and has entries)
+    if (this.recording && this.recording.entries.length > 0) {
+      const replayBtn = this.add
+        .rectangle(centerX, centerY + 290, 200, 50, 0x446688)
         .setInteractive({ useHandCursor: true });
 
       this.add
-        .text(centerX, centerY + 290, 'Exporter', {
+        .text(centerX, centerY + 290, 'Replay', {
+          fontSize: '24px',
+          color: '#ffffff',
+        })
+        .setOrigin(0.5);
+
+      replayBtn.on('pointerover', () => replayBtn.setFillStyle(0x557799));
+      replayBtn.on('pointerout', () => replayBtn.setFillStyle(0x446688));
+      replayBtn.on('pointerdown', () => this.scene.start('ReplayScene', this.recording));
+    }
+
+    // Export button (only if recording exists)
+    if (this.recording) {
+      const exportBtn = this.add
+        .rectangle(centerX, centerY + 360, 200, 50, 0xaa6644)
+        .setInteractive({ useHandCursor: true });
+
+      this.add
+        .text(centerX, centerY + 360, 'Exporter', {
           fontSize: '24px',
           color: '#ffffff',
         })
