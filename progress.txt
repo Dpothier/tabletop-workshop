@@ -532,3 +532,16 @@ Total tests added: 91 unit scenarios across 7 stories
   - tests/steps/turn-flow-controller.steps.ts (added snapshot-related steps)
   - features/e2e/victory-defeat.feature (added @wip E2E scenario for snapshot state)
 - Test count: 827 unit tests passing (2 new)
+
+[ITERATION 21] Story: MFG-67 — [BUG] CombatRecorder never wired — recording entries always empty
+- Result: SUCCESS
+- Phase RED: 2 unit scenarios (battle-builder-recorder.feature)
+- Phase GREEN: Added .withRecorder(new CombatRecorder()) to BattleBuilder chain in MenuScene
+- Key files created:
+  - features/unit/battle-builder-recorder.feature (2 scenarios)
+  - tests/steps/battle-builder-recorder.steps.ts (step definitions)
+- Key files modified:
+  - src/scenes/MenuScene.ts (added CombatRecorder import, added .withRecorder() to builder chain)
+  - tests/steps/index.ts (added battle-builder-recorder.steps import)
+  - features/e2e/combat-export-import.feature (added 2 @wip E2E scenarios for recording)
+- Test count: 829 unit tests passing (2 new)

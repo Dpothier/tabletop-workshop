@@ -6,6 +6,7 @@ import { CharacterSelectionPopup } from '@src/ui/CharacterSelectionPopup';
 import { CharacterManagementPanel } from '@src/ui/CharacterManagementPanel';
 import { CombatLogStorage } from '@src/recording/CombatLogStorage';
 import { CombatLogSerializer } from '@src/recording/CombatLogSerializer';
+import { CombatRecorder } from '@src/recording/CombatRecorder';
 import type { CharacterData } from '@src/types/CharacterData';
 
 export class MenuScene extends Phaser.Scene {
@@ -45,7 +46,8 @@ export class MenuScene extends Phaser.Scene {
       .withArena(this.gameData.arenas[0])
       .withPartySize(4)
       .withClasses(this.gameData.classes)
-      .withActions(this.gameData.actions);
+      .withActions(this.gameData.actions)
+      .withRecorder(new CombatRecorder());
 
     const centerX = this.cameras.main.width / 2;
 

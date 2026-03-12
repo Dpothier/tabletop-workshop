@@ -33,10 +33,7 @@ export class TurnFlowController {
     }
   }
 
-  private autoSaveRecording(recording: {
-    snapshot: BattleSnapshot;
-    entries: any[];
-  }): void {
+  private autoSaveRecording(recording: { snapshot: BattleSnapshot; entries: any[] }): void {
     try {
       const storage = new CombatLogStorage(localStorage);
       const recordingId = `${this.state.monster.name}-${Date.now()}`;

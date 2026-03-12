@@ -93,3 +93,5 @@ import './replay-empty-recording.steps';
 import './victory-replay-button.steps';
 // MFG-70: ReplayScene character names
 import './replay-character-names.steps';
+// MFG-67: BattleBuilder Recorder wiring
+import './battle-builder-recorder.steps';

@@ -50,6 +50,19 @@ Feature: Combat Export & Import
     Then the export-import ReplayScene should load
     And the export-import uploaded recording should be displayed
 
+  @wip
+  Scenario: Combat recording captures entries during a real battle
+    Given I have started a battle via character selection
+    When I play at least one full hero turn
+    Then the recorder should not be undefined
+    And the recorder should contain at least turn-start and wheel-advance entries
+
+  @wip
+  Scenario: Recording is passed to VictoryScene with non-empty entries
+    Given I have played a combat to completion with monster killed
+    Then VictoryScene recording entries should have length greater than 0
+    And the entries should include at least one attack-attempt and one combat-outcome entry
+
   Scenario: Loading an invalid JSONL file shows error message
     Given I am on the main menu
     When I export-import click the replay button

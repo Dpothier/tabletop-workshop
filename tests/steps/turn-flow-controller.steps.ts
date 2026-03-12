@@ -776,14 +776,11 @@ Given(
   }
 );
 
-Given(
-  'the battle state has no initialSnapshot',
-  function (world: TurnFlowControllerWorld) {
-    if (world.battleState) {
-      (world.battleState as any).initialSnapshot = undefined;
-    }
+Given('the battle state has no initialSnapshot', function (world: TurnFlowControllerWorld) {
+  if (world.battleState) {
+    (world.battleState as any).initialSnapshot = undefined;
   }
-);
+});
 
 Then(
   'the recording snapshot should have monster HP {int}',
@@ -800,15 +797,12 @@ Then(
   }
 );
 
-Then(
-  'adapter.transition should receive no recording',
-  function (world: TurnFlowControllerWorld) {
-    expect(world.battleAdapter!.transition).toHaveBeenCalled();
-    const calls = (world.battleAdapter!.transition as any).mock.calls;
-    expect(calls.length).toBeGreaterThan(0);
-    const lastCall = calls[calls.length - 1];
-    const params = lastCall[1];
-    expect(params).toBeDefined();
-    expect(params.recording).toBeUndefined();
-  }
-);
+Then('adapter.transition should receive no recording', function (world: TurnFlowControllerWorld) {
+  expect(world.battleAdapter!.transition).toHaveBeenCalled();
+  const calls = (world.battleAdapter!.transition as any).mock.calls;
+  expect(calls.length).toBeGreaterThan(0);
+  const lastCall = calls[calls.length - 1];
+  const params = lastCall[1];
+  expect(params).toBeDefined();
+  expect(params.recording).toBeUndefined();
+});
