@@ -76,6 +76,8 @@ import './strength-modifier.steps';
 import './guard-reaction.steps';
 // MFG-62: Equipment Data System
 import './equipment-data.steps';
+// MFG-33: Pistol - Ranged firearm weapon
+import './pistol.steps';
 // MFG-46: Sanctuary - Tear of Light zone spell
 import './sanctuary.steps';
 // MFG-45: Warp - Warping Stone teleportation spell

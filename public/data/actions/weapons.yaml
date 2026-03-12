@@ -377,6 +377,18 @@ actions:
         type: load
         params:
           weaponId: arquebus
+  - id: reload_pistol
+    name: Reload Pistol
+    category: other
+    description: Reload the pistol for the next shot
+    cost:
+      time: 2
+    parameters: []
+    effects:
+      - id: reload-pistol-effect
+        type: load
+        params:
+          weaponId: pistol
   - id: steadyAim
     name: Steady Aim
     category: modifier

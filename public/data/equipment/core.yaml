@@ -256,3 +256,31 @@ equipment:
         max: 20
         modifier: -2
     startsLoaded: true
+  - id: pistol
+    name: Pistol
+    category: ranged
+    slot: main-hand
+    power: 1
+    agility: 1
+    range: 12
+    penetration: 1
+    tags: [ranged, firearm]
+    inventorySlots: 1
+    twoHanded: false
+    grantedModifiers: []
+    grantedActions: [reload_pistol]
+    passiveStats: {}
+    rangeBands:
+      - name: short
+        min: 1
+        max: 4
+        modifier: 1
+      - name: medium
+        min: 5
+        max: 8
+        modifier: 0
+      - name: long
+        min: 9
+        max: 12
+        modifier: -2
+    startsLoaded: true
