@@ -545,3 +545,14 @@ Total tests added: 91 unit scenarios across 7 stories
   - tests/steps/index.ts (added battle-builder-recorder.steps import)
   - features/e2e/combat-export-import.feature (added 2 @wip E2E scenarios for recording)
 - Test count: 829 unit tests passing (2 new)
+
+## Epic MFG-59 — All Stories Complete
+All 7 stories pass:
+- MFG-73: ReplayScene empty recording handling ✅
+- MFG-72: VictoryScene Replay button ✅
+- MFG-71: Turn counter hardcoded fix ✅
+- MFG-70: Character names in ReplayScene ✅
+- MFG-69: Scene overlap fix ✅
+- MFG-68: Snapshot timing fix ✅
+- MFG-67: CombatRecorder wiring ✅
+Total tests: 829 unit (14 new this iteration)
