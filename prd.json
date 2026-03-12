@@ -42,7 +42,7 @@
       "id": "MFG-68",
       "title": "[BUG] Snapshot captures end-of-battle state instead of start",
       "priority": 3,
-      "passes": false,
+      "passes": true,
       "description": "Bug\n\nTurnFlowController.buildRecording() (line 25) calls createBattleSnapshot(this.state) at battle END. The snapshot reflects the final state: monster HP=0, heroes at final positions, depleted bead hands.\nResult: Even with recorded entries, replay would start from a dead-monster state.\nRoot Cause\n\nsrc/controllers/TurnFlowController.ts lines 20-31:\n```typescript\nprivate buildRecording() {\n  const snapshot = createBattleSnapshot(this.state); // Called at battle end!\n  const entries = this.state.recorder?.getEntries() || [];\n  return { snapshot, entries };\n}\n```\nNote: BattleBuilder line 174 does capture an initial snapshot if recorder exists, but this snapshot is stored on BattleState.initialSnapshot and buildRecording() ignores it — it creates a fresh one from current (end-of-battle) state.\nFix\n\nOption A: In buildRecording(), use this.state.initialSnapshot instead of calling createBattleSnapshot().\nOption B: Capture the snapshot in TurnFlowController.start() and store it as this.initialSnapshot for later use.\nThe key requirement: the snapshot passed to VictoryScene/ReplayScene must reflect the state at battle START (all heroes alive, monster at full HP, initial positions, initial bead hands).\nRequired E2E Tests\n\n- Scenario: Recording snapshot reflects battle start state — Play a combat to completion. Access the recording snapshot. Verify: monster HP equals maxHP, all characters are at full health, character positions match their spawn positions."
     },
     {

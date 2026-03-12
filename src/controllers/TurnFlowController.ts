@@ -2,7 +2,7 @@ import type { BattleState } from '@src/state/BattleState';
 import type { BattleAdapter } from '@src/types/BattleAdapter';
 import type { BattleStatus } from '@src/systems/TurnController';
 import { CombatLogStorage } from '@src/recording/CombatLogStorage';
-import { createBattleSnapshot } from '@src/recording/BattleSnapshot';
+import type { BattleSnapshot } from '@src/recording/BattleSnapshot';
 
 /**
  * TurnFlowController orchestrates the battle turn flow.
@@ -20,11 +20,12 @@ export class TurnFlowController {
   ) {}
 
   private buildRecording(): {
-    snapshot: ReturnType<typeof createBattleSnapshot>;
+    snapshot: BattleSnapshot;
     entries: any[];
   } | null {
     try {
-      const snapshot = createBattleSnapshot(this.state);
+      const snapshot = this.state.initialSnapshot;
+      if (!snapshot) return null;
       const entries = this.state.recorder?.getEntries() || [];
       return { snapshot, entries };
     } catch {
@@ -33,7 +34,7 @@ export class TurnFlowController {
   }
 
   private autoSaveRecording(recording: {
-    snapshot: ReturnType<typeof createBattleSnapshot>;
+    snapshot: BattleSnapshot;
     entries: any[];
   }): void {
     try {

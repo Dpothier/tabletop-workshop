@@ -11,6 +11,7 @@ import type { AnimationEvent } from '@src/types/AnimationEvent';
 import type { MonsterAction } from '@src/entities/MonsterEntity';
 import { Entity } from '@src/entities/Entity';
 import { BattleGrid } from '@src/state/BattleGrid';
+import type { BattleSnapshot } from '@src/recording/BattleSnapshot';
 
 interface TurnFlowControllerWorld extends QuickPickleWorld {
   turnFlowController?: TurnFlowController;
@@ -746,5 +747,68 @@ Then(
         turns: expectedTurns,
       })
     );
+  }
+);
+
+// ===== Snapshot timing tests (MFG-68) =====
+
+Given(
+  'the battle state has an initialSnapshot with monster HP {int}',
+  function (world: TurnFlowControllerWorld, monsterHP: number) {
+    const snapshot: BattleSnapshot = {
+      arena: { name: 'Test Arena', width: 9, height: 9 },
+      characters: [],
+      monster: {
+        id: 'monster',
+        name: world.monsterName || 'Monster',
+        position: { x: 0, y: 0 },
+        health: monsterHP,
+        maxHealth: monsterHP,
+        beadBag: { red: 0, blue: 0, green: 0, white: 0 },
+        stateMachine: undefined,
+      },
+      wheelEntries: [],
+      actionDefinitions: [],
+    };
+    if (world.battleState) {
+      (world.battleState as any).initialSnapshot = snapshot;
+    }
+  }
+);
+
+Given(
+  'the battle state has no initialSnapshot',
+  function (world: TurnFlowControllerWorld) {
+    if (world.battleState) {
+      (world.battleState as any).initialSnapshot = undefined;
+    }
+  }
+);
+
+Then(
+  'the recording snapshot should have monster HP {int}',
+  function (world: TurnFlowControllerWorld, expectedMonsterHP: number) {
+    expect(world.battleAdapter!.transition).toHaveBeenCalled();
+    const calls = (world.battleAdapter!.transition as any).mock.calls;
+    expect(calls.length).toBeGreaterThan(0);
+    const lastCall = calls[calls.length - 1];
+    const params = lastCall[1];
+    expect(params).toBeDefined();
+    expect(params.recording).toBeDefined();
+    expect(params.recording.snapshot).toBeDefined();
+    expect(params.recording.snapshot.monster.health).toBe(expectedMonsterHP);
+  }
+);
+
+Then(
+  'adapter.transition should receive no recording',
+  function (world: TurnFlowControllerWorld) {
+    expect(world.battleAdapter!.transition).toHaveBeenCalled();
+    const calls = (world.battleAdapter!.transition as any).mock.calls;
+    expect(calls.length).toBeGreaterThan(0);
+    const lastCall = calls[calls.length - 1];
+    const params = lastCall[1];
+    expect(params).toBeDefined();
+    expect(params.recording).toBeUndefined();
   }
 );

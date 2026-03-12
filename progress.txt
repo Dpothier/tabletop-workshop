@@ -520,3 +520,15 @@ Total tests added: 91 unit scenarios across 7 stories
   - tests/steps/victory-replay-button.steps.ts (added stop mock, new When/Then steps)
   - features/e2e/replay-scene.feature (added 2 @wip E2E scenarios for scene overlap)
 - Test count: 825 unit tests passing (2 new)
+
+[ITERATION 21] Story: MFG-68 — [BUG] Snapshot captures end-of-battle state instead of start
+- Result: SUCCESS
+- Phase RED: 2 unit scenarios (snapshot-timing.feature), 1 FAIL as expected
+- Phase GREEN: Use this.state.initialSnapshot instead of createBattleSnapshot()
+- Key files created:
+  - features/unit/turn-flow-controller/snapshot-timing.feature (2 scenarios)
+- Key files modified:
+  - src/controllers/TurnFlowController.ts (use initialSnapshot, change import to type-only BattleSnapshot)
+  - tests/steps/turn-flow-controller.steps.ts (added snapshot-related steps)
+  - features/e2e/victory-defeat.feature (added @wip E2E scenario for snapshot state)
+- Test count: 827 unit tests passing (2 new)
