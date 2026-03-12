@@ -365,3 +365,29 @@ actions:
       - id: block-effect
         type: block
         params: {}
+  - id: reload_arquebus
+    name: Reload Arquebus
+    category: other
+    description: Reload the arquebus for the next shot
+    cost:
+      time: 2
+    parameters: []
+    effects:
+      - id: reload-arquebus-effect
+        type: load
+        params:
+          weaponId: arquebus
+  - id: steadyAim
+    name: Steady Aim
+    category: modifier
+    description: Take careful aim for increased precision
+    cost:
+      time: 0
+      beads:
+        blue: 1
+    condition:
+      weaponTag: firearm
+    modifier:
+      agility: 1
+    parameters: []
+    effects: []

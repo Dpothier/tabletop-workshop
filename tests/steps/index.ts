@@ -100,3 +100,5 @@ import './shield.steps';
 import './buckler.steps';
 // MFG-35: Shield System - Foundation
 import './shield-system.steps';
+// MFG-34: Arquebus - Ranged firearm weapon
+import './arquebus.steps';

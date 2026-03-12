@@ -228,3 +228,31 @@ equipment:
       guard: 0
     rangeBands: []
     startsLoaded: false
+  - id: arquebus
+    name: Arquebus
+    category: ranged
+    slot: main-hand
+    power: 2
+    agility: 0
+    range: 20
+    penetration: 2
+    tags: [ranged, firearm]
+    inventorySlots: 2
+    twoHanded: true
+    grantedModifiers: [steadyAim]
+    grantedActions: [reload_arquebus]
+    passiveStats: {}
+    rangeBands:
+      - name: short
+        min: 1
+        max: 6
+        modifier: 1
+      - name: medium
+        min: 7
+        max: 14
+        modifier: 0
+      - name: long
+        min: 15
+        max: 20
+        modifier: -2
+    startsLoaded: true
