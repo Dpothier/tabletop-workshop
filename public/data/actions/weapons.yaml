@@ -572,3 +572,16 @@ actions:
       guard: 1
     parameters: []
     effects: []
+  - id: percer
+    name: Percer
+    category: modifier
+    description: Pierce through armor when target has no Guard or Evasion
+    cost:
+      beads:
+        green: 1
+    condition:
+      weaponTag: light
+    modifier:
+      percer: true
+    parameters: []
+    effects: []

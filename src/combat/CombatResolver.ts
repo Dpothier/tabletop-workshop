@@ -20,6 +20,7 @@ export function resolveAttack(
   const hasHeavy: boolean = modifiers.includes('heavy');
   const hasPrecise: boolean = modifiers.includes('precise');
   const hasSwift: boolean = modifiers.includes('swift');
+  const hasPercer: boolean = modifiers.includes('percer');
 
   // Precise adds +2 to agility for dodge check
   if (hasPrecise) {
@@ -37,7 +38,10 @@ export function resolveAttack(
 
   // Calculate effective defense based on modifiers
   let effectiveDefense: number;
-  if (hasFeint) {
+  if (hasPercer && defense.guard === 0 && defense.evasion === 0) {
+    // Percer: ignore armor when target has no guard and no evasion
+    effectiveDefense = 0;
+  } else if (hasFeint) {
     // Feint takes precedence: ignore guard, use armor only
     effectiveDefense = defense.armor;
   } else if (hasHeavy) {

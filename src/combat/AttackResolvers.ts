@@ -18,7 +18,8 @@ export type AttackType = 'melee' | 'ranged' | 'magical';
  */
 export function buildDefensiveOptions(
   handCounts: BeadCounts,
-  attackType?: AttackType
+  attackType?: AttackType,
+  defenderModifiers?: string[]
 ): OptionChoice[] {
   const options: OptionChoice[] = [];
 
@@ -34,6 +35,13 @@ export function buildDefensiveOptions(
       options.push({
         id: 'dodge-1',
         label: 'Spend 1 green bead for +1 Evasion (Dodge)',
+      });
+    }
+    // Parade: equipment-sourced guard reaction
+    if (defenderModifiers?.includes('parade') && handCounts.red > 0) {
+      options.push({
+        id: 'parade-1',
+        label: 'Parade: Spend 1 red bead for +1 Guard',
       });
     }
   } else if (attackType === 'ranged') {
@@ -91,6 +99,11 @@ export function applyDefensiveReaction(reactionId: string): {
   if (reactionId.startsWith('dodge-')) {
     const count = parseInt(reactionId.substring(6), 10);
     return { type: 'dodge', count };
+  }
+
+  if (reactionId.startsWith('parade-')) {
+    const count = parseInt(reactionId.substring(7), 10);
+    return { type: 'guard', count };
   }
 
   if (reactionId.startsWith('resist-')) {

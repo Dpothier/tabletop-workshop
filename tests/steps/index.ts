@@ -118,3 +118,5 @@ import './hatchet.steps';
 import './slicing-dagger.steps';
 // MFG-26: Throwing Dagger - Light Melee weapon
 import './throwing-dagger.steps';
+// MFG-25: Rondel Dagger - Light Melee weapon
+import './rondel-dagger.steps';

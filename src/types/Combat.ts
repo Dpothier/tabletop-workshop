@@ -13,7 +13,7 @@ export interface DefenseStats {
   evasion: number; // Dodge ability
 }
 
-export type AttackModifier = 'feint' | 'heavy' | 'precise' | 'swift';
+export type AttackModifier = 'feint' | 'heavy' | 'precise' | 'swift' | 'percer';
 
 export type CombatOutcome = 'hit' | 'dodged' | 'guarded';
 

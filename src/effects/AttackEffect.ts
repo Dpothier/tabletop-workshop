@@ -32,6 +32,11 @@ export class AttackEffect implements Effect {
     // Get attack modifiers from params
     const attackModifiers: AttackModifier[] = (params.modifiers as AttackModifier[]) ?? [];
 
+    // Add percer modifier if present
+    if (modifiers.percer) {
+      attackModifiers.push('percer');
+    }
+
     // Check adjacency - use context.actorId as the attacker
     const attackerId = context.actorId!;
     const isAdjacent = context.grid.isAdjacent(attackerId, targetId);
